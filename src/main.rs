@@ -11,8 +11,8 @@ use opengl_graphics::{GlGraphics, OpenGL};
 use graphics::*;
 
 const OPENGL: OpenGL = OpenGL::V3_2;
-const WIDTH: i64 = 800;
-const HEIGHT: i64 = 640;
+const WIDTH: i64 = 400;
+const HEIGHT: i64 = 400;
 
 pub struct Creature {
     x: f64,
@@ -67,14 +67,14 @@ impl App {
 
 
         let square_length = 20;
-        let field_width = 640 / square_length - 2;
-        let field_heigth = 800 / square_length - 2;
+        let field_width = WIDTH / square_length - 2;
+        let field_heigth = HEIGHT / square_length - 2;
         let mut vec: Vec<[f64; 4]> = Vec::new();
 
         for i in 0..field_heigth {
             for j in 0..field_width {
-                vec.push(rectangle::square((20 + square_length * i) as f64,
-                                           (20 + square_length * j) as f64,
+                vec.push(rectangle::square((20 + square_length * j) as f64,
+                                           (20 + square_length * i) as f64,
                                            square_length as f64));
             }
         }
@@ -91,10 +91,10 @@ impl App {
                 .trans(-25.0, -25.0);
 
             // Draw a box rotating around the middle of the screen.
-            for i in 0..(field_heigth) {
+            for i in 0..field_heigth {
                 for j in 0..field_width {
                     rectangle(if i % 2 == j % 2 { BLACK } else { WHITE },
-                              vec[i * field_width + j],
+                              vec[(i * field_width + j) as usize],
                               c.transform,
                               gl);
                 }
@@ -143,11 +143,8 @@ impl App {
 }
 
 fn main() {
-    // Change this to OpenGL::V2_1 if not working.
-
-
     // Create an Glutin window.
-    let mut window: Window = WindowSettings::new("spinning-square", [800, 640])
+    let mut window: Window = WindowSettings::new("spinning-square", [WIDTH as u32 , HEIGHT as u32])
         .opengl(OPENGL)
         .exit_on_esc(true)
         .build()
