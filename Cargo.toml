@@ -14,5 +14,7 @@ name = "spinning-square"
 piston_window = "0.62.0"
 find_folder = "*"
 gfx_device_gl = "0.13.0"
-piston2d-opengl_graphics = "0.38.0"
+gfx = "0.14.0"
+piston2d-gfx_graphics = "0.36.0"
+vecmath = "0.3.0"
 

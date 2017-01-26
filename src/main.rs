@@ -1,18 +1,23 @@
-
 extern crate piston_window;
+extern crate find_folder;
+extern crate gfx_device_gl;
+extern crate gfx_graphics;
+extern crate gfx;
+extern crate vecmath;
 
 use piston_window::*;
 
+mod creature;
+
+use creature::Creature;
 
 const WIDTH: i64 = 400;
 const HEIGHT: i64 = 400;
+const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
-pub struct Creature {
-    x: f64,
-    y: f64,
-    rot: f64,
-    rect: [f64; 4],
-}
 
 pub struct App {
     up_d: bool,
@@ -22,20 +27,7 @@ pub struct App {
     player: Creature,
 }
 
-impl Creature {
-    fn new() -> Self {
-        Creature {
-            x: (WIDTH / 2) as f64,
-            y: (HEIGHT / 2) as f64,
-            rot: 0.0,
-            rect: rectangle::square(0.0, 0.0, 50.0),
-        }
-    }
-    fn moves(&mut self, dx: f64, dy: f64) {
-        self.x = border_add(self.x, dx, true);
-        self.y = border_add(self.y, dy, false);
-    }
-}
+
 
 impl App {
     fn new() -> Self {
@@ -49,19 +41,10 @@ impl App {
     }
 
     fn on_draw(&mut self, args: &RenderArgs, mut w: &mut PistonWindow, e: &Event) {
-
-
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-        const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-        const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-        const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-
-
         let square_length = 20;
         let field_width = WIDTH / square_length - 2;
         let field_heigth = HEIGHT / square_length - 2;
-        let mut vec: Vec<[f64; 4]> = Vec::new();
-
+        let mut vec: Vec< [f64; 4] > = Vec::new();
         for i in 0..field_heigth {
             for j in 0..field_width {
                 vec.push(rectangle::square((20 + square_length * j) as f64,
@@ -70,28 +53,24 @@ impl App {
             }
         }
         let (x, y) = (self.player.x as f64, self.player.y as f64);
-        let player = self.player.rect;
+        let player = &self.player;
         let rotation = self.player.rot;
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(GREEN, gl);
-
-            let transform = c.transform
-                .trans(x, y)
-                .rot_rad(rotation)
-                .trans(-25.0, -25.0);
+            let center = c.transform.trans(0.0, 0.0);
 
             // Draw a box rotating around the middle of the screen.
             for i in 0..field_heigth {
                 for j in 0..field_width {
                     rectangle(if i % 2 == j % 2 { BLACK } else { WHITE },
                               vec[(i * field_width + j) as usize],
-                              c.transform,
+                              c.transform.trans(1.0,1.0),
                               gl);
                 }
             }
 
-            rectangle(RED, player, transform, gl);
+            player.render(gl, center);
         });
     }
 
@@ -130,6 +109,25 @@ impl App {
             _ => {}
         }
     }
+    fn on_load(&mut self, mut w: &mut PistonWindow) {
+    let assets = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap();
+    let tank_sprite = assets.join("warrior2.png");
+    let tank_sprite2 = Texture::from_path(
+            &mut w.factory,
+            &tank_sprite,
+            Flip::None,
+            &TextureSettings::new());
+    match tank_sprite2 {
+        Err(_) => {
+            println!("Empty");
+        },
+        Ok(x) => {
+            println!("Not Empty");
+            self.player.set_sprite(x);
+        }
+    }        
+    
+    }
 }
 
 fn main() {
@@ -141,6 +139,7 @@ fn main() {
 
     // Create a new game and run it.
     let mut app = App::new();
+    app.on_load(&mut window);
 
     let mut events = window.events();
 
