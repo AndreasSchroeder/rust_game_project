@@ -1,16 +1,9 @@
-extern crate piston;
-extern crate graphics;
-extern crate glutin_window;
-extern crate opengl_graphics;
 
-use piston::window::WindowSettings;
-use piston::event_loop::*;
-use piston::input::*;
-use glutin_window::GlutinWindow as Window;
-use opengl_graphics::{GlGraphics, OpenGL};
-use graphics::*;
+extern crate piston_window;
 
-const OPENGL: OpenGL = OpenGL::V3_2;
+use piston_window::*;
+
+
 const WIDTH: i64 = 400;
 const HEIGHT: i64 = 400;
 
@@ -22,7 +15,6 @@ pub struct Creature {
 }
 
 pub struct App {
-    gl: GlGraphics, // OpenGL drawing backend.
     up_d: bool,
     down_d: bool,
     left_d: bool,
@@ -48,7 +40,6 @@ impl Creature {
 impl App {
     fn new() -> Self {
         App {
-            gl: GlGraphics::new(OPENGL), // OpenGL drawing backend.
             up_d: false,
             down_d: false,
             left_d: false,
@@ -57,7 +48,7 @@ impl App {
         }
     }
 
-    fn render(&mut self, args: &RenderArgs) {
+    fn on_draw(&mut self, args: &RenderArgs, mut w: &mut PistonWindow, e: &Event) {
 
 
         const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
@@ -80,8 +71,8 @@ impl App {
         }
         let (x, y) = (self.player.x as f64, self.player.y as f64);
         let player = self.player.rect;
-                let rotation = self.player.rot;
-        self.gl.draw(args.viewport(), |c, gl| {
+        let rotation = self.player.rot;
+        w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(GREEN, gl);
 
@@ -99,12 +90,12 @@ impl App {
                               gl);
                 }
             }
-            
+
             rectangle(RED, player, transform, gl);
         });
     }
 
-    fn update(&mut self, args: &UpdateArgs) {
+    fn on_update(&mut self, args: &UpdateArgs) {
         // Rotate 2 radians per second.
         self.player.rot += 2.0 * args.dt;
         if self.up_d {
@@ -137,15 +128,13 @@ impl App {
                 self.right_d = pressed;
             }
             _ => {}
-
         }
     }
 }
 
 fn main() {
     // Create an Glutin window.
-    let mut window: Window = WindowSettings::new("spinning-square", [WIDTH as u32 , HEIGHT as u32])
-        .opengl(OPENGL)
+    let mut window: PistonWindow = WindowSettings::new("spinning-square", [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         .build()
         .unwrap();
@@ -158,11 +147,11 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         if let Some(r) = e.render_args() {
-            app.render(&r);
+            app.on_draw(&r, &mut window, &e);
         }
 
         if let Some(u) = e.update_args() {
-            app.update(&u);
+            app.on_update(&u);
         }
 
         if let Some(i) = e.press_args() {
