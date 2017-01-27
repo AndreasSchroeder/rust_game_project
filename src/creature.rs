@@ -8,7 +8,6 @@ use piston_window::*;
 pub struct Creature {
     pub x: f64,
     pub y: f64,
-    pub rot: f64,
     pub rect: [f64; 4],
     sprite: Option<Texture<Resources>>,
 }
@@ -17,7 +16,6 @@ impl Creature {
         Creature {
             x: (::WIDTH / 2) as f64,
             y: (::HEIGHT / 2) as f64,
-            rot: 0.0,
             rect: rectangle::square(0.0, 0.0, 50.0),
             sprite: None,
         }
@@ -39,9 +37,7 @@ impl Creature {
 
             }
             Some(ref sprite) => {
-                image(sprite,
-                      view.trans(self.x, self.y).trans(-50.0, -50.0),
-                      g);
+                image(sprite, view.trans(self.x, self.y).trans(-50.0, -50.0), g);
             }
         }
     }
