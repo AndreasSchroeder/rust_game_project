@@ -1,5 +1,6 @@
 use piston_window::*;
 use creature::Creature;
+use inventory::Inventory;
 
 pub struct Player {
     pub up_d: bool,
@@ -7,6 +8,9 @@ pub struct Player {
     pub left_d: bool,
     pub right_d: bool,
     pub creature: Creature,
+    pub life: i32,
+    pub dmg: i32,
+    pub inv: Inventory,
 }
 
 
@@ -18,6 +22,9 @@ impl Player {
             left_d: false,
             right_d: false,
             creature: Creature::new(),
+            life: 100,
+            dmg: 10,
+            inv: Inventory::new(),
         }
     }
     pub fn on_update(&mut self, args: &UpdateArgs) {
