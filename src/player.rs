@@ -8,7 +8,7 @@ pub struct Player {
     pub left_d: bool,
     pub right_d: bool,
     pub creature: Creature,
-    pub life: i32,
+    pub life: u32,
     pub dmg: i32,
     pub inv: Inventory,
 }

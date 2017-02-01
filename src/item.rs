@@ -1,3 +1,5 @@
 pub struct Item {
-    name: String,
+    pub name: String,
+    pub id: u32,
+    pub amount: u32,
 }

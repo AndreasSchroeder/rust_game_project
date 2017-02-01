@@ -11,6 +11,7 @@ mod creature;
 mod player;
 mod inventory;
 mod item;
+mod actor;
 
 use player::Player;
 use creature::Creature;
