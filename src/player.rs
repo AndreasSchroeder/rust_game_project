@@ -23,7 +23,7 @@ pub struct Player {
 impl Player {
     pub fn new(x: u64, y: u64) -> Self {
         Player {
-            interactable_type: InteractableType::player,
+            interactable_type: InteractableType::Player,
             up_d: false,
             down_d: false,
             left_d: false,
@@ -70,9 +70,9 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::player | InteractableType::bot => x.conv_to_actor().damage_taken(self.dmg),
-                        InteractableType::useable => {},
-                        InteractableType::collectable => {},
+                        InteractableType::Player | InteractableType::Bot => x.conv_to_actor().damage_taken(self.dmg),
+                        InteractableType::Useable => {},
+                        InteractableType::Collectable => {},
                     }
                 },
                 None => {},
