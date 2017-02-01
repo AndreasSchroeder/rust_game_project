@@ -1,5 +1,6 @@
 use piston_window::*;
 use creature::Creature;
+use coord::Coordinate;
 
 pub struct Player {
     pub up_d: bool,
@@ -7,17 +8,19 @@ pub struct Player {
     pub left_d: bool,
     pub right_d: bool,
     pub creature: Creature,
+    pub coord: Coordinate,
 }
 
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(x: u64, y: u64) -> Self {
         Player {
             up_d: false,
             down_d: false,
             left_d: false,
             right_d: false,
             creature: Creature::new(),
+            coord: Coordinate::new(x,y),
         }
     }
     pub fn on_update(&mut self, args: &UpdateArgs) {
