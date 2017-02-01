@@ -52,7 +52,7 @@ pub fn read_level(path: &str) -> Level {
         Err(e) => panic!("{:?}", e),
     };
 
-    let mut rows = buffer.split("\n").filter(|s| !s.is_empty());
+    let mut rows = buffer.lines().filter(|s| !s.is_empty());
 
     let first_row = match rows.next() {
         Some(x) => x,
