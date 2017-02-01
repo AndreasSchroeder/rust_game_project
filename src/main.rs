@@ -173,12 +173,32 @@ fn main() {
 
     let mut events = window.events();
 
-    let tileset = io::read_tileset("assets/tiles/tileset-pokemon_dawn.png", &mut window);
+    let folder = match find_folder::Search::Kids(1).for_folder("tiles") {
+        Ok(res) => res.join("tileset-pokemon_dawn.png"),
+        Err(_) => panic!("Folder 'tiles' not found!"),
+    };
 
-    let mut level = io::read_level("src/level1.lvl");
+    let file_path = match folder.to_str() {
+        Some(res) => res,
+        None => panic!("Tileset not found!"),
+    };
+
+    let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
+        Ok(res) => res.join("level1.lvl"),
+        Err(_) => panic!("Folder 'src' not found!"),
+    };
+
+    let level_path = match folder_level.to_str() {
+        Some(res) => res,
+        None => panic!("Level not found!"),
+    };
+
+    let tileset = io::read_tileset(file_path, &mut window);
+
+    let mut level = io::read_level(level_path);
 
     let mut start = PreciseTime::now();
-  
+
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
         //println!("{}", now);
