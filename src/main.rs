@@ -9,9 +9,11 @@ use piston_window::*;
 
 mod creature;
 mod player;
+mod field;
 
 use player::Player;
 use creature::Creature;
+use field::Field;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -24,7 +26,6 @@ const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-
 
 
 
@@ -87,17 +88,17 @@ impl App {
                     x.up_d = pressed;
                 }
             }
-             Button::Keyboard(Key::S) => {
+            Button::Keyboard(Key::S) => {
                 if let Some(ref mut x) = self.player_two {
                     x.down_d = pressed;
                 }
             }
-             Button::Keyboard(Key::A) => {
+            Button::Keyboard(Key::A) => {
                 if let Some(ref mut x) = self.player_two {
                     x.left_d = pressed;
                 }
             }
-             Button::Keyboard(Key::D) => {
+            Button::Keyboard(Key::D) => {
                 if let Some(ref mut x) = self.player_two {
                     x.right_d = pressed;
                 }
@@ -110,7 +111,7 @@ impl App {
         let mut player_one = &mut self.player_one;
         App::load_sprite(w, &mut player_one, SPRITE_P_1);
         if let Some(ref mut x) = self.player_two {
-           App::load_sprite(w, x, SPRITE_P_2);
+            App::load_sprite(w, x, SPRITE_P_2);
         }
 
     }
