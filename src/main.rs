@@ -12,7 +12,21 @@ mod creature;
 mod player;
 mod io;
 mod level;
+mod inventory;
+mod item;
+mod actor;
+mod field;
+mod interactable;
+mod coord;
+mod enums;
+mod camera;
 
+use camera::Cam;
+use player::Player;
+use creature::Creature;
+use field::Field;
+use interactable::Interactable;
+use coord::Coordinate;
 use player::Player;
 use creature::Creature;
 use io::{render_level, read_level};
@@ -23,16 +37,35 @@ use level::Level;
 const TWO_PLAYER: bool = true;
 const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
+const LEVEL_HEIGHT: u64 = 100;
+const LEVEL_WIDTH: u64 = 100;
 
-const WIDTH: i64 = 1200;
+const WIDTH:  i64 = 1200;
 const HEIGHT: i64 = 600;
 const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
+struct Coord {
+    x: f64,
+    y: f64,
+}
 
-
+impl Coord {
+    fn new(x: f64, y: f64) -> Self {
+        Coord {
+            x: x,
+            y: y,
+        }
+    }
+    fn origin() -> Self {
+        Coord::new(0.0,0.0)
+    }
+    fn get_coord(&self) ->(f64, f64) {
+        (self.x, self.y)
+    }
+}
 
 pub struct App {
     player_one: Player,
@@ -42,9 +75,11 @@ pub struct App {
 impl App {
     fn new(two_player: bool) -> Self {
         App {
-            player_one: Player::new(),
+            // 0,0 Dummy-Value
+            player_one: Player::new(0,0),
             player_two: if two_player {
-                Some(Player::new())
+                            // 0,0 Dummy-Value
+                Some(Player::new(0,0))
             } else {
                 None
             },
@@ -96,17 +131,17 @@ impl App {
                     x.up_d = pressed;
                 }
             }
-             Button::Keyboard(Key::S) => {
+            Button::Keyboard(Key::S) => {
                 if let Some(ref mut x) = self.player_two {
                     x.down_d = pressed;
                 }
             }
-             Button::Keyboard(Key::A) => {
+            Button::Keyboard(Key::A) => {
                 if let Some(ref mut x) = self.player_two {
                     x.left_d = pressed;
                 }
             }
-             Button::Keyboard(Key::D) => {
+            Button::Keyboard(Key::D) => {
                 if let Some(ref mut x) = self.player_two {
                     x.right_d = pressed;
                 }
@@ -119,7 +154,7 @@ impl App {
         let mut player_one = &mut self.player_one;
         App::load_sprite(w, &mut player_one, SPRITE_P_1);
         if let Some(ref mut x) = self.player_two {
-           App::load_sprite(w, x, SPRITE_P_2);
+            App::load_sprite(w, x, SPRITE_P_2);
         }
 
     }
@@ -135,7 +170,6 @@ impl App {
                 println!("Empty");
             }
             Ok(x) => {
-                println!("Not Empty");
                 player.creature.set_sprite(x);
             }
         }
