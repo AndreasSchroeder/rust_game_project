@@ -1,26 +1,26 @@
 use ::LEVEL_WIDTH;
 use ::LEVEL_HEIGHT;
 
-struct Coordinate {
+pub struct Coordinate {
     x: u64,
     y: u64,
 }
 
 impl Coordinate {
-    fn new(x: u64, y: u64) -> Self {
+    pub fn new(x: u64, y: u64) -> Self {
         Coordinate { x: x, y: y }
     }
-    fn origin() -> Self {
-        Coordinate::new(0, 0);
+    pub fn origin() -> Self {
+        Coordinate::new(0, 0)
     }
     
-    fn clone_coord(&self) -> Self{
+    pub fn clone_coord(&self) -> Self{
         Coordinate{
             x: self.x,
             y: self.y,
         }
     }
-    fn move_coord(&mut self, dx: u64, dy: u64) {
+    pub fn move_coord(&mut self, dx: u64, dy: u64) {
         let new_x = self.x + dx;
         let new_y = self.y + dy;
         self.x = if new_x < 0 {
