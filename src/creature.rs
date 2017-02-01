@@ -16,7 +16,7 @@ impl Creature {
         Creature {
             x: (::WIDTH / 2) as f64,
             y: (::HEIGHT / 2) as f64,
-            rect: rectangle::square(0.0, 0.0, 50.0),
+            rect: rectangle::square(0.0, 0.0, 64.0),
             sprite: None,
         }
     }
@@ -37,7 +37,7 @@ impl Creature {
 
             }
             Some(ref sprite) => {
-                image(sprite, view.trans(self.x, self.y).trans(-50.0, -50.0), g);
+                image(sprite, view.trans(self.x, self.y).trans(-15.0, -50.0), g);
             }
         }
     }
