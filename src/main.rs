@@ -4,8 +4,11 @@ extern crate gfx_device_gl;
 extern crate gfx_graphics;
 extern crate gfx;
 extern crate vecmath;
+extern crate time;
 
 use piston_window::*;
+use time::{Duration, PreciseTime};
+
 
 mod creature;
 mod player;
@@ -13,7 +16,7 @@ mod coord;
 mod camera;
 
 use camera::Cam;
-use player::Player;
+use player::{Player, LastKey};
 use coord::Coordinate;
 
 //EINGABEN
@@ -23,32 +26,12 @@ const SPRITE_P_2: &'static str = "paladin.png";
 const LEVEL_HEIGHT: u64 = 100;
 const LEVEL_WIDTH: u64 = 100;
 
-const WIDTH:  i64 = 1200;
+const WIDTH: i64 = 1200;
 const HEIGHT: i64 = 600;
 const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-
-struct Coord {
-    x: f64,
-    y: f64, 
-}
-
-impl Coord {
-    fn new(x: f64, y: f64) -> Self {
-        Coord {
-            x: x,
-            y: y,
-        }
-    }
-    fn origin() -> Self {
-        Coord::new(0.0,0.0)
-    }
-    fn get_coord(&self) ->(f64, f64) {
-        (self.x, self.y)
-    }
-}
 
 
 pub struct App {
@@ -60,10 +43,10 @@ impl App {
     fn new(two_player: bool) -> Self {
         App {
             // 0,0 Dummy-Value
-            player_one: Player::new(0,0),
+            player_one: Player::new(0, 0),
             player_two: if two_player {
-                            // 0,0 Dummy-Value
-                Some(Player::new(0,0))
+                // 0,0 Dummy-Value
+                Some(Player::new(0, 0))
             } else {
                 None
             },
@@ -93,49 +76,50 @@ impl App {
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
+        if pressed {
+            match inp {
+                Button::Keyboard(Key::Up) => {
+                    self.player_one.last = LastKey::Up;
+                }
+                Button::Keyboard(Key::Down) => {
+                    self.player_one.last = LastKey::Down;
+                }
+                Button::Keyboard(Key::Left) => {
+                    self.player_one.last = LastKey::Left;
+                }
+                Button::Keyboard(Key::Right) => {
+                    self.player_one.last = LastKey::Right;
+                }
+                Button::Keyboard(Key::W) => {
+                    if let Some(ref mut x) = self.player_two {
+                        x.last = LastKey::Up;
+                    }
+                }
+                Button::Keyboard(Key::S) => {
+                    if let Some(ref mut x) = self.player_two {
+                        x.last = LastKey::Down;
+                    }
+                }
+                Button::Keyboard(Key::A) => {
+                    if let Some(ref mut x) = self.player_two {
+                        x.last = LastKey::Left;
+                    }
+                }
+                Button::Keyboard(Key::D) => {
+                    if let Some(ref mut x) = self.player_two {
+                        x.last = LastKey::Right;
+                    }
+                }
 
-        match inp {
-            Button::Keyboard(Key::Up) => {
-                self.player_one.up_d = pressed;
+                _ => {}
             }
-            Button::Keyboard(Key::Down) => {
-                self.player_one.down_d = pressed;
-            }
-            Button::Keyboard(Key::Left) => {
-                self.player_one.left_d = pressed;
-            }
-            Button::Keyboard(Key::Right) => {
-                self.player_one.right_d = pressed;
-            }
-            Button::Keyboard(Key::W) => {
-                if let Some(ref mut x) = self.player_two {
-                    x.up_d = pressed;
-                }
-            }
-             Button::Keyboard(Key::S) => {
-                if let Some(ref mut x) = self.player_two {
-                    x.down_d = pressed;
-                }
-            }
-             Button::Keyboard(Key::A) => {
-                if let Some(ref mut x) = self.player_two {
-                    x.left_d = pressed;
-                }
-            }
-             Button::Keyboard(Key::D) => {
-                if let Some(ref mut x) = self.player_two {
-                    x.right_d = pressed;
-                }
-            }
-
-            _ => {}
         }
     }
     fn on_load(&mut self, mut w: &mut PistonWindow) {
         let mut player_one = &mut self.player_one;
         App::load_sprite(w, &mut player_one, SPRITE_P_1);
         if let Some(ref mut x) = self.player_two {
-           App::load_sprite(w, x, SPRITE_P_2);
+            App::load_sprite(w, x, SPRITE_P_2);
         }
 
     }
@@ -171,24 +155,29 @@ fn main() {
     app.on_load(&mut window);
 
     let mut events = window.events();
-
-
+    let mut start = PreciseTime::now();
     while let Some(e) = events.next(&mut window) {
+        let now = start.to(PreciseTime::now()).num_milliseconds();
+        //println!("{}", now);
+
         if let Some(r) = e.render_args() {
             app.on_draw(&r, &mut window, &e);
-        }
-
-        if let Some(u) = e.update_args() {
-            app.on_update(&u);
-        }
-
-        if let Some(i) = e.press_args() {
-            app.on_input(i, true);
         }
         if let Some(i) = e.release_args() {
             app.on_input(i, false);
         }
+        if let Some(i) = e.press_args() {
+            app.on_input(i, true);
+        }
+        if now > 500 {
+            if let Some(u) = e.update_args() {
+                app.on_update(&u);
+                start = PreciseTime::now();
+            }
+        }
+
     }
+
 }
 
 //UTIL//////////////////////////////

@@ -3,39 +3,46 @@ use creature::Creature;
 use coord::Coordinate;
 
 pub struct Player {
-    pub up_d: bool,
-    pub down_d: bool,
-    pub left_d: bool,
-    pub right_d: bool,
     pub creature: Creature,
     pub coord: Coordinate,
+    pub last: LastKey,
 }
 
 
 impl Player {
     pub fn new(x: u64, y: u64) -> Self {
         Player {
-            up_d: false,
-            down_d: false,
-            left_d: false,
-            right_d: false,
             creature: Creature::new(),
-            coord: Coordinate::new(x,y),
+            coord: Coordinate::new(x, y),
+            last: LastKey::Wait,
         }
     }
     pub fn on_update(&mut self, args: &UpdateArgs) {
         // Rotate 2 radians per second.
-        if self.up_d {
-            self.creature.moves(0.0, -1.0);
+
+        match self.last {
+            LastKey::Up => {
+                self.creature.moves(0.0, -50.0);
+            }
+            LastKey::Down => {
+                self.creature.moves(0.0, 50.0);
+            }
+            LastKey::Left => {
+                self.creature.moves(-50.0, 0.0);
+            }
+            LastKey::Right => {
+                self.creature.moves(50.0, 0.0);
+            }
+            _ => {}
         }
-        if self.down_d {
-            self.creature.moves(0.0, 1.0);
-        }
-        if self.right_d {
-            self.creature.moves(1.0, 0.0);
-        }
-        if self.left_d {
-            self.creature.moves(-1.0, 0.0);
-        }
+        self.last = LastKey::Wait;
     }
+}
+
+pub enum LastKey {
+    Up,
+    Down,
+    Left,
+    Right,
+    Wait,
 }
