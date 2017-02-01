@@ -12,12 +12,22 @@ use time::{Duration, PreciseTime};
 
 mod creature;
 mod player;
+mod inventory;
+mod item;
+mod actor;
+mod field;
+mod interactable;
 mod coord;
+mod enums;
 mod camera;
 
 use camera::Cam;
 use player::{Player, LastKey};
+use creature::Creature;
+use field::Field;
+use interactable::Interactable;
 use coord::Coordinate;
+
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -32,7 +42,6 @@ const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-
 
 pub struct App {
     player_one: Player,
