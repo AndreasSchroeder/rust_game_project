@@ -12,11 +12,17 @@ mod player;
 mod inventory;
 mod item;
 mod actor;
+mod field;
+mod object;
 mod coord;
 
 
 use player::Player;
+use creature::Creature;
+use field::Field;
+use object::Object;
 use coord::Coordinate;
+
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -51,7 +57,6 @@ impl Coord {
         (self.x, self.y)
     }
 }
-
 
 pub struct App {
     player_one: Player,
