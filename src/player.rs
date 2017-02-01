@@ -1,6 +1,7 @@
 use piston_window::*;
 use creature::Creature;
 use inventory::Inventory;
+use actor::Actor;
 
 pub struct Player {
     pub up_d: bool,
@@ -42,4 +43,9 @@ impl Player {
             self.creature.moves(-1.0, 0.0);
         }
     }
+}
+
+impl Actor for Player {
+    pub fn is_alive(&self) -> bool;
+    pub fn dying(&self);
 }

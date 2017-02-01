@@ -1,5 +1,5 @@
-trait Actor {
-    fn is_alive(&self) -> bool;
-    fn attack(&self, &mut Actor);
-    fn dead(&self);
+pub trait Actor {
+    pub fn is_alive(&self) -> bool;
+    //pub fn attack(&self);
+    pub fn dying(&self);
 }
