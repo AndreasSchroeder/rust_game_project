@@ -9,23 +9,44 @@ use piston_window::*;
 
 mod creature;
 mod player;
+mod coord;
 
 use player::Player;
-use creature::Creature;
+use coord::Coordinate;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
 const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
+const LEVEL_HEIGHT: u64 = 100;
+const LEVEL_WIDTH: u64 = 100;
 
-const WIDTH: i64 = 1200;
+const WIDTH:  i64 = 1200;
 const HEIGHT: i64 = 600;
 const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+//const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+//const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
+struct Coord {
+    x: f64,
+    y: f64, 
+}
 
+impl Coord {
+    fn new(x: f64, y: f64) -> Self {
+        Coord {
+            x: x,
+            y: y,
+        }
+    }
+    fn origin() -> Self {
+        Coord::new(0.0,0.0)
+    }
+    fn get_coord(&self) ->(f64, f64) {
+        (self.x, self.y)
+    }
+}
 
 
 pub struct App {
@@ -50,7 +71,7 @@ impl App {
         let player_two = &self.player_two;
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
-            clear(BLACK, gl);
+            clear(GREEN, gl);
             let center = c.transform.trans(0.0, 0.0);
             player_one.render(gl, center);
             if let Some(ref x) = *player_two {
@@ -126,7 +147,6 @@ impl App {
                 println!("Empty");
             }
             Ok(x) => {
-                println!("Not Empty");
                 player.creature.set_sprite(x);
             }
         }
