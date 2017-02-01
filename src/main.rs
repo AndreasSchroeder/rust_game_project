@@ -27,8 +27,6 @@ use creature::Creature;
 use field::Field;
 use interactable::Interactable;
 use coord::Coordinate;
-use player::Player;
-use creature::Creature;
 use io::{render_level, read_level};
 use io::tileset::Tileset;
 use level::Level;
