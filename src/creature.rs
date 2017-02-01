@@ -4,7 +4,6 @@ use gfx_graphics::GfxGraphics;
 
 use border_add;
 use piston_window::*;
-use object::Object;
 
 pub struct Creature {
     pub x: f64,
@@ -42,8 +41,4 @@ impl Creature {
             }
         }
     }
-}
-
-impl Object for Creature {
-    
 }

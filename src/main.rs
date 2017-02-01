@@ -9,17 +9,20 @@ use piston_window::*;
 
 mod creature;
 mod player;
-
+mod inventory;
+mod item;
+mod actor;
 mod field;
-mod object;
+mod interactable;
 mod coord;
+mod enums;
 mod camera;
 
 use camera::Cam;
 use player::Player;
 use creature::Creature;
 use field::Field;
-use object::Object;
+use interactable::Interactable;
 use coord::Coordinate;
 
 
@@ -39,7 +42,7 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
 struct Coord {
     x: f64,
-    y: f64, 
+    y: f64,
 }
 
 impl Coord {
