@@ -10,7 +10,9 @@ use piston_window::*;
 mod creature;
 mod player;
 mod coord;
+mod camera;
 
+use camera::Cam;
 use player::Player;
 use coord::Coordinate;
 
@@ -25,8 +27,8 @@ const WIDTH:  i64 = 1200;
 const HEIGHT: i64 = 600;
 const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-//const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-//const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
 struct Coord {
     x: f64,
@@ -57,9 +59,11 @@ pub struct App {
 impl App {
     fn new(two_player: bool) -> Self {
         App {
-            player_one: Player::new(),
+            // 0,0 Dummy-Value
+            player_one: Player::new(0,0),
             player_two: if two_player {
-                Some(Player::new())
+                            // 0,0 Dummy-Value
+                Some(Player::new(0,0))
             } else {
                 None
             },
@@ -71,7 +75,7 @@ impl App {
         let player_two = &self.player_two;
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
-            clear(GREEN, gl);
+            clear(BLACK, gl);
             let center = c.transform.trans(0.0, 0.0);
             player_one.render(gl, center);
             if let Some(ref x) = *player_two {
