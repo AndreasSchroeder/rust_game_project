@@ -10,10 +10,12 @@ use piston_window::*;
 mod creature;
 mod player;
 mod field;
+mod object;
 
 use player::Player;
 use creature::Creature;
 use field::Field;
+use object::Object;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;

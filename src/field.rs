@@ -1,11 +1,13 @@
-pub struct Field {
+use object::Object;
+
+pub struct Field<'a, T: 'a> {
     tiles: u64,          // Type of field 
     passable: bool,      // is field passable
-    contains: Option<u64>, // does field contains an object/enemy/player?
+    contains: Option<&'a T>, // does field contains an object/enemy/player?
 
 }
 
-impl Field {
+impl<'a, T> Field<'a, T> {
     pub fn new(typ: u64, pass: bool) -> Self {
         Field {
                 tiles: typ,
@@ -14,15 +16,21 @@ impl Field {
         }
     }
 
-    pub fn get_fieldstatus(&self) -> Option<u64> {
+    pub fn get_fieldstatus(&self) -> Option<&'a T> 
+    where T: Object {
         self.contains
     }
 
-    pub fn set_fieldstatus(&mut self, o: Option<u64>) {
+    pub fn set_fieldstatus(&mut self, o: Option<&'a T>) {
         self.contains = o;
     }
 
     pub fn free_fieldstatus(&mut self) {
         self.contains = None;
+    }
+
+    pub fn check_passable(&self) -> bool {
+        
+        self.passable && if let None = self.contains {true} else {false}
     }
 }
