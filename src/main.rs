@@ -12,7 +12,7 @@ mod player;
 mod coord;
 
 use player::Player;
-use coord::Coordinates;
+use coord::Coordinate;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
