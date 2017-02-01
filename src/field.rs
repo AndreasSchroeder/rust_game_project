@@ -1,7 +1,7 @@
-use object::Object;
+use interactable::Interactable;
 
 pub struct Field<'a, T: 'a> {
-    tiles: u64,          // Type of field 
+    tiles: u64,          // Type of field
     passable: bool,      // is field passable
     contains: Option<&'a T>, // does field contains an object/enemy/player?
 
@@ -16,8 +16,8 @@ impl<'a, T> Field<'a, T> {
         }
     }
 
-    pub fn get_fieldstatus(&self) -> Option<&'a T> 
-    where T: Object {
+    pub fn get_fieldstatus(&self) -> Option<&'a T>
+    where T: Interactable {
         self.contains
     }
 
@@ -30,7 +30,7 @@ impl<'a, T> Field<'a, T> {
     }
 
     pub fn check_passable(&self) -> bool {
-        
+
         self.passable && if let None = self.contains {true} else {false}
     }
 }

@@ -13,14 +13,15 @@ mod inventory;
 mod item;
 mod actor;
 mod field;
-mod object;
+mod interactable;
 mod coord;
+mod enums;
 
 
 use player::Player;
 use creature::Creature;
 use field::Field;
-use object::Object;
+use interactable::Interactable;
 use coord::Coordinate;
 
 
