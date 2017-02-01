@@ -4,6 +4,7 @@ extern crate gfx_device_gl;
 extern crate gfx_graphics;
 extern crate gfx;
 extern crate vecmath;
+extern crate image as im;
 extern crate time;
 
 use piston_window::*;
@@ -12,6 +13,8 @@ use time::{Duration, PreciseTime};
 
 mod creature;
 mod player;
+mod io;
+mod level;
 mod inventory;
 mod item;
 mod actor;
@@ -27,7 +30,9 @@ use creature::Creature;
 use field::Field;
 use interactable::Interactable;
 use coord::Coordinate;
-
+use io::{render_level, read_level};
+use io::tileset::Tileset;
+use level::Level;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -62,13 +67,16 @@ impl App {
         }
     }
 
-    fn on_draw(&mut self, args: &RenderArgs, mut w: &mut PistonWindow, e: &Event) {
+    fn on_draw(&mut self, args: &RenderArgs, mut w: &mut PistonWindow, e: &Event, tileset: &Tileset, mut level: &mut Level) {
         let player_one = &self.player_one.creature;
         let player_two = &self.player_two;
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
             let center = c.transform.trans(0.0, 0.0);
+
+            render_level(&tileset, gl, center, &mut level);
+
             player_one.render(gl, center);
             if let Some(ref x) = *player_two {
                 x.creature.render(gl, center);
@@ -164,13 +172,19 @@ fn main() {
     app.on_load(&mut window);
 
     let mut events = window.events();
+
+    let tileset = io::read_tileset("assets/tiles/tileset-pokemon_dawn.png", &mut window);
+
+    let mut level = io::read_level("src/level1.lvl");
+
     let mut start = PreciseTime::now();
+  
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
         //println!("{}", now);
 
         if let Some(r) = e.render_args() {
-            app.on_draw(&r, &mut window, &e);
+            app.on_draw(&r, &mut window, &e, &tileset, &mut level);
         }
         if let Some(i) = e.release_args() {
             app.on_input(i, false);

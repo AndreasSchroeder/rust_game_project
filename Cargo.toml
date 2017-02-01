@@ -17,5 +17,5 @@ gfx_device_gl = "0.13.0"
 gfx = "0.14.0"
 piston2d-gfx_graphics = "0.36.0"
 vecmath = "0.3.0"
+image = "0.12.2"
 time = "0.1"
-
