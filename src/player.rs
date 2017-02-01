@@ -4,6 +4,7 @@ use inventory::Inventory;
 use actor::Actor;
 use enums::InteractableType;
 use interactable::Interactable;
+use coord::Coordinate;
 
 pub struct Player {
     pub interactable_type: InteractableType,
@@ -15,11 +16,12 @@ pub struct Player {
     pub life: i32,
     pub dmg: i32,
     pub inv: Inventory,
+    pub coord: Coordinate,
 }
 
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(x: u64, y: u64) -> Self {
         Player {
             interactable_type: InteractableType::player,
             up_d: false,
@@ -30,6 +32,7 @@ impl Player {
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
+            coord: Coordinate::new(x,y),
         }
     }
 
