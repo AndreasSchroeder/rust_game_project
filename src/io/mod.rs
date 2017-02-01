@@ -11,7 +11,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::str::FromStr;
 use self::tileset::{Tileset, TILESET_HEIGHT, TILE_HEIGHT, TILESET_WIDTH, TILE_WIDTH};
-use ::level::Level;
+use level::Level;
 
 pub fn read_tileset(path: &str, mut w: &mut PistonWindow) -> Tileset {
 
@@ -27,12 +27,8 @@ pub fn read_tileset(path: &str, mut w: &mut PistonWindow) -> Tileset {
 
             let tile = ts.crop(j * TILE_WIDTH, i * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT).to_rgba();
 
-            tileset.get_set().push(
-                Texture::from_image(
-                    &mut w.factory,
-                    &tile,
-                    &TextureSettings::new()
-            ).unwrap());
+            tileset.get_set()
+                .push(Texture::from_image(&mut w.factory, &tile, &TextureSettings::new()).unwrap());
         }
     }
 
@@ -101,12 +97,10 @@ pub fn read_level(path: &str) -> Level {
     level
 }
 
-pub fn render_level(
-    tileset: &Tileset,
-    g: &mut GfxGraphics<Resources,CommandBuffer>,
-    view: math::Matrix2d,
-    level: &mut Level)
-{
+pub fn render_level(tileset: &Tileset,
+                    g: &mut GfxGraphics<Resources, CommandBuffer>,
+                    view: math::Matrix2d,
+                    level: &mut Level) {
     for i in 0..level.get_y() {
         for j in 0..level.get_x() {
             let tile = match tileset.get_texture(level.get_data()[i][j]) {
@@ -114,18 +108,22 @@ pub fn render_level(
                 None => panic!("No texture found."),
             };
 
-            render_tile(&tile, g, view, j as u32 * 16 + j as u32, i as u32 * 16 + i as u32);
+            render_tile(&tile,
+                        g,
+                        view,
+                        j as u32 * 16 + j as u32,
+                        i as u32 * 16 + i as u32);
         }
     }
 }
 
-pub fn render_tile(
-    texture: &Texture<Resources>,
-    g: &mut GfxGraphics<Resources, CommandBuffer>,
-    view: math::Matrix2d,
-    x_coord: u32,
-    y_coord: u32)
-{
+pub fn render_tile(texture: &Texture<Resources>,
+                   g: &mut GfxGraphics<Resources, CommandBuffer>,
+                   view: math::Matrix2d,
+                   x_coord: u32,
+                   y_coord: u32) {
     // Skaliere Tile um Faktor 4
-    image(texture, view.scale(4.0, 4.0).trans(x_coord as f64, y_coord as f64), g);
+    image(texture,
+          view.scale(4.0, 4.0).trans(x_coord as f64, y_coord as f64),
+          g);
 }
