@@ -50,7 +50,7 @@ impl App {
         let player_two = &self.player_two;
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
-            clear(GREEN, gl);
+            clear(BLACK, gl);
             let center = c.transform.trans(0.0, 0.0);
             player_one.render(gl, center);
             if let Some(ref x) = *player_two {
