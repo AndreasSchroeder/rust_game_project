@@ -10,7 +10,6 @@ extern crate time;
 use piston_window::*;
 use time::{Duration, PreciseTime};
 
-
 mod creature;
 mod player;
 mod io;
@@ -78,13 +77,14 @@ impl App {
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            let center = c.transform.trans(0.0, 0.0);
+            let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64, (self.player_one.coord.get_y() * 65) as f64);
+            let center_ts =c.transform.trans(0.0,0.0);
 
-            render_level(&tileset, gl, center, &mut level);
+            render_level(&tileset, gl, center_ts, &mut level);
 
-            player_one.render(gl, center);
+            player_one.render(gl, center_p1);
             if let Some(ref x) = *player_two {
-                x.creature.render(gl, center);
+                x.creature.render(gl, center_p1);
             }
         });
     }

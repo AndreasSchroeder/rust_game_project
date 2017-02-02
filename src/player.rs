@@ -37,16 +37,16 @@ impl Player {
 
         match self.last {
             LastKey::Up => {
-                self.creature.moves(0.0, -64.0);
+                self.creature.moves(0.0, -65.0);
             }
             LastKey::Down => {
-                self.creature.moves(0.0, 64.0);
+                self.creature.moves(0.0, 65.0);
             }
             LastKey::Left => {
-                self.creature.moves(-64.0, 0.0);
+                self.creature.moves(-65.0, 0.0);
             }
             LastKey::Right => {
-                self.creature.moves(64.0, 0.0);
+                self.creature.moves(65.0, 0.0);
             }
             _ => {}
         }

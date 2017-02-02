@@ -77,21 +77,19 @@ pub fn read_level(path: &str) -> Level {
 
     let mut level = Level::with_size(x_new, y_new);
 
-    let mut i = 0;
-    let mut j = 0;
+
     // Zeilen
-    for s in rows {
-        j = 0;
+    for (i, s) in rows.enumerate() {
         // Spalten
-        for c in s.split(" ").filter(|s| !s.is_empty()) {
+        for (j, c) in s.split(" ").filter(|s| !s.is_empty()).enumerate() {
             let n = match u32::from_str(c) {
                 Ok(a) => a,
                 Err(e) => panic!("{:?}", e),
             };
             level.get_data()[i][j] = n;
-            j += 1;
+
         }
-        i += 1;
+
     }
 
     level
@@ -111,8 +109,10 @@ pub fn render_level(tileset: &Tileset,
             render_tile(&tile,
                         g,
                         view,
-                        j as u32 * 16 + j as u32,
-                        i as u32 * 16 + i as u32);
+                        j as u32 * 16 *4,
+                        i as u32 * 16*4,
+                        i as u32,
+                        j as u32);
         }
     }
 }
@@ -121,9 +121,11 @@ pub fn render_tile(texture: &Texture<Resources>,
                    g: &mut GfxGraphics<Resources, CommandBuffer>,
                    view: math::Matrix2d,
                    x_coord: u32,
-                   y_coord: u32) {
+                   y_coord: u32,
+                   offset_x: u32,
+                   offset_y: u32,) {
     // Skaliere Tile um Faktor 4
     image(texture,
-          view.scale(4.0, 4.0).trans(x_coord as f64, y_coord as f64),
+          view.trans((x_coord)as f64, (y_coord) as f64).scale(4.0, 4.0),
           g);
 }
