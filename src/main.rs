@@ -23,31 +23,28 @@ mod coord;
 mod enums;
 mod camera;
 
-use camera::Cam;
+use camera::{Cam, Range};
 use player::{Player, LastKey};
 use creature::Creature;
 use field::Field;
 use interactable::Interactable;
 use coord::Coordinate;
-use io::{render_level, read_level};
-use io::tileset::Tileset;
+use io::{render_level, read_level, render_tile};
+use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
 const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
-const LEVEL_HEIGHT: u64 = 100;
-const LEVEL_WIDTH: u64 = 100;
-const CAMERA_BUF_X: u64 = 10;
-const CAMERA_BUF_Y: u64 = 8;
+const CAMERA_BUF_X: u64 = 4;
+const CAMERA_BUF_Y: u64 = 4;
 
 const WIDTH: i64 = 1600;
 const HEIGHT: i64 = 900;
-const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+
 const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
 pub struct App {
     player_one: Player,
@@ -70,6 +67,7 @@ impl App {
         }
     }
 
+
     fn on_draw(&mut self,
                args: &RenderArgs,
                mut w: &mut PistonWindow,
@@ -78,6 +76,10 @@ impl App {
                mut level: &mut Level) {
         let player_one = &self.player_one.creature;
         let player_two = &self.player_two;
+        let coord1 = self.player_one.coord.clone();
+        let mut coord2 = coord1.clone();
+        self.cam.calc_coordinates(coord1, coord2);
+        let range = self.cam.get_range();
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
@@ -85,25 +87,41 @@ impl App {
                                               (self.player_one.coord.get_y() * 65) as f64);
             let center_lv = c.transform.trans(0.0, 0.0);
 
-            render_level(&tileset, gl, center_lv, &mut level);
+            //render_level(&tileset, gl, center_lv, &mut level);
+            for i in range.x_min..range.x_max {
+                for j in range.y_min..range.y_max {
+                    let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
+                    Some(x) => x,
+                    None => panic!("No texture found."),
+                    };
+                    // DEBUG
+                    //println!("{} {}", i, j);
+                    render_tile(&tile, gl, center_lv,  j as u32 * TILE_HEIGHT,
+                            i as u32 * TILE_WIDTH,
+                            i as u32,
+                            j as u32);
+
+                }
+            }
 
             player_one.render(gl, center_p1);
             if let Some(ref x) = *player_two {
                 x.creature.render(gl, center_p1);
             }
-        });
+        }); 
     }
 
-    fn on_update(&mut self, args: &UpdateArgs) {
+    fn on_update(&mut self,
+                 args: &UpdateArgs,) {
 
-        let coord1 = self.player_one.coord;
-        let mut coord2 = coord1;
+
         self.player_one.on_update(args);
         if let Some(ref mut x) = self.player_two {
-            coord2 = x.coord;
+           
             x.on_update(args);
         }
-        self.cam.calc_coordinates(coord1, coord2);
+        
+
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
@@ -237,6 +255,7 @@ fn main() {
     let mut level = io::read_level(level_path);
 
     let mut start = PreciseTime::now();
+    app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
 
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
