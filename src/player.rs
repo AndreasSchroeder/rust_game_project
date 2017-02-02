@@ -15,6 +15,8 @@ pub struct Player {
     pub last: LastKey,
     pub pressed: bool,
     pub interactable_type: InteractableType,
+    level_w: u64,
+    level_h: u64,
 }
 
 
@@ -29,7 +31,14 @@ impl Player {
             dmg: 10,
             inv: Inventory::new(),
             pressed: false,
+            level_w: 0,
+            level_h: 0
         }
+    }
+    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+        self.level_w = w;
+        self.level_h = h;
+
     }
 
     pub fn on_update(&mut self, args: &UpdateArgs) {
@@ -37,16 +46,20 @@ impl Player {
 
         match self.last {
             LastKey::Up => {
-                self.creature.moves(0.0, -65.0);
+                self.coord.move_coord(0, -1, self.level_w, self.level_h);
+                //self.creature.moves(0.0, -65.0);
             }
             LastKey::Down => {
-                self.creature.moves(0.0, 65.0);
+                self.coord.move_coord(0, 1, self.level_w, self.level_h);
+                //self.creature.moves(0.0, 65.0);
             }
             LastKey::Left => {
-                self.creature.moves(-65.0, 0.0);
+                self.coord.move_coord(-1, 0, self.level_w, self.level_h);                
+                //self.creature.moves(-65.0, 0.0);
             }
             LastKey::Right => {
-                self.creature.moves(65.0, 0.0);
+                self.coord.move_coord(1, 0, self.level_w, self.level_h);                
+                //self.creature.moves(65.0, 0.0);
             }
             _ => {}
         }

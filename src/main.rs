@@ -23,33 +23,29 @@ mod coord;
 mod enums;
 mod camera;
 
-use camera::Cam;
+use camera::{Cam};
 use player::{Player, LastKey};
-use creature::Creature;
-use field::Field;
-use interactable::Interactable;
-use coord::Coordinate;
-use io::{render_level, read_level};
-use io::tileset::Tileset;
+use io::{ render_tile};
+use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
 
 //EINGABEN
-const TWO_PLAYER: bool = true;
+const TWO_PLAYER: bool = false;
 const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
-const LEVEL_HEIGHT: u64 = 100;
-const LEVEL_WIDTH: u64 = 100;
+const CAMERA_BUF_X: u64 = 4;
+const CAMERA_BUF_Y: u64 = 4;
 
 const WIDTH: i64 = 1600;
 const HEIGHT: i64 = 900;
-const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+
 const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
-const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
 pub struct App {
     player_one: Player,
     player_two: Option<Player>,
+    cam: Cam,
 }
 
 impl App {
@@ -63,38 +59,70 @@ impl App {
             } else {
                 None
             },
+            cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
 
+
     fn on_draw(&mut self,
-               args: &RenderArgs,
                mut w: &mut PistonWindow,
                e: &Event,
                tileset: &Tileset,
-               mut level: &mut Level) {
+               level: &mut Level) {
         let player_one = &self.player_one.creature;
         let player_two = &self.player_two;
+        let coord1 = self.player_one.coord.clone();
+        let mut coord2 = coord1.clone();
+        if let Some(ref p2) = *player_two {
+            coord2 = p2.coord.clone();
+        }
+        self.cam.calc_coordinates(coord1, coord2);
+        let range = self.cam.get_range();
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64, (self.player_one.coord.get_y() * 65) as f64);
-            let center_ts =c.transform.trans(0.0,0.0);
+            
+            let center_lv = c.transform.trans(0.0, 0.0);
 
-            render_level(&tileset, gl, center_ts, &mut level);
-
-            player_one.render(gl, center_p1);
-            if let Some(ref x) = *player_two {
-                x.creature.render(gl, center_p1);
+            //render_level(&tileset, gl, center_lv, &mut level);
+            for (h, j) in (range.x_min..range.x_max).enumerate() {
+                for (w, i) in (range.y_min..range.y_max).enumerate() {
+                    let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
+                    Some(x) => x,
+                    None => panic!("No texture found."),
+                    };
+                    // DEBUG
+                    //println!("{} {}", i, j);
+                    render_tile(&tile, gl, center_lv,  h as u32 * TILE_HEIGHT,
+                            w as u32 * TILE_WIDTH,
+                            w as u32,
+                            h as u32);
+                }
             }
-        });
+            let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
+                                              ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
+            player_one.render(gl, center_p1);
+            if let Some(ref p2) = *player_two {
+                let center_p2 = c.transform.trans(((p2.coord.get_x() - range.x_min) * 65) as f64,
+
+                                              ((p2.coord.get_y() - range.y_min )* 65) as f64);
+                 p2.creature.render(gl, center_p2);
+
+            }
+        }); 
     }
 
-    fn on_update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
+    fn on_update(&mut self,
+                 args: &UpdateArgs,) {
+
+
         self.player_one.on_update(args);
         if let Some(ref mut x) = self.player_two {
+           
             x.on_update(args);
         }
+        
+
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
@@ -197,6 +225,7 @@ fn main() {
         .unwrap();
 
     // Create a new game and run it.
+
     let mut app = App::new(TWO_PLAYER);
     app.on_load(&mut window);
 
@@ -227,13 +256,18 @@ fn main() {
     let mut level = io::read_level(level_path);
 
     let mut start = PreciseTime::now();
+    app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
+    app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
+    if let Some(ref mut p2) = app.player_two {
+        p2.set_borders((level.get_x() as u64, level.get_y()as u64));
+    }
 
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
         //println!("{}", now);
 
-        if let Some(r) = e.render_args() {
-            app.on_draw(&r, &mut window, &e, &tileset, &mut level);
+        if let Some(_) = e.render_args() {
+            app.on_draw(&mut window, &e, &tileset, &mut level);
         }
         if let Some(i) = e.release_args() {
             app.on_input(i, false);
