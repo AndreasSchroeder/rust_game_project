@@ -40,8 +40,8 @@ const SPRITE_P_2: &'static str = "paladin.png";
 const LEVEL_HEIGHT: u64 = 100;
 const LEVEL_WIDTH: u64 = 100;
 
-const WIDTH: i64 = 1200;
-const HEIGHT: i64 = 600;
+const WIDTH: i64 = 1600;
+const HEIGHT: i64 = 900;
 const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
 const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -192,6 +192,7 @@ fn main() {
     let mut window: PistonWindow = WindowSettings::new("spinning-square",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
+        //.fullscreen(true)
         .build()
         .unwrap();
 
