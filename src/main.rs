@@ -78,6 +78,9 @@ impl App {
         let player_two = &self.player_two;
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
+        if let Some(ref p2) = *player_two {
+            coord2 = p2.coord.clone();
+        }
         self.cam.calc_coordinates(coord1, coord2);
         let range = self.cam.get_range();
         w.draw_2d(e, |c, gl| {
@@ -100,10 +103,8 @@ impl App {
                             i as u32 * TILE_WIDTH,
                             i as u32,
                             j as u32);
-
                 }
             }
-
             player_one.render(gl, center_p1);
             if let Some(ref x) = *player_two {
                 x.creature.render(gl, center_p1);
