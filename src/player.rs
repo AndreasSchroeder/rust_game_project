@@ -5,6 +5,7 @@ use actor::Actor;
 use enums::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
+use camera::Range;
 
 pub struct Player {
     pub creature: Creature,
@@ -41,24 +42,24 @@ impl Player {
 
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs) {
+    pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
         // Rotate 2 radians per second.
 
         match self.last {
             LastKey::Up => {
-                self.coord.move_coord(0, -1, self.level_w, self.level_h);
+                self.coord.move_coord_with_cam(0, -1, self.level_w, self.level_h, range);
                 //self.creature.moves(0.0, -65.0);
             }
             LastKey::Down => {
-                self.coord.move_coord(0, 1, self.level_w, self.level_h);
+                self.coord.move_coord_with_cam(0, 1, self.level_w, self.level_h, range);
                 //self.creature.moves(0.0, 65.0);
             }
             LastKey::Left => {
-                self.coord.move_coord(-1, 0, self.level_w, self.level_h);                
+                self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);                
                 //self.creature.moves(-65.0, 0.0);
             }
             LastKey::Right => {
-                self.coord.move_coord(1, 0, self.level_w, self.level_h);                
+                self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);                
                 //self.creature.moves(65.0, 0.0);
             }
             _ => {}

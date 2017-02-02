@@ -1,3 +1,5 @@
+use camera::Range;
+
 #[derive(Copy, Clone, Debug)]
 pub struct Coordinate {
     x: u64,
@@ -19,14 +21,20 @@ impl Coordinate {
         self.y
     }
 
-    pub fn move_coord(&mut self, dx: i64, dy: i64, level_width: u64, level_height: u64) {
-        self.move_coord_with_buf(dx, dy, 0, 0, level_width, level_height);
+    pub fn move_coord_with_cam(&mut self, dx: i64, dy: i64, level_width: u64, level_height: u64, range: Range) {
+        self.move_coord_without_cam(dx, dy, 0, 0, level_width, level_height);
+        self.cam_border(range);
     }
     pub fn set_coord(&mut self, x: u64, y: u64) {
         self.x = x;
         self.y = y;
     }
-    pub fn move_coord_with_buf(&mut self, dx: i64, dy: i64, mut buf_x: u64, mut buf_y: u64, level_width: u64, level_height: u64) {
+    fn cam_border( &mut self, range: Range) {
+        self.x = if self.x < range.x_min { range.x_min } else if self.x >= range.x_max { range.x_max - 1 } else { self.x };
+        self.y = if self.y < range.y_min { range.y_min } else if self.y >= range.y_max { range.y_max - 1 } else { self.y };
+    }
+
+    pub fn move_coord_without_cam(&mut self, dx: i64, dy: i64, mut buf_x: u64, mut buf_y: u64, level_width: u64, level_height: u64) {
         buf_x = if level_width < buf_x {
             level_width
         } else {
