@@ -19,12 +19,6 @@ impl Coordinate {
         self.y
     }
 
-    pub fn clone_coord(&self) -> Self {
-        Coordinate {
-            x: self.x,
-            y: self.y,
-        }
-    }
     pub fn move_coord(&mut self, dx: i64, dy: i64, level_width: u64, level_height: u64) {
         self.move_coord_with_buf(dx, dy, 0, 0, level_width, level_height);
     }
@@ -43,8 +37,8 @@ impl Coordinate {
         } else {
             buf_y
         };
-        let new_x = (self.x as i64 + dx) as u64;
-        let new_y = (self.y as i64 + dy) as u64;
+        let new_x = if (self.x as i64 + dx) < 0 { 0 } else {(self.x as i64 + dx) as u64};
+        let new_y = if (self.y as i64 + dy) < 0 { 0 } else {(self.y as i64 + dy) as u64};
         self.x = if new_x < buf_x {
             buf_x
         } else if new_x > level_width - buf_x {
