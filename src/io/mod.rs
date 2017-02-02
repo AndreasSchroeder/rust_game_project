@@ -12,6 +12,7 @@ use std::io::prelude::*;
 use std::str::FromStr;
 use self::tileset::{Tileset, TILESET_HEIGHT, TILE_HEIGHT, TILESET_WIDTH, TILE_WIDTH};
 use level::Level;
+use field::Field;
 
 const SCALE_FACTOR : f64 = 4.0;
 
@@ -84,14 +85,12 @@ pub fn read_level(path: &str) -> Level {
     for (i, s) in rows.enumerate() {
         // Spalten
         for (j, c) in s.split(" ").filter(|s| !s.is_empty()).enumerate() {
-            let n = match u32::from_str(c) {
+            let n = match u64::from_str(c) {
                 Ok(a) => a,
                 Err(e) => panic!("{:?}", e),
             };
-            level.get_data()[i][j] = n;
-
+            level.get_data()[i][j] = Field::new(n);
         }
-
     }
 
     level
@@ -103,7 +102,7 @@ pub fn render_level(tileset: &Tileset,
                     level: &mut Level) {
     for i in 0..level.get_y() {
         for j in 0..level.get_x() {
-            let tile = match tileset.get_texture(level.get_data()[i][j]) {
+            let tile = match tileset.get_texture(level.get_data()[i][j].get_id()) {
                 Some(x) => x,
                 None => panic!("No texture found."),
             };
