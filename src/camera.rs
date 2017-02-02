@@ -31,12 +31,15 @@ impl Cam {
         let new_x = (coord1.get_x() + coord2.get_x()) / 2;
         let new_y = (coord1.get_y() + coord2.get_y()) / 2;
         self.coord.set_coord(new_x, new_y);
-        self.coord.move_coord_with_buf(0, 0, self.buf_x, self.buf_y, self.level_w, self.level_h);
+        self.coord.move_coord_without_cam(0, 0, self.buf_x, self.buf_y, self.level_w, self.level_h);
 
 
     }
-    pub fn get_range(&mut self) -> Range {
+    pub fn get_range_update(&mut self) -> Range {
         self.range = Range::calc_range(self.buf_x, self.buf_y, self);
+        self.range
+    }
+    pub fn get_range(&mut self) -> Range {
         self.range
     }
 }
@@ -69,18 +72,23 @@ impl Range {
         } else {
             cam.coord.get_y() - buf_y
         };
-        new.x_max = if cam.coord.get_x() + buf_x > cam.level_w {
+        new.x_max = if cam.coord.get_x() + buf_x + 1 > cam.level_w {
             cam.level_w
         } else {
-            cam.coord.get_x() + buf_x
+            cam.coord.get_x() + buf_x + 1
         };
-        new.y_max = if cam.coord.get_y() + buf_y > cam.level_h {
+        new.y_max = if cam.coord.get_y() + buf_y + 1 > cam.level_h {
             cam.level_h
         } else {
-            cam.coord.get_y() + buf_y
+            cam.coord.get_y() + buf_y + 1
         };
         // DEBUG
-        //println!("Camera.rs Debug: {} {} {} {} coord: {:?}", new.x_max, new.x_min, new.y_max, new.y_min, cam.coord);
+        /*println!("Camera.rs Debug: {} {} {} {} coord: {:?}",
+                 new.x_max,
+                 new.x_min,
+                 new.y_max,
+                 new.y_min,
+                 cam.coord); */
         new
 
     }

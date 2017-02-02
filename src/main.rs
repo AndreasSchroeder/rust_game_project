@@ -30,7 +30,7 @@ use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
 
 //EINGABEN
-const TWO_PLAYER: bool = false;
+const TWO_PLAYER: bool = true;
 const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
 const CAMERA_BUF_X: u64 = 4;
@@ -71,12 +71,7 @@ impl App {
                level: &mut Level) {
         let player_one = &self.player_one.creature;
         let player_two = &self.player_two;
-        let coord1 = self.player_one.coord.clone();
-        let mut coord2 = coord1.clone();
-        if let Some(ref p2) = *player_two {
-            coord2 = p2.coord.clone();
-        }
-        self.cam.calc_coordinates(coord1, coord2);
+
         let range = self.cam.get_range();
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
@@ -114,14 +109,22 @@ impl App {
 
     fn on_update(&mut self,
                  args: &UpdateArgs,) {
+                let coord1 = self.player_one.coord.clone();
+        let mut coord2 = coord1.clone();
+        if let Some(ref p2) = self.player_two {
+            coord2 = p2.coord.clone();
+        }
+
+                let range = self.cam.get_range_update();
 
 
-        self.player_one.on_update(args);
+
+        self.player_one.on_update(args, range);
         if let Some(ref mut x) = self.player_two {
            
-            x.on_update(args);
+            x.on_update(args, range);
         }
-        
+                self.cam.calc_coordinates(coord1, coord2);
 
     }
 
@@ -217,7 +220,7 @@ impl App {
 
 fn main() {
     // Create an Glutin window.
-    let mut window: PistonWindow = WindowSettings::new("spinning-square",
+    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         //.fullscreen(true)
