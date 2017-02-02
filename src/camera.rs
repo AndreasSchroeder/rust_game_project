@@ -20,7 +20,7 @@ impl Cam {
             level_h: 0,
         }
     }
-    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
@@ -57,7 +57,7 @@ impl Range {
             y_max: 0,
         }
     }
-    fn calc_range(buf_x: u64, buf_y: u64, cam:&mut Cam) -> Self {
+    fn calc_range(buf_x: u64, buf_y: u64, cam: &mut Cam) -> Self {
         let mut new = Range::new();
         new.x_min = if cam.coord.get_x() < buf_x {
             0
@@ -80,7 +80,7 @@ impl Range {
             cam.coord.get_y() + buf_y
         };
         // DEBUG
-        println!("{} {} {} {} coord: {:?}", new.x_max, new.x_min, new.y_max, new.y_min, cam.coord);
+        //println!("{} {} {} {} coord: {:?}", new.x_max, new.x_min, new.y_max, new.y_min, cam.coord);
         new
 
     }
