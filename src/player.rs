@@ -13,6 +13,7 @@ pub struct Player {
     pub inv: Inventory,
     pub coord: Coordinate,
     pub last: LastKey,
+    pub pressed: bool,
     pub interactable_type: InteractableType,
 }
 
@@ -27,6 +28,7 @@ impl Player {
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
+            pressed: false,
         }
     }
 
@@ -35,20 +37,22 @@ impl Player {
 
         match self.last {
             LastKey::Up => {
-                self.creature.moves(0.0, -64.0);
+                self.creature.moves(0.0, -65.0);
             }
             LastKey::Down => {
-                self.creature.moves(0.0, 64.0);
+                self.creature.moves(0.0, 65.0);
             }
             LastKey::Left => {
-                self.creature.moves(-64.0, 0.0);
+                self.creature.moves(-65.0, 0.0);
             }
             LastKey::Right => {
-                self.creature.moves(64.0, 0.0);
+                self.creature.moves(65.0, 0.0);
             }
             _ => {}
         }
-        self.last = LastKey::Wait;
+        if !self.pressed {
+            self.last = LastKey::Wait;
+        }
     }
 }
 
@@ -76,22 +80,24 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::player | InteractableType::bot => x.conv_to_actor().damage_taken(self.dmg),
-                        InteractableType::useable => {},
-                        InteractableType::collectable => {},
+                        InteractableType::player | InteractableType::bot => {
+                            x.conv_to_actor().damage_taken(self.dmg)
+                        }
+                        InteractableType::useable => {}
+                        InteractableType::collectable => {}
                     }
-                },
-                None => {},
+                }
+                None => {}
             }
         }
     }
 
 
 
-    fn dying(&self){}
+    fn dying(&self) {}
 }
 
-impl Interactable for Player{
+impl Interactable for Player {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
     }

@@ -1,5 +1,5 @@
 target
 
-src/tmp*
+*tmp*
 
 Cargo.lock

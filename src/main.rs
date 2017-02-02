@@ -10,7 +10,6 @@ extern crate time;
 use piston_window::*;
 use time::{Duration, PreciseTime};
 
-
 mod creature;
 mod player;
 mod io;
@@ -67,19 +66,25 @@ impl App {
         }
     }
 
-    fn on_draw(&mut self, args: &RenderArgs, mut w: &mut PistonWindow, e: &Event, tileset: &Tileset, mut level: &mut Level) {
+    fn on_draw(&mut self,
+               args: &RenderArgs,
+               mut w: &mut PistonWindow,
+               e: &Event,
+               tileset: &Tileset,
+               mut level: &mut Level) {
         let player_one = &self.player_one.creature;
         let player_two = &self.player_two;
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            let center = c.transform.trans(0.0, 0.0);
+            let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64, (self.player_one.coord.get_y() * 65) as f64);
+            let center_ts =c.transform.trans(0.0,0.0);
 
-            render_level(&tileset, gl, center, &mut level);
+            render_level(&tileset, gl, center_ts, &mut level);
 
-            player_one.render(gl, center);
+            player_one.render(gl, center_p1);
             if let Some(ref x) = *player_two {
-                x.creature.render(gl, center);
+                x.creature.render(gl, center_p1);
             }
         });
     }
@@ -93,43 +98,66 @@ impl App {
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
-        if pressed {
-            match inp {
-                Button::Keyboard(Key::Up) => {
+
+        match inp {
+            Button::Keyboard(Key::Up) => {
+                if pressed {
                     self.player_one.last = LastKey::Up;
                 }
-                Button::Keyboard(Key::Down) => {
+                self.player_one.pressed = pressed;
+            }
+            Button::Keyboard(Key::Down) => {
+                if pressed {
                     self.player_one.last = LastKey::Down;
                 }
-                Button::Keyboard(Key::Left) => {
+                self.player_one.pressed = pressed;
+            }
+            Button::Keyboard(Key::Left) => {
+                if pressed {
                     self.player_one.last = LastKey::Left;
                 }
-                Button::Keyboard(Key::Right) => {
+                self.player_one.pressed = pressed;
+            }
+            Button::Keyboard(Key::Right) => {
+                if pressed {
                     self.player_one.last = LastKey::Right;
                 }
-                Button::Keyboard(Key::W) => {
-                    if let Some(ref mut x) = self.player_two {
+                self.player_one.pressed = pressed;
+            }
+            Button::Keyboard(Key::W) => {
+                if let Some(ref mut x) = self.player_two {
+                    if pressed {
                         x.last = LastKey::Up;
                     }
+                    x.pressed = pressed;
                 }
-                Button::Keyboard(Key::S) => {
-                    if let Some(ref mut x) = self.player_two {
+            }
+            Button::Keyboard(Key::S) => {
+                if let Some(ref mut x) = self.player_two {
+                    if pressed {
                         x.last = LastKey::Down;
                     }
+                    x.pressed = pressed;
                 }
-                Button::Keyboard(Key::A) => {
-                    if let Some(ref mut x) = self.player_two {
+            }
+            Button::Keyboard(Key::A) => {
+                if let Some(ref mut x) = self.player_two {
+                    if pressed {
                         x.last = LastKey::Left;
                     }
+                    x.pressed = pressed;
                 }
-                Button::Keyboard(Key::D) => {
-                    if let Some(ref mut x) = self.player_two {
+            }
+            Button::Keyboard(Key::D) => {
+                if let Some(ref mut x) = self.player_two {
+                    if pressed {
                         x.last = LastKey::Right;
                     }
+                    x.pressed = pressed;
                 }
-
-                _ => {}
             }
+            _ => {}
+
         }
     }
     fn on_load(&mut self, mut w: &mut PistonWindow) {
