@@ -14,7 +14,7 @@ use self::tileset::{Tileset, TILESET_HEIGHT, TILE_HEIGHT, TILESET_WIDTH, TILE_WI
 use level::Level;
 use field::Field;
 
-const SCALE_FACTOR : f64 = 4.0;
+const SCALE_FACTOR: f64 = 4.0;
 
 pub fn read_tileset(path: &str, mut w: &mut PistonWindow) -> Tileset {
 
@@ -124,10 +124,11 @@ pub fn render_tile(texture: &Texture<Resources>,
                    x_coord: u32,
                    y_coord: u32,
                    x_offset: u32,
-                   y_offset: u32)
-{
+                   y_offset: u32) {
     // Skaliere Tile um Faktor
     image(texture,
-          view.trans(y_offset as f64, x_offset as f64).scale(SCALE_FACTOR, SCALE_FACTOR).trans(x_coord as f64, y_coord as f64),
+          view.trans(y_offset as f64, x_offset as f64)
+              .scale(SCALE_FACTOR, SCALE_FACTOR)
+              .trans(x_coord as f64, y_coord as f64),
           g);
 }

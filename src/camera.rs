@@ -8,9 +8,9 @@ pub struct Cam {
 }
 
 impl Cam {
-    pub fn new(cord: Coordinate, buf_x: u64, buf_y: u64) -> Self {
+    pub fn new(buf_x: u64, buf_y: u64) -> Self {
         Cam {
-            cord: cord,
+            cord: Coordinate::new(0, 0),
             buf_x: buf_x,
             buf_y: buf_y,
         }

@@ -39,8 +39,8 @@ const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
 const LEVEL_HEIGHT: u64 = 100;
 const LEVEL_WIDTH: u64 = 100;
-const CAMERA_BUF_X: u64 =10;
-const CAMERA_BUF_Y: u64 =8;
+const CAMERA_BUF_X: u64 = 10;
+const CAMERA_BUF_Y: u64 = 8;
 
 const WIDTH: i64 = 1600;
 const HEIGHT: i64 = 900;
@@ -52,6 +52,7 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 pub struct App {
     player_one: Player,
     player_two: Option<Player>,
+    cam: Cam,
 }
 
 impl App {
@@ -65,6 +66,7 @@ impl App {
             } else {
                 None
             },
+            cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
 
@@ -79,8 +81,9 @@ impl App {
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64, (self.player_one.coord.get_y() * 65) as f64);
-            let center_lv =c.transform.trans(0.0,0.0);
+            let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64,
+                                              (self.player_one.coord.get_y() * 65) as f64);
+            let center_lv = c.transform.trans(0.0, 0.0);
 
             render_level(&tileset, gl, center_lv, &mut level);
 
@@ -92,11 +95,15 @@ impl App {
     }
 
     fn on_update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
+
+        let coord1 = self.player_one.coord;
+        let mut coord2 = coord1;
         self.player_one.on_update(args);
         if let Some(ref mut x) = self.player_two {
+            coord2 = x.coord;
             x.on_update(args);
         }
+        self.cam.calc_coordinates(coord1, coord2);
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
@@ -201,7 +208,6 @@ fn main() {
     // Create a new game and run it.
 
     let mut app = App::new(TWO_PLAYER);
-    let mut camera = Cam::new(Coordinate::new(0,0), CAMERA_BUF_X, CAMERA_BUF_Y);
     app.on_load(&mut window);
 
     let mut events = window.events();
