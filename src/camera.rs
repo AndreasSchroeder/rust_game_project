@@ -83,12 +83,12 @@ impl Range {
             cam.coord.get_y() + buf_y + 1
         };
         // DEBUG
-        println!("Camera.rs Debug: {} {} {} {} coord: {:?}",
+        /*println!("Camera.rs Debug: {} {} {} {} coord: {:?}",
                  new.x_max,
                  new.x_min,
                  new.y_max,
                  new.y_min,
-                 cam.coord);
+                 cam.coord); */
         new
 
     }
