@@ -1,6 +1,7 @@
 use LEVEL_WIDTH;
 use LEVEL_HEIGHT;
 
+#[derive(Copy, Clone)]
 pub struct Coordinate {
     x: u64,
     y: u64,

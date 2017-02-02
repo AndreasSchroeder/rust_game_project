@@ -39,6 +39,8 @@ const SPRITE_P_1: &'static str = "warrior2.png";
 const SPRITE_P_2: &'static str = "paladin.png";
 const LEVEL_HEIGHT: u64 = 100;
 const LEVEL_WIDTH: u64 = 100;
+const CAMERA_BUF_X: u64 =10;
+const CAMERA_BUF_Y: u64 =8;
 
 const WIDTH: i64 = 1600;
 const HEIGHT: i64 = 900;
@@ -78,9 +80,9 @@ impl App {
             // Clear the screen.
             clear(BLACK, gl);
             let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64, (self.player_one.coord.get_y() * 65) as f64);
-            let center_ts =c.transform.trans(0.0,0.0);
+            let center_lv =c.transform.trans(0.0,0.0);
 
-            render_level(&tileset, gl, center_ts, &mut level);
+            render_level(&tileset, gl, center_lv, &mut level);
 
             player_one.render(gl, center_p1);
             if let Some(ref x) = *player_two {
@@ -197,7 +199,9 @@ fn main() {
         .unwrap();
 
     // Create a new game and run it.
+
     let mut app = App::new(TWO_PLAYER);
+    let mut camera = Cam::new(Coordinate::new(0,0), CAMERA_BUF_X, CAMERA_BUF_Y);
     app.on_load(&mut window);
 
     let mut events = window.events();
