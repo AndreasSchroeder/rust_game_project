@@ -13,6 +13,8 @@ use std::str::FromStr;
 use self::tileset::{Tileset, TILESET_HEIGHT, TILE_HEIGHT, TILESET_WIDTH, TILE_WIDTH};
 use level::Level;
 
+const SCALE_FACTOR : f64 = 4.0;
+
 pub fn read_tileset(path: &str, mut w: &mut PistonWindow) -> Tileset {
 
     let mut tileset = Tileset::new();
@@ -109,8 +111,8 @@ pub fn render_level(tileset: &Tileset,
             render_tile(&tile,
                         g,
                         view,
-                        j as u32 * 16 *4,
-                        i as u32 * 16*4,
+                        j as u32 * TILE_HEIGHT,
+                        i as u32 * TILE_WIDTH,
                         i as u32,
                         j as u32);
         }
@@ -122,10 +124,11 @@ pub fn render_tile(texture: &Texture<Resources>,
                    view: math::Matrix2d,
                    x_coord: u32,
                    y_coord: u32,
-                   offset_x: u32,
-                   offset_y: u32,) {
-    // Skaliere Tile um Faktor 4
+                   x_offset: u32,
+                   y_offset: u32)
+{
+    // Skaliere Tile um Faktor
     image(texture,
-          view.trans((x_coord)as f64, (y_coord) as f64).scale(4.0, 4.0),
+          view.trans(y_offset as f64, x_offset as f64).scale(SCALE_FACTOR, SCALE_FACTOR).trans(x_coord as f64, y_coord as f64),
           g);
 }
