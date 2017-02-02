@@ -18,7 +18,7 @@ impl Tileset {
         }
     }
 
-    pub fn get_texture(&self, index: u32) -> Option<&Texture<Resources>> {
+    pub fn get_texture(&self, index: u64) -> Option<&Texture<Resources>> {
         self.set.get(index as usize)
     }
 

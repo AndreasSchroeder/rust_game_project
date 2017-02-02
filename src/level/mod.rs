@@ -1,13 +1,16 @@
-pub struct Level {
-    data: Vec<Vec<u32>>,
+use super::field::Field;
+use super::interactable::Interactable;
+
+pub struct Level<'a> {
+    data: Vec<Vec<Field<'a, Option<&'a Interactable>>>>,
     x: usize,
     y: usize,
 }
 
-impl Level {
+impl<'a> Level<'a> {
     pub fn with_size(x: usize, y: usize) -> Self {
         Level {
-            data: vec![vec![0; x]; y],
+            data: vec![vec![Field::new(0); x]; y],
             x: x,
             y: y,
         }
@@ -21,7 +24,7 @@ impl Level {
         self.y
     }
 
-    pub fn get_data(&mut self) -> &mut Vec<Vec<u32>> {
+    pub fn get_data(&mut self) -> &mut Vec<Vec<Field<'a, Option<&'a Interactable>>>> {
         &mut self.data
     }
 }
