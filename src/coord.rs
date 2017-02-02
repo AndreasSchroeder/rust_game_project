@@ -25,14 +25,14 @@ impl Coordinate {
             y: self.y,
         }
     }
-    pub fn move_coord(&mut self, dx: u64, dy: u64, level_width: u64, level_height: u64) {
+    pub fn move_coord(&mut self, dx: i64, dy: i64, level_width: u64, level_height: u64) {
         self.move_coord_with_buf(dx, dy, 0, 0, level_width, level_height);
     }
     pub fn set_coord(&mut self, x: u64, y: u64) {
         self.x = x;
         self.y = y;
     }
-    pub fn move_coord_with_buf(&mut self, dx: u64, dy: u64, mut buf_x: u64, mut buf_y: u64, level_width: u64, level_height: u64) {
+    pub fn move_coord_with_buf(&mut self, dx: i64, dy: i64, mut buf_x: u64, mut buf_y: u64, level_width: u64, level_height: u64) {
         buf_x = if level_width < buf_x {
             level_width
         } else {
@@ -43,8 +43,8 @@ impl Coordinate {
         } else {
             buf_y
         };
-        let new_x = self.x + dx;
-        let new_y = self.y + dy;
+        let new_x = (self.x as i64 + dx) as u64;
+        let new_y = (self.y as i64 + dy) as u64;
         self.x = if new_x < buf_x {
             buf_x
         } else if new_x > level_width - buf_x {

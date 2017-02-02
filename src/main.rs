@@ -91,18 +91,18 @@ impl App {
             let center_lv = c.transform.trans(0.0, 0.0);
 
             //render_level(&tileset, gl, center_lv, &mut level);
-            for i in range.x_min..range.x_max {
-                for j in range.y_min..range.y_max {
+            for (h, j) in (range.x_min..range.x_max).enumerate() {
+                for (w, i) in (range.y_min..range.y_max).enumerate() {
                     let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
                     Some(x) => x,
                     None => panic!("No texture found."),
                     };
                     // DEBUG
                     //println!("{} {}", i, j);
-                    render_tile(&tile, gl, center_lv,  j as u32 * TILE_HEIGHT,
-                            i as u32 * TILE_WIDTH,
-                            i as u32,
-                            j as u32);
+                    render_tile(&tile, gl, center_lv,  h as u32 * TILE_HEIGHT,
+                            w as u32 * TILE_WIDTH,
+                            w as u32,
+                            h as u32);
                 }
             }
             player_one.render(gl, center_p1);
@@ -257,6 +257,10 @@ fn main() {
 
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
+    app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
+    if let Some(ref mut p2) = app.player_two {
+        p2.set_borders((level.get_x() as u64, level.get_y()as u64));
+    }
 
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
