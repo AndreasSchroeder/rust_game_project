@@ -81,16 +81,7 @@ impl App {
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            let center_p1 = c.transform.trans((self.player_one.coord.get_x() * 65) as f64,
-                                              (self.player_one.coord.get_y() * 65) as f64);
-            player_one.render(gl, center_p1);
-            if let Some(ref p2) = *player_two {
-                let center_p2 = c.transform.trans((p2.coord.get_x() * 65) as f64,
-
-                                              (p2.coord.get_y() * 65) as f64);
-                 p2.creature.render(gl, center_p2);
-
-            }
+            
             let center_lv = c.transform.trans(0.0, 0.0);
 
             //render_level(&tileset, gl, center_lv, &mut level);
@@ -108,9 +99,15 @@ impl App {
                             h as u32);
                 }
             }
-            
-            if let Some(ref x) = *player_two {
-               
+            let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
+                                              ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
+            player_one.render(gl, center_p1);
+            if let Some(ref p2) = *player_two {
+                let center_p2 = c.transform.trans(((p2.coord.get_x() - range.x_min) * 65) as f64,
+
+                                              ((p2.coord.get_y() - range.y_min )* 65) as f64);
+                 p2.creature.render(gl, center_p2);
+
             }
         }); 
     }
@@ -287,4 +284,19 @@ fn main() {
 
     }
 
+}
+
+//UTIL//////////////////////////////
+
+
+fn border_add(add1: f64, add2: f64, width: bool) -> f64 {
+    let border = (if width { WIDTH } else { HEIGHT }) as f64;
+    let sum = add1 + add2;
+    if sum < 0.0 {
+        0.0
+    } else if sum > border {
+        border
+    } else {
+        sum
+    }
 }
