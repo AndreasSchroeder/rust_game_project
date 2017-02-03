@@ -6,6 +6,7 @@ extern crate gfx;
 extern crate vecmath;
 extern crate image as im;
 extern crate time;
+extern crate rand;
 
 use piston_window::*;
 use time::{Duration, PreciseTime};
@@ -76,7 +77,7 @@ impl App {
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            
+
             let center_lv = c.transform.trans(0.0, 0.0);
 
             //render_level(&tileset, gl, center_lv, &mut level);
@@ -104,7 +105,7 @@ impl App {
                  p2.creature.render(gl, center_p2);
 
             }
-        }); 
+        });
     }
 
     fn on_update(&mut self,
@@ -121,7 +122,7 @@ impl App {
 
         self.player_one.on_update(args, range);
         if let Some(ref mut x) = self.player_two {
-           
+
             x.on_update(args, range);
         }
                 self.cam.calc_coordinates(coord1, coord2);

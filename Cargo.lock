@@ -8,6 +8,7 @@ dependencies = [
  "image 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-gfx_graphics 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston_window 0.62.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
  "vecmath 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
