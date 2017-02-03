@@ -26,7 +26,7 @@ impl Sprite {
                        heigth: u32,
                        mut w: &mut PistonWindow)
                        -> Self {
-        let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("sprites") {
+        let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
             Ok(res) => res.join(path),
             Err(_) => panic!("Folder not found!"),
         };
