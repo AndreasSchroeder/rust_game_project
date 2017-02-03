@@ -17,6 +17,7 @@ pub struct Bot {
     pub sprite: Option<Sprite>,
     level_w: u64,
     level_h: u64,
+    old_state: usize,
 }
 
 impl Bot {
@@ -28,7 +29,8 @@ impl Bot {
             life: 100,
             dmg: 10,
             level_w: 0,
-            level_h: 0
+            level_h: 0,
+            old_state: 0,
         }
     }
 
@@ -42,30 +44,36 @@ impl Bot {
         self.sprite = Some(sprite);
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
+    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, state: usize) {
         let mut rng = rand::thread_rng();
 
-        let dir = rng.gen_range(0, 4);
 
-        match dir {
-            0 => {
-                //Up
-                self.coord.move_coord_without_cam(0, -1, 0, 0, self.level_w, self.level_h);
-            },
-            1 => {
-                //Down
-                self.coord.move_coord_without_cam(0, 1, 0, 0, self.level_w, self.level_h);
-            },
-            2 => {
-                //Left
-                self.coord.move_coord_without_cam(-1, 0, 0, 0, self.level_w, self.level_h);
-            },
-            3 => {
-                //Right
-                self.coord.move_coord_without_cam(1, 0, 0, 0, self.level_w, self.level_h);
-            },
-            _ => {},
+
+        if self.old_state != state {
+            let dir = rng.gen_range(0, 4);
+            match dir {
+                0 => {
+                    //Up
+                    self.coord.move_coord_without_cam(0, -1, 0, 0, self.level_w, self.level_h);
+                },
+                1 => {
+                    //Down
+                    self.coord.move_coord_without_cam(0, 1, 0, 0, self.level_w, self.level_h);
+                },
+                2 => {
+                    //Left
+                    self.coord.move_coord_without_cam(-1, 0, 0, 0, self.level_w, self.level_h);
+                },
+                3 => {
+                    //Right
+                    self.coord.move_coord_without_cam(1, 0, 0, 0, self.level_w, self.level_h);
+                },
+                _ => {},
+            }
+
+            self.old_state = state;
         }
+
 
     }
 }
