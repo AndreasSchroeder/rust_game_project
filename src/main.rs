@@ -225,32 +225,36 @@ impl App {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                if pressed {
-                    match self.player_one.weapon{
-                        Weapon::Sword => {
-                            let last = &self.player_one.last;
-                            let p1_pos = &self.player_one.coord;
+                match self.player_one.weapon{
+                    Weapon::Sword => {
+                        let last = &self.player_one.last;
+                        let p1_pos = &self.player_one.coord;
 
-                            match *last {
-                                LastKey::Up => {
-                                    let mut targets = Vec::new();
-                                    targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                    &self.player_one.attack(targets);
-                                },
-                                LastKey::Down => {
-
-                                },
-                                LastKey::Left => {
-
-                                },
-                                LastKey::Right => {
-
-                                },
-                                _ => {}
-                            }
+                        match *last {
+                            LastKey::Up => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Down => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Left => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Right => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            _ => {}
                         }
-                        _ => {}
                     }
+                    _ => {}
                 }
             }
             _ => {}
@@ -335,10 +339,10 @@ fn main() {
             app.on_draw(&mut window, &e, &tileset, &mut level, state);
         }
         if let Some(i) = e.release_args() {
-            app.on_input(i, false, &level);
+            app.on_input(i, false, &mut level);
         }
         if let Some(i) = e.press_args() {
-            app.on_input(i, true, &level);
+            app.on_input(i, true, &mut level);
         }
 
         if let Some(u) = e.update_args() {

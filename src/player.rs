@@ -8,6 +8,7 @@ use coord::Coordinate;
 use camera::Range;
 use level::Level;
 use io::sprite::Sprite;
+use bot::Bot;
 
 pub enum Weapon {
     Sword,
@@ -121,13 +122,19 @@ impl Actor for Player {
         self.life -= dmg;
     }
 
-    fn attack(&self, target: Vec<Option<&mut Interactable>>) {
+    fn attack(&self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>) {
         for t in target {
             match t {
                 Some(x) => {
-                    match x.get_interactable_type() {
-                        InteractableType::Player(_) | InteractableType::Bot(_) => {
-                            x.conv_to_actor().damage_taken(self.dmg)
+                    match x {
+                        InteractableType::Player(_) => {}
+                        InteractableType::Bot(id) => {
+                            //x.conv_to_actor().damage_taken(self.dmg)
+                            if bots[(id-1) as usize].is_alive {
+                                bots[(id-1) as usize].damage_taken(self.dmg);
+                            }
+
+                            println!("{}", bots[(id-1) as usize].get_life());
                         }
                         InteractableType::Useable(_) => {}
                         InteractableType::Collectable(_) => {}

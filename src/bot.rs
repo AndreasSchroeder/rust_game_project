@@ -51,7 +51,7 @@ impl Bot {
 
 
         if self.old_state != state {
-            let dir = rng.gen_range(0, 4);
+            let dir = rng.gen_range(0, 6);
             match dir {
                 0 => {
                     //Up
@@ -94,8 +94,8 @@ impl Actor for Bot {
         self.life -= dmg;
     }
 
-    fn attack(&self, target: Vec<Option<&mut Interactable>>) {
-        for t in target {
+    fn attack(&self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>) {
+        /*for t in target {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
@@ -108,7 +108,7 @@ impl Actor for Bot {
                 }
                 None => {}
             }
-        }
+        }*/
     }
 
 
