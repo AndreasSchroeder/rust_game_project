@@ -27,7 +27,7 @@ impl Player {
             creature: Creature::new(),
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
-            interactable_type: InteractableType::player,
+            interactable_type: InteractableType::Player,
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
@@ -55,11 +55,11 @@ impl Player {
                 //self.creature.moves(0.0, 65.0);
             }
             LastKey::Left => {
-                self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);                
+                self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);
                 //self.creature.moves(-65.0, 0.0);
             }
             LastKey::Right => {
-                self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);                
+                self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);
                 //self.creature.moves(65.0, 0.0);
             }
             _ => {}
@@ -94,11 +94,11 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::player | InteractableType::bot => {
+                        InteractableType::Player | InteractableType::Bot => {
                             x.conv_to_actor().damage_taken(self.dmg)
                         }
-                        InteractableType::useable => {}
-                        InteractableType::collectable => {}
+                        InteractableType::Useable => {}
+                        InteractableType::Collectable => {}
                     }
                 }
                 None => {}
