@@ -6,6 +6,7 @@ extern crate gfx;
 extern crate vecmath;
 extern crate image as im;
 extern crate time;
+extern crate rand;
 
 use piston_window::*;
 use time::{Duration, PreciseTime};
@@ -120,7 +121,6 @@ impl App {
 
         self.player_one.on_update(args, range, level);
         if let Some(ref mut x) = self.player_two {
-
             x.on_update(args, range, level);
         }
 
@@ -219,7 +219,7 @@ impl App {
 
 fn main() {
     // Create an Glutin window.
-    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
+    let mut window: PistonWindow = WindowSettings::new("Chicken Fight 3000 Ultimate Tournament",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         //.fullscreen(true)
@@ -263,14 +263,15 @@ fn main() {
         level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(2));
     }
 
+/* Level-Output
     for i in 0..level.get_y() {
         for j in 0..level.get_x() {
             print!("{} ", level.get_data()[i][j].check_passable());
         }
         println!("");
     }
-
-    let mut start = PreciseTime::now();
+*/
+    //let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
     app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
     if let Some(ref mut p2) = app.player_two {
@@ -278,7 +279,7 @@ fn main() {
     }
 
     while let Some(e) = events.next(&mut window) {
-        let now = start.to(PreciseTime::now()).num_milliseconds();
+        //let now = start.to(PreciseTime::now()).num_milliseconds();
         //println!("{}", now);
 
         if let Some(_) = e.render_args() {
@@ -290,7 +291,7 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
-        if now > 500 {
+
             if let Some(u) = e.update_args() {
 
                 let x1 = app.player_one.coord.get_x();
@@ -320,9 +321,9 @@ fn main() {
                         level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(2));
                     }
                 }
-                start = PreciseTime::now();
+                //start = PreciseTime::now();
             }
-        }
+
 
     }
 
