@@ -41,8 +41,8 @@ const SPRITE_P_2: &'static str = "paladin.png";
 const CAMERA_BUF_X: u64 = 4;
 const CAMERA_BUF_Y: u64 = 4;
 
-const WIDTH: i64 = 586;
-const HEIGHT: i64 = 586;
+const WIDTH: i64 = 584;
+const HEIGHT: i64 = 584;
 
 const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
