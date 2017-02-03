@@ -15,6 +15,7 @@ pub struct Player {
     pub coord: Coordinate,
     pub last: LastKey,
     pub pressed: bool,
+    pub no_more: bool,
     pub interactable_type: InteractableType,
     level_w: u64,
     level_h: u64,
@@ -33,7 +34,8 @@ impl Player {
             inv: Inventory::new(),
             pressed: false,
             level_w: 0,
-            level_h: 0
+            level_h: 0,
+            no_more: true
         }
     }
     pub fn set_borders(&mut self, (w,h): (u64, u64)) {
@@ -44,28 +46,34 @@ impl Player {
 
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
         // Rotate 2 radians per second.
-
-        match self.last {
-            LastKey::Up => {
-                self.coord.move_coord_with_cam(0, -1, self.level_w, self.level_h, range);
-                //self.creature.moves(0.0, -65.0);
+        if self.no_more == true {
+            match self.last {
+                LastKey::Up => {
+                    self.coord.move_coord_with_cam(0, -1, self.level_w, self.level_h, range);
+                    self.no_more = false;
+                    //self.creature.moves(0.0, -65.0);
+                }
+                LastKey::Down => {
+                    self.coord.move_coord_with_cam(0, 1, self.level_w, self.level_h, range);
+                    self.no_more = false;
+                    //self.creature.moves(0.0, 65.0);
+                }
+                LastKey::Left => {
+                    self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);
+                    self.no_more = false;                
+                    //self.creature.moves(-65.0, 0.0);
+                }
+                LastKey::Right => {
+                    self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);    
+                    self.no_more = false;            
+                    //self.creature.moves(65.0, 0.0);
+                }
+                _ => {}
             }
-            LastKey::Down => {
-                self.coord.move_coord_with_cam(0, 1, self.level_w, self.level_h, range);
-                //self.creature.moves(0.0, 65.0);
-            }
-            LastKey::Left => {
-                self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);                
-                //self.creature.moves(-65.0, 0.0);
-            }
-            LastKey::Right => {
-                self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);                
-                //self.creature.moves(65.0, 0.0);
-            }
-            _ => {}
         }
         if !self.pressed {
             self.last = LastKey::Wait;
+            self.no_more = true;
         }
     }
 }

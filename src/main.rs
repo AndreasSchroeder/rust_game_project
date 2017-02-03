@@ -278,12 +278,12 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
-        if now > 500 {
+        
             if let Some(u) = e.update_args() {
                 app.on_update(&u);
                 start = PreciseTime::now();
             }
-        }
+        
 
     }
 
