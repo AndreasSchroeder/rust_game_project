@@ -1,11 +1,12 @@
 use piston_window::*;
 use inventory::Inventory;
 use actor::Actor;
-use enums::InteractableType;
+use interactable::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
 use camera::Range;
 use io::sprite::Sprite;
+use level::Level;
 use rand::Rng;
 use rand;
 
@@ -21,10 +22,10 @@ pub struct Bot {
 }
 
 impl Bot {
-    pub fn new(x: u64, y: u64) -> Self {
+    pub fn new(x: u64, y: u64, id: u64) -> Self {
         Bot {
             coord: Coordinate::new(x, y),
-            interactable_type: InteractableType::Bot,
+            interactable_type: InteractableType::Bot(id),
             sprite: None,
             life: 100,
             dmg: 10,
@@ -44,7 +45,7 @@ impl Bot {
         self.sprite = Some(sprite);
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, state: usize) {
+    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, state: usize) {
         let mut rng = rand::thread_rng();
 
 
@@ -54,27 +55,29 @@ impl Bot {
             match dir {
                 0 => {
                     //Up
-                    self.coord.move_coord_without_cam(0, -1, 0, 0, self.level_w, self.level_h);
+                    self.coord.move_coord_without_cam(0, -1, 0, 0, level);
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
                 },
                 1 => {
                     //Down
-                    self.coord.move_coord_without_cam(0, 1, 0, 0, self.level_w, self.level_h);
+                    self.coord.move_coord_without_cam(0, 1, 0, 0, level);
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
                 },
                 2 => {
                     //Left
-                    self.coord.move_coord_without_cam(-1, 0, 0, 0, self.level_w, self.level_h);
+                    self.coord.move_coord_without_cam(-1, 0, 0, 0, level);
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
                 },
                 3 => {
                     //Right
-                    self.coord.move_coord_without_cam(1, 0, 0, 0, self.level_w, self.level_h);
+                    self.coord.move_coord_without_cam(1, 0, 0, 0, level);
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
                 },
                 _ => {},
             }
 
             self.old_state = state;
         }
-
-
     }
 }
 
@@ -96,11 +99,11 @@ impl Actor for Bot {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::Player | InteractableType::Bot => {
+                        InteractableType::Player(_) | InteractableType::Bot(_) => {
                             x.conv_to_actor().damage_taken(self.dmg)
                         }
-                        InteractableType::Useable => {}
-                        InteractableType::Collectable => {}
+                        InteractableType::Useable(_) => {}
+                        InteractableType::Collectable(_) => {}
                     }
                 }
                 None => {}
