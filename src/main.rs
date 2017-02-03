@@ -23,9 +23,9 @@ mod coord;
 mod enums;
 mod camera;
 
-use camera::{Cam};
+use camera::Cam;
 use player::{Player, LastKey};
-use io::{ render_tile};
+use io::render_tile;
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
 use io::sprite::Sprite;
@@ -69,7 +69,8 @@ impl App {
                mut w: &mut PistonWindow,
                e: &Event,
                tileset: &Tileset,
-               level: &mut Level) {
+               level: &mut Level,
+               state: usize) {
         let player_one = &self.player_one.sprite;
         let player_two = &self.player_two;
 
@@ -98,7 +99,7 @@ impl App {
             if let Some(ref p1) = *player_one {
                 let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
                                               ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
-            p1.render(gl, center_p1, 0);
+            p1.render(gl, center_p1, state as u64);
             }
             
             if let Some(ref p2) = *player_two {
@@ -108,22 +109,21 @@ impl App {
                 let center_p2 = c.transform.trans(((p2.coord.get_x() - range.x_min) * 65) as f64,
 
                                               ((p2.coord.get_y() - range.y_min )* 65) as f64);
-                 x.render(gl, center_p2, 1);
+                 x.render(gl, center_p2, state as u64);
                  }
 
             }
         });
     }
 
-    fn on_update(&mut self,
-                 args: &UpdateArgs,) {
-                let coord1 = self.player_one.coord.clone();
+    fn on_update(&mut self, args: &UpdateArgs) {
+        let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
         if let Some(ref p2) = self.player_two {
             coord2 = p2.coord.clone();
         }
 
-                let range = self.cam.get_range_update();
+        let range = self.cam.get_range_update();
 
 
 
@@ -132,7 +132,7 @@ impl App {
 
             x.on_update(args, range);
         }
-                self.cam.calc_coordinates(coord1, coord2);
+        self.cam.calc_coordinates(coord1, coord2);
 
     }
 
@@ -199,15 +199,17 @@ impl App {
 
         }
     }
-    fn on_load(&mut self, mut w: &mut PistonWindow) {
-       
-    }
-   
+    fn on_load(&mut self, mut w: &mut PistonWindow) {}
 }
 
 fn main() {
     let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
-                                                       [WIDTH as u32, HEIGHT as u32]).exit_on_esc(true).fullscreen(false).resizable(false).build().unwrap();
+                                                       [WIDTH as u32, HEIGHT as u32])
+        .exit_on_esc(true)
+        .fullscreen(false)
+        .resizable(false)
+        .build()
+        .unwrap();
 
 
     // Create a new game and run it.
@@ -242,20 +244,23 @@ fn main() {
     let mut level = io::read_level(level_path);
 
     let mut start = PreciseTime::now();
-    app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
-    app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
-    app.player_one.set_sprite(Sprite::fill_sprite("knight.png",2,1,64,64,&mut window));
+    app.cam.set_borders((level.get_x() as u64, level.get_y() as u64));
+    app.player_one.set_borders((level.get_x() as u64, level.get_y() as u64));
+    app.player_one.set_sprite(Sprite::fill_sprite("knight.png", 2, 1, 64, 64, &mut window));
     if let Some(ref mut p2) = app.player_two {
-        p2.set_borders((level.get_x() as u64, level.get_y()as u64));
-        p2.set_sprite(Sprite::fill_sprite("knight.png",2,1,64,64,&mut window));
+        p2.set_borders((level.get_x() as u64, level.get_y() as u64));
+        p2.set_sprite(Sprite::fill_sprite("paladin.png", 2, 1, 64, 64, &mut window));
     }
 
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
-        //println!("{}", now);
+        if now > 1000 {
+            start = PreciseTime::now();
+        }
+        let state = if now <= 500 { 0 } else { 1 };
 
         if let Some(_) = e.render_args() {
-            app.on_draw(&mut window, &e, &tileset, &mut level);
+            app.on_draw(&mut window, &e, &tileset, &mut level, state);
         }
         if let Some(i) = e.release_args() {
             app.on_input(i, false);
@@ -263,28 +268,12 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
-        
-            if let Some(u) = e.update_args() {
-                app.on_update(&u);
-                start = PreciseTime::now();
-            }
-        
+
+        if let Some(u) = e.update_args() {
+            app.on_update(&u);
+        }
+
 
     }
 
-}
-
-//UTIL//////////////////////////////
-
-
-fn border_add(add1: f64, add2: f64, width: bool) -> f64 {
-    let border = (if width { WIDTH } else { HEIGHT }) as f64;
-    let sum = add1 + add2;
-    if sum < 0.0 {
-        0.0
-    } else if sum > border {
-        border
-    } else {
-        sum
-    }
 }

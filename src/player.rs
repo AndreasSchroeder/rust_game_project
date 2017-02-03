@@ -36,11 +36,10 @@ impl Player {
             level_w: 0,
             level_h: 0,
             sprite: None,
-            no_more: true
-
+            no_more: true,
         }
     }
-    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
@@ -67,12 +66,12 @@ impl Player {
                 }
                 LastKey::Left => {
                     self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);
-                    self.no_more = false;                
+                    self.no_more = false;
                     //self.creature.moves(-65.0, 0.0);
                 }
                 LastKey::Right => {
-                    self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);    
-                    self.no_more = false;            
+                    self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);
+                    self.no_more = false;
                     //self.creature.moves(65.0, 0.0);
                 }
                 _ => {}
