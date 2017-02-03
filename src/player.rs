@@ -36,11 +36,10 @@ impl Player {
             level_w: 0,
             level_h: 0,
             sprite: None,
-            no_more: true
-
+            no_more: true,
         }
     }
-    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
