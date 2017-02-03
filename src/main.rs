@@ -22,12 +22,16 @@ mod interactable;
 mod coord;
 mod enums;
 mod camera;
+mod bot;
 
 use camera::{Cam};
 use player::{Player, LastKey};
+use bot::Bot;
 use io::{ render_tile};
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
+use actor::Actor;
+use interactable::Interactable;
 use io::sprite::Sprite;
 
 //EINGABEN
@@ -46,6 +50,7 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 pub struct App {
     player_one: Player,
     player_two: Option<Player>,
+    bots: Vec<Bot>,
     cam: Cam,
 }
 
@@ -60,6 +65,7 @@ impl App {
             } else {
                 None
             },
+            bots: vec![Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2)],
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
@@ -70,11 +76,13 @@ impl App {
                e: &Event,
                tileset: &Tileset,
                level: &mut Level) {
-        let player_one = &self.player_one.sprite;
-        let player_two = &self.player_two;
+
 
         let range = self.cam.get_range();
         w.draw_2d(e, |c, gl| {
+            let player_one = &self.player_one.sprite;
+            let player_two = &self.player_two;
+
             // Clear the screen.
             clear(BLACK, gl);
 
@@ -98,9 +106,9 @@ impl App {
             if let Some(ref p1) = *player_one {
                 let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
                                               ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
-            p1.render(gl, center_p1, 0);
+                p1.render(gl, center_p1, 0);
             }
-            
+
             if let Some(ref p2) = *player_two {
                 if let Some (ref x) =p2.sprite {
 
@@ -112,27 +120,45 @@ impl App {
                  }
 
             }
+
+            for b in &mut self.bots {
+
+                if let Some(ref br) = b.sprite {
+                    if b.coord.get_x() > range.x_min &&  b.coord.get_x() < range.x_max &&
+                        b.coord.get_y() > range.y_min && b.coord.get_y() < range.y_max{
+
+                        let center_b1 = c.transform.trans(((b.coord.get_x() - range.x_min )* 65) as f64,
+                                                          ((b.coord.get_y() - range.y_min)* 65) as f64);
+                        br.render(gl, center_b1, 0);
+                    }
+                }
+
+            }
         });
     }
 
-    fn on_update(&mut self,
-                 args: &UpdateArgs,) {
-                let coord1 = self.player_one.coord.clone();
+    fn on_update(&mut self, args: &UpdateArgs,) {
+        let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
+
         if let Some(ref p2) = self.player_two {
             coord2 = p2.coord.clone();
         }
 
-                let range = self.cam.get_range_update();
-
-
+        let range = self.cam.get_range_update();
 
         self.player_one.on_update(args, range);
         if let Some(ref mut x) = self.player_two {
 
             x.on_update(args, range);
         }
-                self.cam.calc_coordinates(coord1, coord2);
+
+        for b in &mut self.bots {
+            b.on_update(args, range);
+        }
+
+
+        self.cam.calc_coordinates(coord1, coord2);
 
     }
 
@@ -199,10 +225,6 @@ impl App {
 
         }
     }
-    fn on_load(&mut self, mut w: &mut PistonWindow) {
-       
-    }
-   
 }
 
 fn main() {
@@ -213,7 +235,6 @@ fn main() {
     // Create a new game and run it.
 
     let mut app = App::new(TWO_PLAYER);
-    app.on_load(&mut window);
 
     let mut events = window.events();
 
@@ -244,10 +265,20 @@ fn main() {
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
     app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
+
+    for b in &mut app.bots {
+        b.set_borders((level.get_x() as u64, level.get_y()as u64));
+    }
+
     app.player_one.set_sprite(Sprite::fill_sprite("knight.png",2,1,64,64,&mut window));
+
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_x() as u64, level.get_y()as u64));
         p2.set_sprite(Sprite::fill_sprite("knight.png",2,1,64,64,&mut window));
+    }
+
+    for b in &mut app.bots {
+        b.set_sprite(Sprite::fill_sprite("chicken_pink.png",2,1,64,64,&mut window));
     }
 
     while let Some(e) = events.next(&mut window) {
@@ -263,28 +294,13 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
-        
+
             if let Some(u) = e.update_args() {
                 app.on_update(&u);
                 start = PreciseTime::now();
             }
-        
+
 
     }
 
-}
-
-//UTIL//////////////////////////////
-
-
-fn border_add(add1: f64, add2: f64, width: bool) -> f64 {
-    let border = (if width { WIDTH } else { HEIGHT }) as f64;
-    let sum = add1 + add2;
-    if sum < 0.0 {
-        0.0
-    } else if sum > border {
-        border
-    } else {
-        sum
-    }
 }
