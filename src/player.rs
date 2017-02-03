@@ -45,29 +45,35 @@ impl Player {
 
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &Level) {
-        // Rotate 2 radians per second.
-
+    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, it: InteractableType) {
         if self.no_more == true {
             match self.last {
                 LastKey::Up => {
                     self.coord.move_coord_with_cam(0, -1, level, range);
                     self.no_more = false;
+                    /* Update new position in field */
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
                     //self.creature.moves(0.0, -65.0);
                 }
                 LastKey::Down => {
                     self.coord.move_coord_with_cam(0, 1, level, range);
                     self.no_more = false;
+                    /* Update new position in field */
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
                     //self.creature.moves(0.0, 65.0);
                 }
                 LastKey::Left => {
                     self.coord.move_coord_with_cam(-1, 0, level, range);
                     self.no_more = false;
+                    /* Update new position in field */
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
                     //self.creature.moves(-65.0, 0.0);
                 }
                 LastKey::Right => {
                     self.coord.move_coord_with_cam(1, 0, level, range);
                     self.no_more = false;
+                    /* Update new position in field */
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
                     //self.creature.moves(65.0, 0.0);
                 }
                 _ => {}

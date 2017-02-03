@@ -13,7 +13,7 @@ pub struct Cam {
 impl Cam {
     pub fn new(buf_x: u64, buf_y: u64) -> Self {
         Cam {
-            coord: Coordinate::new(0, 0),
+            coord: Coordinate::new(4, 4),
             buf_x: buf_x,
             buf_y: buf_y,
             range: Range::new(),
@@ -27,14 +27,12 @@ impl Cam {
 
     }
 
-    pub fn calc_coordinates(&mut self, coord1: Coordinate, coord2: Coordinate, level: &Level) {
+    pub fn calc_coordinates(&mut self, coord1: Coordinate, coord2: Coordinate, level: &mut Level) {
 
         let new_x = (coord1.get_x() + coord2.get_x()) / 2;
         let new_y = (coord1.get_y() + coord2.get_y()) / 2;
         self.coord.set_coord(new_x, new_y);
         self.coord.move_coord_without_cam(0, 0, self.buf_x, self.buf_y, level);
-
-
     }
     pub fn get_range_update(&mut self) -> Range {
         self.range = Range::calc_range(self.buf_x, self.buf_y, self);

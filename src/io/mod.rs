@@ -100,8 +100,8 @@ pub fn render_level(tileset: &Tileset,
                     g: &mut GfxGraphics<Resources, CommandBuffer>,
                     view: math::Matrix2d,
                     level: &mut Level) {
-    for i in 0..level.get_y() {
-        for j in 0..level.get_x() {
+    for i in 0..level.get_height() {
+        for j in 0..level.get_width() {
             let tile = match tileset.get_texture(level.get_data()[i][j].get_id()) {
                 Some(x) => x,
                 None => panic!("No texture found."),
