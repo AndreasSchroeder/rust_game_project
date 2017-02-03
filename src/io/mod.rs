@@ -1,4 +1,5 @@
 pub mod tileset;
+pub mod sprite;
 
 extern crate find_folder;
 extern crate image as im;
