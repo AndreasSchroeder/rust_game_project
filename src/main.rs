@@ -25,7 +25,7 @@ mod camera;
 mod bot;
 
 use camera::Cam;
-use player::{Player, LastKey};
+use player::{Player, LastKey, Weapon};
 use bot::Bot;
 use io::render_tile;
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
@@ -162,7 +162,7 @@ impl App {
 
     }
 
-    fn on_input(&mut self, inp: Button, pressed: bool) {
+    fn on_input(&mut self, inp: Button, pressed: bool, level: &mut Level) {
 
         match inp {
             Button::Keyboard(Key::Up) => {
@@ -223,7 +223,31 @@ impl App {
             }
             Button::Keyboard(Key::Space) => {
                 if pressed {
-                    println!("Space!!!");
+                    match self.player_one.weapon{
+                        Weapon::Sword => {
+                            let last = &self.player_one.last;
+                            let p1_pos = &self.player_one.coord;
+
+                            match *last {
+                                LastKey::Up => {
+                                    let mut targets = Vec::new();
+                                    targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                    &self.player_one.attack(targets);
+                                },
+                                LastKey::Down => {
+
+                                },
+                                LastKey::Left => {
+
+                                },
+                                LastKey::Right => {
+
+                                },
+                                _ => {}
+                            }
+                        }
+                        _ => {}
+                    }
                 }
             }
             _ => {}
@@ -233,7 +257,7 @@ impl App {
 }
 
 fn main() {
-    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
+    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament_reloaded_uncut_director's_edition",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         .fullscreen(false)
@@ -302,10 +326,10 @@ fn main() {
             app.on_draw(&mut window, &e, &tileset, &mut level, state);
         }
         if let Some(i) = e.release_args() {
-            app.on_input(i, false);
+            app.on_input(i, false, &level);
         }
         if let Some(i) = e.press_args() {
-            app.on_input(i, true);
+            app.on_input(i, true, &level);
         }
 
         if let Some(u) = e.update_args() {
