@@ -1,14 +1,16 @@
 [package]
 
-name = "spinning-square"
+name = "chicken_fight_3000_ultimate_tournament"
 version = "0.1.0"
 authors = [
-    "TyOverby <ty@pre-alpha.com>",
-    "Nikita Pekin <contact@nikitapek.in>"
+    "Andreas Schroeder",
+    "Bao Tran",
+    "Eduard Rempel",
+    "Fabian Laumeyer",
 ]
 
 [[bin]]
-name = "spinning-square"
+name = "chicken_fight_3000_ultimate_tournament"
 
 [dependencies]
 piston_window = "0.62.0"
@@ -19,3 +21,4 @@ piston2d-gfx_graphics = "0.36.0"
 vecmath = "0.3.0"
 image = "0.12.2"
 time = "0.1"
+rand = "0.3.15"

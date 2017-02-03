@@ -1,28 +1,27 @@
-use interactable::Interactable;
+use interactable::InteractableType;
 
-pub struct Field<'a, T: 'a> {
-    tiles: u64,          // Type of field
-    passable: bool,      // is field passable
-    contains: Option<&'a T>, // does field contains an object/enemy/player?
-
+#[derive(Clone)]
+pub struct Field {
+    tiles: u64, // Type of field
+    passable: bool, // is field passable
+    contains: Option<InteractableType>, // does field contains an object/enemy/player?
 }
 
-impl<'a, T> Field<'a, T> {
-    pub fn new(typ: u64, pass: bool) -> Self {
+impl Field {
+    pub fn new(typ: u64) -> Self {
         Field {
-                tiles: typ,
-                passable: pass,
-                contains: None,
+            tiles: typ,
+            passable: get_passable(typ),
+            contains: None,
         }
     }
 
-    pub fn get_fieldstatus(&self) -> Option<&'a T>
-    where T: Interactable {
+    pub fn get_fieldstatus(&self) -> Option<InteractableType> {
         self.contains
     }
 
-    pub fn set_fieldstatus(&mut self, o: Option<&'a T>) {
-        self.contains = o;
+    pub fn set_fieldstatus(&mut self, o: InteractableType) {
+        self.contains = Some(o);
     }
 
     pub fn free_fieldstatus(&mut self) {
@@ -31,6 +30,24 @@ impl<'a, T> Field<'a, T> {
 
     pub fn check_passable(&self) -> bool {
 
-        self.passable && if let None = self.contains {true} else {false}
+        self.passable &&
+        if let None = self.contains {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn get_id(&self) -> u64 {
+        self.tiles
+    }
+}
+
+// Hier wird bis jetzt statisch hinterlegt, ob ein Tile passable ist oder nicht
+fn get_passable(id: u64) -> bool {
+    match id {
+        0 | 1 | 2 | 3 | 4 | 5 | 12 | 13 | 14 | 15 | 94 | 95 | 96 => true,
+        6 => false,
+        _ => false,
     }
 }

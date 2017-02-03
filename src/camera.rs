@@ -1,70 +1,94 @@
 use coord::Coordinate;
-use player::Player;
+use level::Level;
 
-pub struct Cam<'a, 'b> {
-    cord: Coordinate,
+pub struct Cam {
+    coord: Coordinate,
     buf_x: u64,
     buf_y: u64,
-    player_one: Option<&'a Player>,
-    player_two: Option<&'b Player>,
+    range: Range,
+    level_w: u64,
+    level_h: u64,
 }
 
-impl<'a, 'b> Cam<'a, 'b> {
-    pub fn new(cord: Coordinate, buf_x: u64, buf_y: u64) -> Self {
+impl Cam {
+    pub fn new(buf_x: u64, buf_y: u64) -> Self {
         Cam {
-            cord: cord,
+            coord: Coordinate::new(4, 4),
             buf_x: buf_x,
             buf_y: buf_y,
-            player_one: None,
-            player_two: None,
+            range: Range::new(),
+            level_w: 0,
+            level_h: 0,
         }
     }
-    pub fn calc_coordinates(&mut self) {
-        let p_one = if let None = self.player_one {
-            false
-        } else {
-            true
-        };
-        let p_two = if let None = self.player_two {
-            false
-        } else {
-            true
-        };
-        if !p_one && !p_two {
-            self.cord.set_coord(0, 0);
-        } else if p_one != p_two {
-            if p_one {
-                self.cord.set_coord(self.player_one.unwrap().coord.get_x(),
-                                    self.player_one.unwrap().coord.get_y());
-                self.cord.move_coord_with_buf(0, 0, self.buf_x, self.buf_y);
-            } else {
-                self.cord.set_coord(self.player_two.unwrap().coord.get_x(),
-                                    self.player_two.unwrap().coord.get_y());
-                self.cord.move_coord_with_buf(0, 0, self.buf_x, self.buf_y);
-            }
-        } else {
-            let new_x = (self.player_one.unwrap().coord.get_x() +
-                         self.player_two.unwrap().coord.get_x()) / 2;
-            let new_y = (self.player_one.unwrap().coord.get_y() +
-                         self.player_two.unwrap().coord.get_y()) / 2;
-            self.cord.set_coord(new_x, new_y);
-            self.cord.move_coord_with_buf(0, 0, self.buf_x, self.buf_y);
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
+        self.level_w = w;
+        self.level_h = h;
 
+    }
+
+    pub fn calc_coordinates(&mut self, coord1: Coordinate, coord2: Coordinate, level: &mut Level) {
+
+        let new_x = (coord1.get_x() + coord2.get_x()) / 2;
+        let new_y = (coord1.get_y() + coord2.get_y()) / 2;
+        self.coord.set_coord(new_x, new_y);
+        self.coord.move_coord_without_cam(0, 0, self.buf_x, self.buf_y, level);
+    }
+    pub fn get_range_update(&mut self) -> Range {
+        self.range = Range::calc_range(self.buf_x, self.buf_y, self);
+        self.range
+    }
+    pub fn get_range(&mut self) -> Range {
+        self.range
+    }
+}
+#[derive(Copy, Clone)]
+pub struct Range {
+    pub x_min: u64,
+    pub y_min: u64,
+    pub x_max: u64,
+    pub y_max: u64,
+}
+
+impl Range {
+    fn new() -> Self {
+        Range {
+            x_min: 0,
+            y_min: 0,
+            x_max: 0,
+            y_max: 0,
         }
     }
-    pub fn set_player_one(&mut self, player: &'a Player) {
-        self.player_one = Some(player);
+    fn calc_range(buf_x: u64, buf_y: u64, cam: &mut Cam) -> Self {
+        let mut new = Range::new();
+        new.x_min = if cam.coord.get_x() < buf_x {
+            0
+        } else {
+            cam.coord.get_x() - buf_x
+        };
+        new.y_min = if cam.coord.get_y() < buf_y {
+            0
+        } else {
+            cam.coord.get_y() - buf_y
+        };
+        new.x_max = if cam.coord.get_x() + buf_x + 1 > cam.level_w {
+            cam.level_w
+        } else {
+            cam.coord.get_x() + buf_x + 1
+        };
+        new.y_max = if cam.coord.get_y() + buf_y + 1 > cam.level_h {
+            cam.level_h
+        } else {
+            cam.coord.get_y() + buf_y + 1
+        };
+        // DEBUG
+        /*println!("Camera.rs Debug: {} {} {} {} coord: {:?}",
+                 new.x_max,
+                 new.x_min,
+                 new.y_max,
+                 new.y_min,
+                 cam.coord); */
+        new
 
-    }
-    pub fn clear_player_one(&mut self) {
-        self.player_one = None;
-    }
-
-    pub fn set_player_two(&mut self, player: &'b Player) {
-        self.player_two = Some(player);
-
-    }
-    pub fn clear_player_two(&mut self) {
-        self.player_two = None;
     }
 }
