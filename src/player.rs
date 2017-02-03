@@ -28,7 +28,7 @@ impl Player {
             creature: Creature::new(),
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
-            interactable_type: InteractableType::player,
+            interactable_type: InteractableType::Player,
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
@@ -46,6 +46,7 @@ impl Player {
 
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
         // Rotate 2 radians per second.
+
         if self.no_more == true {
             match self.last {
                 LastKey::Up => {
@@ -102,11 +103,11 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::player | InteractableType::bot => {
+                        InteractableType::Player | InteractableType::Bot => {
                             x.conv_to_actor().damage_taken(self.dmg)
                         }
-                        InteractableType::useable => {}
-                        InteractableType::collectable => {}
+                        InteractableType::Useable => {}
+                        InteractableType::Collectable => {}
                     }
                 }
                 None => {}
