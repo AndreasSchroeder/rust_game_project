@@ -1,13 +1,13 @@
-use interactable::Interactable;
+use interactable::InteractableType;
 
 #[derive(Clone)]
-pub struct Field<'a, T: 'a> {
+pub struct Field {
     tiles: u64, // Type of field
     passable: bool, // is field passable
-    contains: Option<&'a T>, // does field contains an object/enemy/player?
+    contains: Option<InteractableType>, // does field contains an object/enemy/player?
 }
 
-impl<'a, T> Field<'a, T> {
+impl Field {
     pub fn new(typ: u64) -> Self {
         Field {
             tiles: typ,
@@ -16,14 +16,12 @@ impl<'a, T> Field<'a, T> {
         }
     }
 
-    pub fn get_fieldstatus(&self) -> Option<&'a T>
-        where T: Interactable
-    {
+    pub fn get_fieldstatus(&self) -> Option<InteractableType> {
         self.contains
     }
 
-    pub fn set_fieldstatus(&mut self, o: Option<&'a T>) {
-        self.contains = o;
+    pub fn set_fieldstatus(&mut self, o: InteractableType) {
+        self.contains = Some(o);
     }
 
     pub fn free_fieldstatus(&mut self) {
