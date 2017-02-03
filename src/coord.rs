@@ -1,6 +1,6 @@
-use LEVEL_WIDTH;
-use LEVEL_HEIGHT;
+use camera::Range;
 
+#[derive(Copy, Clone, Debug)]
 pub struct Coordinate {
     x: u64,
     y: u64,
@@ -21,43 +21,43 @@ impl Coordinate {
         self.y
     }
 
-    pub fn clone_coord(&self) -> Self {
-        Coordinate {
-            x: self.x,
-            y: self.y,
-        }
-    }
-    pub fn move_coord(&mut self, dx: u64, dy: u64) {
-        self.move_coord_with_buf(dx, dy, 0, 0);
+    pub fn move_coord_with_cam(&mut self, dx: i64, dy: i64, level_width: u64, level_height: u64, range: Range) {
+        self.move_coord_without_cam(dx, dy, 0, 0, level_width, level_height);
+        self.cam_border(range);
     }
     pub fn set_coord(&mut self, x: u64, y: u64) {
         self.x = x;
         self.y = y;
     }
-    pub fn move_coord_with_buf(&mut self, dx: u64, dy: u64, mut buf_x: u64, mut buf_y: u64) {
-        buf_x = if LEVEL_WIDTH < buf_x {
-            LEVEL_WIDTH
+    fn cam_border( &mut self, range: Range) {
+        self.x = if self.x < range.x_min { range.x_min } else if self.x >= range.x_max { range.x_max - 1 } else { self.x };
+        self.y = if self.y < range.y_min { range.y_min } else if self.y >= range.y_max { range.y_max - 1 } else { self.y };
+    }
+
+    pub fn move_coord_without_cam(&mut self, dx: i64, dy: i64, mut buf_x: u64, mut buf_y: u64, level_width: u64, level_height: u64) {
+        buf_x = if level_width < buf_x {
+            level_width
         } else {
             buf_x
         };
-        buf_y = if LEVEL_HEIGHT < buf_y {
-            LEVEL_HEIGHT
+        buf_y = if level_height < buf_y {
+            level_height
         } else {
             buf_y
         };
-        let new_x = self.x + dx;
-        let new_y = self.y + dy;
+        let new_x = if (self.x as i64 + dx) < 0 { 0 } else {(self.x as i64 + dx) as u64};
+        let new_y = if (self.y as i64 + dy) < 0 { 0 } else {(self.y as i64 + dy) as u64};
         self.x = if new_x < buf_x {
             buf_x
-        } else if new_x > LEVEL_WIDTH - buf_x {
-            LEVEL_WIDTH - buf_x
+        } else if new_x > level_width - buf_x {
+            level_width - buf_x
         } else {
             new_x
         };
         self.y = if new_y < buf_y {
             buf_y
-        } else if new_y > LEVEL_HEIGHT - buf_y {
-            LEVEL_HEIGHT - buf_y
+        } else if new_y > level_height - buf_y {
+            level_height - buf_y
         } else {
             new_y
         }
