@@ -125,8 +125,8 @@ impl App {
             for b in &mut self.bots {
 
                 if let Some(ref br) = b.sprite {
-                    if b.coord.get_x() > range.x_min &&  b.coord.get_x() < range.x_max &&
-                        b.coord.get_y() > range.y_min && b.coord.get_y() < range.y_max{
+                    if b.coord.get_x() >= range.x_min &&  b.coord.get_x() < range.x_max &&
+                        b.coord.get_y() >= range.y_min && b.coord.get_y() < range.y_max {
 
                         let center_b1 = c.transform.trans(((b.coord.get_x() - range.x_min )* 65) as f64,
                                                           ((b.coord.get_y() - range.y_min)* 65) as f64);
@@ -138,7 +138,7 @@ impl App {
         });
     }
 
-    fn on_update(&mut self, args: &UpdateArgs) {
+    fn on_update(&mut self, args: &UpdateArgs, state: usize) {
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
 
@@ -155,7 +155,7 @@ impl App {
         }
 
         for b in &mut self.bots {
-            b.on_update(args, range);
+            b.on_update(args, range, state);
         }
 
         self.cam.calc_coordinates(coord1, coord2);
@@ -219,6 +219,11 @@ impl App {
                         x.last = LastKey::Right;
                     }
                     x.pressed = pressed;
+                }
+            }
+            Button::Keyboard(Key::Space) => {
+                if pressed {
+                    println!("Space!!!");
                 }
             }
             _ => {}
@@ -304,7 +309,7 @@ fn main() {
         }
 
         if let Some(u) = e.update_args() {
-            app.on_update(&u);
+            app.on_update(&u, state);
         }
 
     }
