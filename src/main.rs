@@ -252,7 +252,7 @@ fn main() {
     let mut events = window.events();
 
     let tiles = match find_folder::Search::Kids(1).for_folder("tiles") {
-        Ok(res) => res.join("tileset-pokemon_dawn.png"),
+        Ok(res) => res.join("tiles2.png"), //tileset-pokemon_dawn.png for full tileset
         Err(_) => panic!("Folder 'tiles' not found!"),
     };
 
@@ -262,7 +262,7 @@ fn main() {
     };
 
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
-        Ok(res) => res.join("level1.lvl"),
+        Ok(res) => res.join("level1_small_tileset.lvl"),
         Err(_) => panic!("Folder 'src' not found!"),
     };
 
@@ -296,7 +296,7 @@ fn main() {
         let file = if i %3 == 0 {"chicken_pink.png"} else if i% 3 == 1 {"chicken_brown.png"} else {"chicken_white.png"};
         b.set_sprite(Sprite::fill_sprite(file,2,1,64,64,&mut window));
         b.set_borders((level.get_width() as u64, level.get_height()as u64));
-        i = i +1; 
+        i = i +1;
     }
 
     while let Some(e) = events.next(&mut window) {
