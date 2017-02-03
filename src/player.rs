@@ -8,6 +8,12 @@ use coord::Coordinate;
 use camera::Range;
 use io::sprite::Sprite;
 
+pub enum Weapon {
+    Sword,
+    Spear,
+    Broadsword,
+}
+
 pub struct Player {
     pub life: i32,
     pub dmg: i32,
@@ -18,6 +24,7 @@ pub struct Player {
     pub no_more: bool,
     pub interactable_type: InteractableType,
     pub sprite: Option<Sprite>,
+    pub weapon: Weapon,
     level_w: u64,
     level_h: u64,
 }
@@ -36,11 +43,12 @@ impl Player {
             level_w: 0,
             level_h: 0,
             sprite: None,
-            no_more: true
-
+            no_more: true,
+            weapon: Weapon::Sword,
         }
     }
-    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
