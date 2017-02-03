@@ -220,7 +220,7 @@ impl App {
 
 fn main() {
     // Create an Glutin window.
-    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
+    let mut window: PistonWindow = WindowSettings::new("Chicken Fight 3000 Ultimate Tournament",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         //.fullscreen(true)
@@ -278,12 +278,12 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
-        if now > 500 {
+        
             if let Some(u) = e.update_args() {
                 app.on_update(&u);
                 start = PreciseTime::now();
             }
-        }
+        
 
     }
 
