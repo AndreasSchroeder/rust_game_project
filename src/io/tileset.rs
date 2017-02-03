@@ -3,8 +3,8 @@ use gfx_device_gl::Resources;
 
 pub const TILE_WIDTH: u32 = 16;
 pub const TILE_HEIGHT: u32 = 16;
-pub const TILESET_HEIGHT: u32 = 2519;
-pub const TILESET_WIDTH: u32 = 1504;
+pub const TILESET_HEIGHT: u32 = 48; //2519 for full tileset
+pub const TILESET_WIDTH: u32 = 192; //1504 for full tileset
 
 pub struct Tileset {
     set: Vec<Texture<Resources>>,
