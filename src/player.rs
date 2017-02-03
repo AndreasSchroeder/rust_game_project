@@ -27,7 +27,7 @@ impl Player {
             creature: Creature::new(),
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
-            interactable_type: InteractableType::player,
+            interactable_type: InteractableType::Player,
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
