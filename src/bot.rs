@@ -1,20 +1,20 @@
 use piston_window::*;
-use creature::Creature;
 use inventory::Inventory;
 use actor::Actor;
 use enums::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
 use camera::Range;
+use io::sprite::Sprite;
 use rand::Rng;
 use rand;
 
 pub struct Bot {
-    pub creature: Creature,
     pub life: i32,
     pub dmg: i32,
     pub coord: Coordinate,
     pub interactable_type: InteractableType,
+    pub sprite: Option<Sprite>,
     level_w: u64,
     level_h: u64,
 }
@@ -22,9 +22,9 @@ pub struct Bot {
 impl Bot {
     pub fn new(x: u64, y: u64) -> Self {
         Bot {
-            creature: Creature::new(),
             coord: Coordinate::new(x, y),
             interactable_type: InteractableType::Bot,
+            sprite: None,
             life: 100,
             dmg: 10,
             level_w: 0,
@@ -36,6 +36,10 @@ impl Bot {
         self.level_w = w;
         self.level_h = h;
 
+    }
+
+    pub fn set_sprite(&mut self, sprite: Sprite) {
+        self.sprite = Some(sprite);
     }
 
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
@@ -73,10 +77,6 @@ impl Actor for Bot {
 
     fn get_life(&self) -> i32 {
         self.life
-    }
-
-    fn get_creature(&mut self) -> &mut Creature {
-        &mut self.creature
     }
 
     fn damage_taken(&mut self, dmg: i32) {

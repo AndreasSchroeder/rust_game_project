@@ -1,14 +1,14 @@
 use piston_window::*;
-use creature::Creature;
+
 use inventory::Inventory;
 use actor::Actor;
 use enums::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
 use camera::Range;
+use io::sprite::Sprite;
 
 pub struct Player {
-    pub creature: Creature,
     pub life: i32,
     pub dmg: i32,
     pub inv: Inventory,
@@ -17,6 +17,7 @@ pub struct Player {
     pub pressed: bool,
     pub no_more: bool,
     pub interactable_type: InteractableType,
+    pub sprite: Option<Sprite>,
     level_w: u64,
     level_h: u64,
 }
@@ -25,7 +26,6 @@ pub struct Player {
 impl Player {
     pub fn new(x: u64, y: u64) -> Self {
         Player {
-            creature: Creature::new(),
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
             interactable_type: InteractableType::Player,
@@ -35,13 +35,19 @@ impl Player {
             pressed: false,
             level_w: 0,
             level_h: 0,
+            sprite: None,
             no_more: true
+
         }
     }
     pub fn set_borders(&mut self, (w,h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
+    }
+
+    pub fn set_sprite(&mut self, sprite: Sprite) {
+        self.sprite = Some(sprite);
     }
 
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
@@ -94,10 +100,6 @@ impl Actor for Player {
 
     fn get_life(&self) -> i32 {
         self.life
-    }
-
-    fn get_creature(&mut self) -> &mut Creature {
-        &mut self.creature
     }
 
     fn damage_taken(&mut self, dmg: i32) {
