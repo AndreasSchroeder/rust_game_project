@@ -65,7 +65,7 @@ impl App {
             } else {
                 None
             },
-            bots: vec![Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2)],
+            bots: vec![Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2), Bot::new(2, 2)],
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
@@ -277,18 +277,18 @@ fn main() {
     app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
     app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
 
-    for b in &mut app.bots {
-        b.set_borders((level.get_x() as u64, level.get_y()as u64));
-    }
 
     app.player_one.set_sprite(Sprite::fill_sprite("knight.png",2,1,64,64,&mut window));
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_x() as u64, level.get_y() as u64));
         p2.set_sprite(Sprite::fill_sprite("paladin.png", 2, 1, 64, 64, &mut window));
     }
-
+    let mut i = 0;
     for b in &mut app.bots {
-        b.set_sprite(Sprite::fill_sprite("chicken_pink.png",2,1,64,64,&mut window));
+        let file = if i %3 == 0 {"chicken_pink.png"} else if i% 3 == 1 {"chicken_brown.png"} else {"chicken_white.png"};
+        b.set_sprite(Sprite::fill_sprite(file,2,1,64,64,&mut window));
+        b.set_borders((level.get_x() as u64, level.get_y()as u64));
+        i = i +1; 
     }
 
     while let Some(e) = events.next(&mut window) {
