@@ -61,12 +61,12 @@ impl Player {
                 }
                 LastKey::Left => {
                     self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);
-                    self.no_more = false;                
+                    self.no_more = false;
                     //self.creature.moves(-65.0, 0.0);
                 }
                 LastKey::Right => {
-                    self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);    
-                    self.no_more = false;            
+                    self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);
+                    self.no_more = false;
                     //self.creature.moves(65.0, 0.0);
                 }
                 _ => {}
@@ -86,6 +86,7 @@ pub enum LastKey {
     Right,
     Wait,
 }
+
 impl Actor for Player {
     fn is_alive(&self) -> bool {
         self.life > 0
@@ -94,6 +95,11 @@ impl Actor for Player {
     fn get_life(&self) -> i32 {
         self.life
     }
+
+    fn get_creature(&mut self) -> &mut Creature {
+        &mut self.creature
+    }
+
     fn damage_taken(&mut self, dmg: i32) {
         self.life -= dmg;
     }
@@ -114,8 +120,6 @@ impl Actor for Player {
             }
         }
     }
-
-
 
     fn dying(&self) {}
 }

@@ -7,8 +7,9 @@ use interactable::Interactable;
 use coord::Coordinate;
 use camera::Range;
 use rand::Rng;
+use rand;
 
-struct Bot {
+pub struct Bot {
     pub creature: Creature,
     pub life: i32,
     pub dmg: i32,
@@ -20,7 +21,7 @@ struct Bot {
 
 impl Bot {
     pub fn new(x: u64, y: u64) -> Self {
-        Player {
+        Bot {
             creature: Creature::new(),
             coord: Coordinate::new(x, y),
             interactable_type: InteractableType::Bot,
@@ -73,6 +74,11 @@ impl Actor for Bot {
     fn get_life(&self) -> i32 {
         self.life
     }
+
+    fn get_creature(&mut self) -> &mut Creature {
+        &mut self.creature
+    }
+
     fn damage_taken(&mut self, dmg: i32) {
         self.life -= dmg;
     }
@@ -99,7 +105,7 @@ impl Actor for Bot {
     fn dying(&self) {}
 }
 
-impl Interactable for Player {
+impl Interactable for Bot {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
     }

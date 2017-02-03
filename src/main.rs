@@ -23,12 +23,16 @@ mod interactable;
 mod coord;
 mod enums;
 mod camera;
+mod bot;
 
 use camera::{Cam};
 use player::{Player, LastKey};
+use bot::Bot;
 use io::{ render_tile};
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
+use actor::Actor;
+use interactable::Interactable;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -46,6 +50,7 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 pub struct App {
     player_one: Player,
     player_two: Option<Player>,
+    bots: Vec<Bot>,
     cam: Cam,
 }
 
@@ -60,6 +65,7 @@ impl App {
             } else {
                 None
             },
+            bots: vec![Bot::new(2, 2)],
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
@@ -70,11 +76,12 @@ impl App {
                e: &Event,
                tileset: &Tileset,
                level: &mut Level) {
-        let player_one = &self.player_one.creature;
-        let player_two = &self.player_two;
+
 
         let range = self.cam.get_range();
         w.draw_2d(e, |c, gl| {
+            let player_one = &self.player_one.creature;
+            let player_two = &self.player_two;
             // Clear the screen.
             clear(BLACK, gl);
 
@@ -105,27 +112,42 @@ impl App {
                  p2.creature.render(gl, center_p2);
 
             }
+
+            for b in &mut self.bots {
+                let ref bot_one = b.creature;
+
+                if b.coord.get_x() > range.x_min &&  b.coord.get_x() < range.x_max &&
+                    b.coord.get_y() > range.y_min && b.coord.get_y() < range.y_max{
+                    let center_b1 = c.transform.trans(((b.coord.get_x() - range.x_min )* 65) as f64,
+                                                      ((b.coord.get_y() - range.y_min)* 65) as f64);
+                    bot_one.render(gl, center_b1);
+                }
+            }
         });
     }
 
-    fn on_update(&mut self,
-                 args: &UpdateArgs,) {
-                let coord1 = self.player_one.coord.clone();
+    fn on_update(&mut self, args: &UpdateArgs,) {
+        let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
+
         if let Some(ref p2) = self.player_two {
             coord2 = p2.coord.clone();
         }
 
-                let range = self.cam.get_range_update();
-
-
+        let range = self.cam.get_range_update();
 
         self.player_one.on_update(args, range);
         if let Some(ref mut x) = self.player_two {
 
             x.on_update(args, range);
         }
-                self.cam.calc_coordinates(coord1, coord2);
+
+        for b in &mut self.bots {
+            b.on_update(args, range);
+        }
+
+
+        self.cam.calc_coordinates(coord1, coord2);
 
     }
 
@@ -193,14 +215,21 @@ impl App {
         }
     }
     fn on_load(&mut self, mut w: &mut PistonWindow) {
-        let mut player_one = &mut self.player_one;
-        App::load_sprite(w, &mut player_one, SPRITE_P_1);
+        let mut player_one = self.player_one.conv_to_actor();
+        App::load_sprite(w, player_one, SPRITE_P_1);
         if let Some(ref mut x) = self.player_two {
-            App::load_sprite(w, x, SPRITE_P_2);
+            App::load_sprite(w, x.conv_to_actor(), SPRITE_P_2);
         }
 
+        for b in &mut self.bots {
+            let mut bot_one = b.conv_to_actor();
+            App::load_sprite(w, bot_one, SPRITE_P_2);
+        }
+
+
     }
-    fn load_sprite(mut w: &mut PistonWindow, player: &mut Player, file: &str) {
+
+    fn load_sprite(mut w: &mut PistonWindow, player: &mut Actor, file: &str) {
         let assets = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap();
         let tank_sprite = assets.join(file);
         let tank_sprite2 = Texture::from_path(&mut w.factory,
@@ -212,7 +241,7 @@ impl App {
                 println!("Empty");
             }
             Ok(x) => {
-                player.creature.set_sprite(x);
+                player.get_creature().set_sprite(x);
             }
         }
 
@@ -262,6 +291,10 @@ fn main() {
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
     app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
+    for b in &mut app.bots {
+        b.set_borders((level.get_x() as u64, level.get_y()as u64));
+    }
+
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_x() as u64, level.get_y()as u64));
     }
@@ -279,12 +312,12 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
-        
+
             if let Some(u) = e.update_args() {
                 app.on_update(&u);
                 start = PreciseTime::now();
             }
-        
+
 
     }
 
