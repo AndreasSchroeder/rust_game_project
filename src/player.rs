@@ -15,6 +15,7 @@ pub struct Player {
     pub coord: Coordinate,
     pub last: LastKey,
     pub pressed: bool,
+    pub no_more: bool,
     pub interactable_type: InteractableType,
     pub sprite: Option<Sprite>,
     level_w: u64,
@@ -27,7 +28,7 @@ impl Player {
         Player {
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
-            interactable_type: InteractableType::player,
+            interactable_type: InteractableType::Player,
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
@@ -35,6 +36,7 @@ impl Player {
             level_w: 0,
             level_h: 0,
             sprite: None,
+            no_more: true
 
         }
     }
@@ -51,27 +53,34 @@ impl Player {
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
         // Rotate 2 radians per second.
 
-        match self.last {
-            LastKey::Up => {
-                self.coord.move_coord_with_cam(0, -1, self.level_w, self.level_h, range);
-                //self.creature.moves(0.0, -65.0);
+        if self.no_more == true {
+            match self.last {
+                LastKey::Up => {
+                    self.coord.move_coord_with_cam(0, -1, self.level_w, self.level_h, range);
+                    self.no_more = false;
+                    //self.creature.moves(0.0, -65.0);
+                }
+                LastKey::Down => {
+                    self.coord.move_coord_with_cam(0, 1, self.level_w, self.level_h, range);
+                    self.no_more = false;
+                    //self.creature.moves(0.0, 65.0);
+                }
+                LastKey::Left => {
+                    self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);
+                    self.no_more = false;                
+                    //self.creature.moves(-65.0, 0.0);
+                }
+                LastKey::Right => {
+                    self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);    
+                    self.no_more = false;            
+                    //self.creature.moves(65.0, 0.0);
+                }
+                _ => {}
             }
-            LastKey::Down => {
-                self.coord.move_coord_with_cam(0, 1, self.level_w, self.level_h, range);
-                //self.creature.moves(0.0, 65.0);
-            }
-            LastKey::Left => {
-                self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);                
-                //self.creature.moves(-65.0, 0.0);
-            }
-            LastKey::Right => {
-                self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);                
-                //self.creature.moves(65.0, 0.0);
-            }
-            _ => {}
         }
         if !self.pressed {
             self.last = LastKey::Wait;
+            self.no_more = true;
         }
     }
 }
@@ -100,11 +109,11 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::player | InteractableType::bot => {
+                        InteractableType::Player | InteractableType::Bot => {
                             x.conv_to_actor().damage_taken(self.dmg)
                         }
-                        InteractableType::useable => {}
-                        InteractableType::collectable => {}
+                        InteractableType::Useable => {}
+                        InteractableType::Collectable => {}
                     }
                 }
                 None => {}
