@@ -220,7 +220,7 @@ impl App {
 
 fn main() {
     // Create an Glutin window.
-    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
+    let mut window: PistonWindow = WindowSettings::new("Chicken Fight 3000 Ultimate Tournament",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         //.fullscreen(true)
