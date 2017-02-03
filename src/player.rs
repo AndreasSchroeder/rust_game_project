@@ -1,5 +1,5 @@
 use piston_window::*;
-use creature::Creature;
+
 use inventory::Inventory;
 use actor::Actor;
 use interactable::InteractableType;
@@ -7,9 +7,15 @@ use interactable::Interactable;
 use coord::Coordinate;
 use camera::Range;
 use level::Level;
+use io::sprite::Sprite;
+
+pub enum Weapon {
+    Sword,
+    Spear,
+    Broadsword,
+}
 
 pub struct Player {
-    pub creature: Creature,
     pub life: i32,
     pub dmg: i32,
     pub inv: Inventory,
@@ -18,6 +24,8 @@ pub struct Player {
     pub pressed: bool,
     pub no_more: bool,
     pub interactable_type: InteractableType,
+    pub sprite: Option<Sprite>,
+    pub weapon: Weapon,
     level_w: u64,
     level_h: u64,
 }
@@ -26,7 +34,6 @@ pub struct Player {
 impl Player {
     pub fn new(x: u64, y: u64, id: u64) -> Self {
         Player {
-            creature: Creature::new(),
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
             interactable_type: InteractableType::Player(id),
@@ -36,13 +43,20 @@ impl Player {
             pressed: false,
             level_w: 0,
             level_h: 0,
-            no_more: true
+            sprite: None,
+            no_more: true,
+            weapon: Weapon::Sword,
         }
     }
-    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
+    }
+
+    pub fn set_sprite(&mut self, sprite: Sprite) {
+        self.sprite = Some(sprite);
     }
 
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, it: InteractableType) {
@@ -74,7 +88,7 @@ impl Player {
                     self.no_more = false;
                     /* Update new position in field */
                     level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
-                    //self.creature.moves(65.0, 0.0);
+
                 }
                 _ => {}
             }
@@ -93,6 +107,7 @@ pub enum LastKey {
     Right,
     Wait,
 }
+
 impl Actor for Player {
     fn is_alive(&self) -> bool {
         self.life > 0
@@ -101,6 +116,7 @@ impl Actor for Player {
     fn get_life(&self) -> i32 {
         self.life
     }
+
     fn damage_taken(&mut self, dmg: i32) {
         self.life -= dmg;
     }
@@ -121,8 +137,6 @@ impl Actor for Player {
             }
         }
     }
-
-
 
     fn dying(&self) {}
 }

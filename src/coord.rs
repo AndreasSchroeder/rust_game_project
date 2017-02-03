@@ -30,9 +30,21 @@ impl Coordinate {
         self.x = x;
         self.y = y;
     }
-    fn cam_border( &mut self, range: Range) {
-        self.x = if self.x < range.x_min { range.x_min } else if self.x >= range.x_max { range.x_max - 1 } else { self.x };
-        self.y = if self.y < range.y_min { range.y_min } else if self.y >= range.y_max { range.y_max - 1 } else { self.y };
+    fn cam_border(&mut self, range: Range) {
+        self.x = if self.x < range.x_min {
+            range.x_min
+        } else if self.x >= range.x_max {
+            range.x_max - 1
+        } else {
+            self.x
+        };
+        self.y = if self.y < range.y_min {
+            range.y_min
+        } else if self.y >= range.y_max {
+            range.y_max - 1
+        } else {
+            self.y
+        };
     }
 
     pub fn move_coord_without_cam(&mut self, dx: i64, dy: i64, mut buf_x: u64, mut buf_y: u64, level: &mut Level) {
@@ -46,6 +58,7 @@ impl Coordinate {
         } else {
             buf_y
         };
+
         let new_x = if (self.x as i64 + dx) < 0 { 0 } else {(self.x as i64 + dx) as u64};
         let new_y = if (self.y as i64 + dy) < 0 { 0 } else {(self.y as i64 + dy) as u64};
 
@@ -65,6 +78,7 @@ impl Coordinate {
             /* Update old position in field */
             level.get_data()[self.x as usize][self.y as usize].free_fieldstatus();
         }
+
         self.x = if new_x < buf_x {
             buf_x
         } else if new_x > (level.get_width() as u64) - buf_x {
