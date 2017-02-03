@@ -20,7 +20,6 @@ mod actor;
 mod field;
 mod interactable;
 mod coord;
-mod enums;
 mod camera;
 
 use camera::{Cam};
@@ -28,6 +27,7 @@ use player::{Player, LastKey};
 use io::{ render_tile};
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
+use interactable::InteractableType;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -52,10 +52,10 @@ impl App {
     fn new(two_player: bool) -> Self {
         App {
             // 0,0 Dummy-Value
-            player_one: Player::new(0, 0),
+            player_one: Player::new(1, 1, 1),
             player_two: if two_player {
                 // 0,0 Dummy-Value
-                Some(Player::new(0, 0))
+                Some(Player::new(1, 2, 2))
             } else {
                 None
             },
@@ -76,7 +76,7 @@ impl App {
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
-            
+
             let center_lv = c.transform.trans(0.0, 0.0);
 
             //render_level(&tileset, gl, center_lv, &mut level);
@@ -104,28 +104,27 @@ impl App {
                  p2.creature.render(gl, center_p2);
 
             }
-        }); 
+        });
     }
 
     fn on_update(&mut self,
-                 args: &UpdateArgs,) {
+                 args: &UpdateArgs,
+                 level: &Level) {
                 let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
         if let Some(ref p2) = self.player_two {
             coord2 = p2.coord.clone();
         }
 
-                let range = self.cam.get_range_update();
+        let range = self.cam.get_range_update();
 
-
-
-        self.player_one.on_update(args, range);
+        self.player_one.on_update(args, range, level);
         if let Some(ref mut x) = self.player_two {
-           
-            x.on_update(args, range);
-        }
-                self.cam.calc_coordinates(coord1, coord2);
 
+            x.on_update(args, range, level);
+        }
+
+        self.cam.calc_coordinates(coord1, coord2, level);
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
@@ -258,6 +257,19 @@ fn main() {
 
     let mut level = io::read_level(level_path);
 
+    // insert players in level
+    level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(1));
+    if let Some(ref p2) = app.player_two {
+        level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(2));
+    }
+
+    for i in 0..level.get_y() {
+        for j in 0..level.get_x() {
+            print!("{} ", level.get_data()[i][j].check_passable());
+        }
+        println!("");
+    }
+
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_x() as u64, level.get_y()as u64));
     app.player_one.set_borders((level.get_x() as u64, level.get_y()as u64));
@@ -280,7 +292,34 @@ fn main() {
         }
         if now > 500 {
             if let Some(u) = e.update_args() {
-                app.on_update(&u);
+
+                let x1 = app.player_one.coord.get_x();
+                let y1 = app.player_one.coord.get_y();
+                let mut x2 = 1;
+                let mut y2 = 1;
+
+                if let Some(ref p2) = app.player_two {
+                    x2 = p2.coord.get_x();
+                    y2 = p2.coord.get_y();
+                }
+
+                app.on_update(&u, &level);
+
+                if x1 != app.player_one.coord.get_x() || y1 != app.player_one.coord.get_y() {
+                    /* Update old position in field */
+                    level.get_data()[x1 as usize][y1 as usize].free_fieldstatus();
+                    /* Update new position in field */
+                    level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(1));
+                }
+
+                if let Some(ref p2) = app.player_two {
+                if x2 != p2.coord.get_x() || y2 != p2.coord.get_y() {
+                        /* Update old position in field */
+                        level.get_data()[x2 as usize][y2 as usize].free_fieldstatus();
+                        /* Update new position in field */
+                        level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(2));
+                    }
+                }
                 start = PreciseTime::now();
             }
         }

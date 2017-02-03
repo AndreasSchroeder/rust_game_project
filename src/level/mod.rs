@@ -1,13 +1,13 @@
 use super::field::Field;
 use super::interactable::Interactable;
 
-pub struct Level<'a> {
-    data: Vec<Vec<Field<'a, Option<&'a Interactable>>>>,
+pub struct Level {
+    data: Vec<Vec<Field>>,
     x: usize,
     y: usize,
 }
 
-impl<'a> Level<'a> {
+impl Level {
     pub fn with_size(x: usize, y: usize) -> Self {
         Level {
             data: vec![vec![Field::new(0); x]; y],
@@ -24,7 +24,11 @@ impl<'a> Level<'a> {
         self.y
     }
 
-    pub fn get_data(&mut self) -> &mut Vec<Vec<Field<'a, Option<&'a Interactable>>>> {
+    pub fn get_data(&mut self) -> &mut Vec<Vec<Field>> {
         &mut self.data
+    }
+
+    pub fn get_field_at(&self, x: usize, y: usize) -> &Field {
+        &self.data[x][y]
     }
 }

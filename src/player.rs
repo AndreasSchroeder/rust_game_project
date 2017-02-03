@@ -2,10 +2,11 @@ use piston_window::*;
 use creature::Creature;
 use inventory::Inventory;
 use actor::Actor;
-use enums::InteractableType;
+use interactable::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
 use camera::Range;
+use level::Level;
 
 pub struct Player {
     pub creature: Creature,
@@ -22,12 +23,12 @@ pub struct Player {
 
 
 impl Player {
-    pub fn new(x: u64, y: u64) -> Self {
+    pub fn new(x: u64, y: u64, id: u64) -> Self {
         Player {
             creature: Creature::new(),
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
-            interactable_type: InteractableType::player,
+            interactable_type: InteractableType::Player(id),
             life: 100,
             dmg: 10,
             inv: Inventory::new(),
@@ -42,24 +43,24 @@ impl Player {
 
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range) {
+    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &Level) {
         // Rotate 2 radians per second.
 
         match self.last {
             LastKey::Up => {
-                self.coord.move_coord_with_cam(0, -1, self.level_w, self.level_h, range);
+                self.coord.move_coord_with_cam(0, -1, level, range);
                 //self.creature.moves(0.0, -65.0);
             }
             LastKey::Down => {
-                self.coord.move_coord_with_cam(0, 1, self.level_w, self.level_h, range);
+                self.coord.move_coord_with_cam(0, 1, level, range);
                 //self.creature.moves(0.0, 65.0);
             }
             LastKey::Left => {
-                self.coord.move_coord_with_cam(-1, 0, self.level_w, self.level_h, range);                
+                self.coord.move_coord_with_cam(-1, 0, level, range);
                 //self.creature.moves(-65.0, 0.0);
             }
             LastKey::Right => {
-                self.coord.move_coord_with_cam(1, 0, self.level_w, self.level_h, range);                
+                self.coord.move_coord_with_cam(1, 0, level, range);
                 //self.creature.moves(65.0, 0.0);
             }
             _ => {}
@@ -94,11 +95,11 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::player | InteractableType::bot => {
+                        InteractableType::Player(_) | InteractableType::Bot(_) => {
                             x.conv_to_actor().damage_taken(self.dmg)
                         }
-                        InteractableType::useable => {}
-                        InteractableType::collectable => {}
+                        InteractableType::Useable(_) => {}
+                        InteractableType::Collectable(_) => {}
                     }
                 }
                 None => {}

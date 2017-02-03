@@ -1,4 +1,5 @@
 use coord::Coordinate;
+use level::Level;
 
 pub struct Cam {
     coord: Coordinate,
@@ -26,12 +27,12 @@ impl Cam {
 
     }
 
-    pub fn calc_coordinates(&mut self, coord1: Coordinate, coord2: Coordinate) {
+    pub fn calc_coordinates(&mut self, coord1: Coordinate, coord2: Coordinate, level: &Level) {
 
         let new_x = (coord1.get_x() + coord2.get_x()) / 2;
         let new_y = (coord1.get_y() + coord2.get_y()) / 2;
         self.coord.set_coord(new_x, new_y);
-        self.coord.move_coord_without_cam(0, 0, self.buf_x, self.buf_y, self.level_w, self.level_h);
+        self.coord.move_coord_without_cam(0, 0, self.buf_x, self.buf_y, level);
 
 
     }
