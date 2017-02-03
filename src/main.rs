@@ -65,7 +65,7 @@ impl App {
             } else {
                 None
             },
-            bots: vec![Bot::new(2, 2, 1), Bot::new(4, 4, 2), Bot::new(6, 6, 3), Bot::new(8, 6, 4), Bot::new(18, 18, 5)],
+            bots: vec![Bot::new(2, 2, 1), Bot::new(4, 4, 2), Bot::new(6, 6, 3), Bot::new(8, 6, 4), Bot::new(18, 18, 5), Bot::new(18, 18, 6), Bot::new(18, 18, 7), Bot::new(18, 18, 8), Bot::new(18, 18, 9), Bot::new(18, 18, 10)],
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
@@ -281,10 +281,6 @@ fn main() {
         level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(2));
     }
 
-    // insert bots in level
-    for b in &mut app.bots {
-        level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize].set_fieldstatus(b.get_interactable_type());
-    }
 
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_width() as u64, level.get_height()as u64));
@@ -294,10 +290,13 @@ fn main() {
         p2.set_borders((level.get_width() as u64, level.get_height() as u64));
         p2.set_sprite(Sprite::fill_sprite("paladin.png", 2, 1, 64, 64, &mut window));
     }
-
+    let mut i = 0;
     for b in &mut app.bots {
+
+        let file = if i %3 == 0 {"chicken_pink.png"} else if i% 3 == 1 {"chicken_brown.png"} else {"chicken_white.png"};
+        b.set_sprite(Sprite::fill_sprite(file,2,1,64,64,&mut window));
         b.set_borders((level.get_width() as u64, level.get_height()as u64));
-        b.set_sprite(Sprite::fill_sprite("chicken_pink.png",2,1,64,64,&mut window));
+        i = i +1; 
     }
 
     while let Some(e) = events.next(&mut window) {
