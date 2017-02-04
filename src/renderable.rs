@@ -4,7 +4,5 @@ use gfx_graphics::GfxGraphics;
 use piston_window::*;
 
 pub trait Renderable {
-        fn render(&self,
-                  g: &mut GfxGraphics<Resources, CommandBuffer>,
-                  view: math::Matrix2d);
+    fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d);
 }

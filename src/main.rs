@@ -9,7 +9,7 @@ extern crate time;
 extern crate rand;
 
 use piston_window::*;
-use time::{ PreciseTime};
+use time::PreciseTime;
 
 
 mod player;
@@ -25,13 +25,15 @@ mod camera;
 mod bot;
 mod renderable;
 mod all_sprites;
+mod effect;
 
 use camera::Cam;
-use player::{Player, LastKey};
+use player::{Player, LastKey, Direction};
 use bot::Bot;
 use io::render_tile;
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
+use effect::{EffectHandler, EffectOption};
 
 
 use interactable::InteractableType;
@@ -53,15 +55,13 @@ const HEIGHT: i64 = 584;
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 pub struct Settings {
-        pub sprite_map: SpriteMap,
+    pub sprite_map: SpriteMap,
 }
 
 impl Settings {
-    pub fn new( mut w: &mut PistonWindow) -> Self {
-                let sprite_map = SpriteMap::init(w);
-                Settings{
-                    sprite_map: sprite_map,
-                }
+    pub fn new(mut w: &mut PistonWindow) -> Self {
+        let sprite_map = SpriteMap::init(w);
+        Settings { sprite_map: sprite_map }
     }
 }
 
@@ -70,7 +70,6 @@ pub struct App<'a> {
     player_two: Option<Player<'a>>,
     bots: Vec<Bot<'a>>,
     cam: Cam,
-
 }
 
 impl<'a> App<'a> {
@@ -84,9 +83,17 @@ impl<'a> App<'a> {
             } else {
                 None
             },
-            bots: vec![Bot::new(2, 2, 1), Bot::new(4, 4, 2), Bot::new(6, 6, 3), Bot::new(8, 6, 4), Bot::new(18, 18, 5), Bot::new(18, 18, 6), Bot::new(18, 18, 7), Bot::new(18, 18, 8), Bot::new(18, 18, 9), Bot::new(18, 18, 10)],
+            bots: vec![Bot::new(2, 2, 1),
+                       Bot::new(4, 4, 2),
+                       Bot::new(6, 6, 3),
+                       Bot::new(8, 6, 4),
+                       Bot::new(18, 18, 5),
+                       Bot::new(18, 18, 6),
+                       Bot::new(18, 18, 7),
+                       Bot::new(18, 18, 8),
+                       Bot::new(18, 18, 9),
+                       Bot::new(18, 18, 10)],
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
-           
         }
     }
 
@@ -96,7 +103,8 @@ impl<'a> App<'a> {
                e: &Event,
                tileset: &Tileset,
                level: &mut Level,
-               state: usize) {
+               state: usize,
+               effects: &EffectHandler) {
         let range = self.cam.get_range();
 
         w.draw_2d(e, |c, gl| {
@@ -154,14 +162,17 @@ impl<'a> App<'a> {
                 }
 
             }
+            let center_test = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
+                                              ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
+            effects.render(gl, center_test);
         });
     }
 
     fn on_update(&mut self,
                  args: &UpdateArgs,
                  level: &mut Level,
-                 state: usize)
-    {
+                 state: usize,
+                 effects: &mut EffectHandler) {
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
 
@@ -182,11 +193,19 @@ impl<'a> App<'a> {
         }
 
         self.cam.calc_coordinates(coord1, coord2, level);
+        if self.player_one.dead {
+            effects.handle(coord1, EffectOption::Dead, Direction::No);
+        }
+        effects.on_update(args)
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
 
         match inp {
+            Button::Keyboard(Key::Q) => {
+
+                self.player_one.dead = pressed;
+            }
             Button::Keyboard(Key::Up) => {
                 if pressed {
                     self.player_one.last = LastKey::Up;
@@ -266,6 +285,7 @@ fn main() {
 
     // Create a new game and run it.
     let map = Settings::new(&mut window).sprite_map;
+    let mut effects = EffectHandler::new(&map);
     let mut app = App::new(TWO_PLAYER);
 
 
@@ -296,15 +316,17 @@ fn main() {
     let mut level = io::read_level(level_path);
 
     // insert players in level
-    level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(1));
+    level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize]
+        .set_fieldstatus(InteractableType::Player(1));
     if let Some(ref p2) = app.player_two {
-        level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize].set_fieldstatus(InteractableType::Player(2));
+        level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize]
+            .set_fieldstatus(InteractableType::Player(2));
     }
 
 
     let mut start = PreciseTime::now();
-    app.cam.set_borders((level.get_width() as u64, level.get_height()as u64));
-    let sprite_p1 = map.get_sprite("explosion.png");
+    app.cam.set_borders((level.get_width() as u64, level.get_height() as u64));
+    let sprite_p1 = map.get_sprite("paladin.png");
     app.player_one.set_sprite(sprite_p1);
 
     if let Some(ref mut p2) = app.player_two {
@@ -314,10 +336,16 @@ fn main() {
     let mut i = 0;
     for b in &mut app.bots {
 
-        let file = if i %3 == 0 {"chicken_pink.png"} else if i% 3 == 1 {"chicken_brown.png"} else {"chicken_white.png"};
+        let file = if i % 3 == 0 {
+            "chicken_pink.png"
+        } else if i % 3 == 1 {
+            "chicken_brown.png"
+        } else {
+            "chicken_white.png"
+        };
         b.set_sprite(map.get_sprite(file));
-        b.set_borders((level.get_width() as u64, level.get_height()as u64));
-        i = i +1;
+        b.set_borders((level.get_width() as u64, level.get_height() as u64));
+        i = i + 1;
     }
 
     while let Some(e) = events.next(&mut window) {
@@ -326,7 +354,12 @@ fn main() {
         let state = if now <= 500 { 0 } else { 1 };
 
         if let Some(_) = e.render_args() {
-            app.on_draw(&mut window, &e, &tileset, &mut level, now as usize);
+            app.on_draw(&mut window,
+                        &e,
+                        &tileset,
+                        &mut level,
+                        now as usize,
+                        &effects);
         }
         if let Some(i) = e.release_args() {
             app.on_input(i, false);
@@ -334,11 +367,16 @@ fn main() {
         if let Some(i) = e.press_args() {
             app.on_input(i, true);
         }
+        {
 
-        if let Some(u) = e.update_args() {
-            app.on_update(&u, &mut level, state);
+            if let Some(u) = e.update_args() {
+                app.on_update(&u, &mut level, state, &mut effects);
+
+            }
         }
-                if now > 1000 {
+
+
+        if now > 1000 {
             start = PreciseTime::now();
         }
     }

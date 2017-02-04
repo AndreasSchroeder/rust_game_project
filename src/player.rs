@@ -35,6 +35,8 @@ pub struct Player<'a> {
     level_h: u64,
     dt: PreciseTime,
     watch_rigth: bool,
+    //for test
+    pub dead: bool,
 }
 
 
@@ -55,6 +57,9 @@ impl<'a> Player<'a> {
             weapon: Weapon::Sword,
             dt: PreciseTime::now(),
             watch_rigth: false,
+                //for test
+
+            dead:false,
         }
     }
 
@@ -131,6 +136,14 @@ pub enum LastKey {
     Left,
     Right,
     Wait,
+}
+
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+    No,
 }
 
 impl<'a> Actor for Player<'a> {
