@@ -9,19 +9,26 @@ use io::sprite::Sprite;
 use level::Level;
 use rand::Rng;
 use rand;
+use renderable::Renderable;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+use time::PreciseTime;
 
-pub struct Bot {
+pub struct Bot<'a> {
     pub life: i32,
     pub dmg: i32,
     pub coord: Coordinate,
     pub interactable_type: InteractableType,
-    pub sprite: Option<Sprite>,
+    pub sprite: Option<&'a Sprite>,
     level_w: u64,
     level_h: u64,
     old_state: usize,
+    dt: PreciseTime,
+    watch_rigth: bool,
 }
 
-impl Bot {
+impl<'a> Bot<'a> {
     pub fn new(x: u64, y: u64, id: u64) -> Self {
         Bot {
             coord: Coordinate::new(x, y),
@@ -32,17 +39,19 @@ impl Bot {
             level_w: 0,
             level_h: 0,
             old_state: 0,
+            dt: PreciseTime::now(),
+            watch_rigth: false,
         }
     }
 
-    pub fn set_borders(&mut self, (w,h): (u64, u64)) {
+    pub fn set_borders(&mut self, (w, h): (u64, u64)) {
         self.level_w = w;
         self.level_h = h;
 
     }
 
-    pub fn set_sprite(&mut self, sprite: Sprite) {
-        self.sprite = Some(sprite);
+    pub fn set_sprite(&mut self, sprite: Option<&'a Sprite>) {
+        self.sprite = sprite;
     }
 
     pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, state: usize) {
@@ -51,29 +60,41 @@ impl Bot {
 
 
         if self.old_state != state {
+            if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
+                self.dt = PreciseTime::now();
+            }
             let dir = rng.gen_range(0, 4);
             match dir {
                 0 => {
                     //Up
                     self.coord.move_coord_without_cam(0, -1, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
-                },
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(self.interactable_type);
+                }
                 1 => {
                     //Down
                     self.coord.move_coord_without_cam(0, 1, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
-                },
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(self.interactable_type);
+                }
                 2 => {
                     //Left
+                    self.watch_rigth = false;
                     self.coord.move_coord_without_cam(-1, 0, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
-                },
+
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(self.interactable_type);
+
+                }
                 3 => {
                     //Right
+                    self.watch_rigth = true;
                     self.coord.move_coord_without_cam(1, 0, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(self.interactable_type);
-                },
-                _ => {},
+
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(self.interactable_type);
+                }
+                _ => {}
             }
 
             self.old_state = state;
@@ -81,7 +102,7 @@ impl Bot {
     }
 }
 
-impl Actor for Bot {
+impl<'a> Actor for Bot<'a> {
     fn is_alive(&self) -> bool {
         self.life > 0
     }
@@ -99,9 +120,8 @@ impl Actor for Bot {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::Player(_) | InteractableType::Bot(_) => {
-                            x.conv_to_actor().damage_taken(self.dmg)
-                        }
+                        InteractableType::Player(_) |
+                        InteractableType::Bot(_) => x.conv_to_actor().damage_taken(self.dmg),
                         InteractableType::Useable(_) => {}
                         InteractableType::Collectable(_) => {}
                     }
@@ -116,12 +136,25 @@ impl Actor for Bot {
     fn dying(&self) {}
 }
 
-impl Interactable for Bot {
+impl<'a> Interactable for Bot<'a> {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
     }
 
     fn conv_to_actor(&mut self) -> &mut Actor {
         self
+    }
+}
+
+impl<'a> Renderable for Bot<'a> {
+    fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
+        if let Some(ref x) = self.sprite {
+            x.render(g,
+                     view,
+                     self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
+                     self.watch_rigth, 0);
+
+        }
+
     }
 }

@@ -47,7 +47,17 @@ impl Coordinate {
         };
     }
 
-    pub fn move_coord_without_cam(&mut self, dx: i64, dy: i64, mut buf_x: u64, mut buf_y: u64, level: &mut Level) {
+    pub fn force_move(&mut self, dx: i64, dy: i64){
+        self.x = (self.x as i64 + dx) as u64;
+        self.y = (self.y as i64 + dy) as u64;
+    }
+
+    pub fn move_coord_without_cam(&mut self,
+                                  dx: i64,
+                                  dy: i64,
+                                  mut buf_x: u64,
+                                  mut buf_y: u64,
+                                  level: &mut Level) {
         buf_x = if (level.get_width() as u64) < buf_x {
             level.get_width() as u64
         } else {
@@ -59,15 +69,24 @@ impl Coordinate {
             buf_y
         };
 
-        let new_x = if (self.x as i64 + dx) < 0 { 0 } else {(self.x as i64 + dx) as u64};
-        let new_y = if (self.y as i64 + dy) < 0 { 0 } else {(self.y as i64 + dy) as u64};
+        let new_x = if (self.x as i64 + dx) < 0 {
+            0
+        } else {
+            (self.x as i64 + dx) as u64
+        };
+        let new_y = if (self.y as i64 + dy) < 0 {
+            0
+        } else {
+            (self.y as i64 + dy) as u64
+        };
 
         /* player not at border */
 
         /* Check collision with unpassable fields, not with camera! (dx = dy = 0) */
 
         if dx != 0 || dy != 0 {
-            let next_field = level.get_field_at((self.x as i64 + dx) as usize, (self.y as i64 + dy) as usize);
+            let next_field =
+                level.get_field_at((self.x as i64 + dx) as usize, (self.y as i64 + dy) as usize);
             if !next_field.check_passable() {
                 return;
             }

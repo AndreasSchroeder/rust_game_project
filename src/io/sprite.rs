@@ -5,9 +5,12 @@ use gfx_device_gl::Resources;
 use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
 use piston_window::*;
+use im::GenericImage;
+
 
 pub struct Sprite {
     set: Vec<Texture<Resources>>,
+    animation: Vec<f64>,
     frames: usize,
 }
 
@@ -19,13 +22,7 @@ impl Sprite {
     pub fn get_set(&mut self) -> &mut Vec<Texture<Resources>> {
         &mut self.set
     }
-    pub fn fill_sprite(path: &str,
-                       rows: u32,
-                       cols: u32,
-                       width: u32,
-                       heigth: u32,
-                       mut w: &mut PistonWindow)
-                       -> Self {
+    pub fn fill_sprite(path: &str, width: u32, heigth: u32, mut w: &mut PistonWindow) -> Self {
         let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
             Ok(res) => res.join(path),
             Err(_) => panic!("Folder not found!"),
@@ -40,7 +37,11 @@ impl Sprite {
             Ok(x) => x,
             Err(_) => panic!("Can't open {} in {}", path, sprite_string),
         };
-        let mut set: Vec<Texture<Resources>> = Vec::with_capacity((rows * cols) as usize);
+        let (image_x, image_y) = ts.dimensions();
+        let cols = image_x / width;
+        let rows = image_y / heigth;
+        let frames = rows * cols;
+        let mut set: Vec<Texture<Resources>> = Vec::with_capacity((frames) as usize);
 
         for i in 0..(rows) {
             for j in 0..(cols) {
@@ -51,17 +52,45 @@ impl Sprite {
                     .unwrap());
             }
         }
+        let mut vec: Vec<f64> = Vec::with_capacity(frames as usize);
+        let part = 1000.0 / frames as f64;
+        for i in 0..frames {
+            vec.push(((i as f64) * part));
+        }
         Sprite {
-            frames: (rows * cols) as usize,
+            frames: frames as usize,
             set: set,
+            animation: vec,
         }
     }
     pub fn render(&self,
                   g: &mut GfxGraphics<Resources, CommandBuffer>,
                   view: math::Matrix2d,
-                  frame: u64) {
+                  dt: u64,
+                  mirror_h: bool,
+                  degree: u32) {
+        let mut frame = 0;
+        let mut new_dt = dt;
+        for (i, val) in self.animation.iter().enumerate() {
+            if new_dt as f64 > *val {
+                frame = i;
+                new_dt = dt - *val as u64;
+            }
+        }
 
-        image(&self.set[frame as usize], view, g);
+        //println!("render");
+        image(&self.set[frame as usize],
+              if mirror_h {
+                  view.flip_h().trans(-65.0, 0.0)
+              } else if degree == 270  {
+                view.trans(0.0, 65.0).rot_deg(degree as f64)
+              } else if degree == 90 {
+                view.trans(65.0, 0.0).rot_deg(degree as f64)
+              }
+              else {
+                  view
+              },
+              g);
 
 
     }
