@@ -1,5 +1,3 @@
-use piston_window::*;
-
 use inventory::Inventory;
 use actor::Actor;
 use interactable::InteractableType;
@@ -8,6 +6,13 @@ use coord::Coordinate;
 use camera::Range;
 use level::Level;
 use io::sprite::Sprite;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+use piston_window::*;
+use time::PreciseTime;
+use renderable::Renderable;
+
 
 pub enum Weapon {
     Sword,
@@ -28,6 +33,8 @@ pub struct Player {
     pub weapon: Weapon,
     level_w: u64,
     level_h: u64,
+    dt: PreciseTime,
+    watch_rigth: bool,
 }
 
 
@@ -46,6 +53,8 @@ impl Player {
             sprite: None,
             no_more: true,
             weapon: Weapon::Sword,
+            dt: PreciseTime::now(),
+            watch_rigth: false,
         }
     }
 
@@ -59,35 +68,51 @@ impl Player {
         self.sprite = Some(sprite);
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, it: InteractableType) {
+    pub fn on_update(&mut self,
+                     args: &UpdateArgs,
+                     range: Range,
+                     level: &mut Level,
+                     it: InteractableType) {
+        if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
+            self.dt = PreciseTime::now();
+        }
         if self.no_more == true {
             match self.last {
                 LastKey::Up => {
                     self.coord.move_coord_with_cam(0, -1, level, range);
                     self.no_more = false;
                     /* Update new position in field */
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(it);
                     //self.creature.moves(0.0, -65.0);
                 }
                 LastKey::Down => {
                     self.coord.move_coord_with_cam(0, 1, level, range);
                     self.no_more = false;
                     /* Update new position in field */
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(it);
                     //self.creature.moves(0.0, 65.0);
                 }
                 LastKey::Left => {
+                    self.watch_rigth = false;
                     self.coord.move_coord_with_cam(-1, 0, level, range);
                     self.no_more = false;
                     /* Update new position in field */
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
+
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(it);
+
                     //self.creature.moves(-65.0, 0.0);
                 }
                 LastKey::Right => {
+                    self.watch_rigth = true;
                     self.coord.move_coord_with_cam(1, 0, level, range);
                     self.no_more = false;
                     /* Update new position in field */
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize].set_fieldstatus(it);
+
+                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                        .set_fieldstatus(it);
 
                 }
                 _ => {}
@@ -126,9 +151,8 @@ impl Actor for Player {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
-                        InteractableType::Player(_) | InteractableType::Bot(_) => {
-                            x.conv_to_actor().damage_taken(self.dmg)
-                        }
+                        InteractableType::Player(_) |
+                        InteractableType::Bot(_) => x.conv_to_actor().damage_taken(self.dmg),
                         InteractableType::Useable(_) => {}
                         InteractableType::Collectable(_) => {}
                     }
@@ -148,5 +172,18 @@ impl Interactable for Player {
 
     fn conv_to_actor(&mut self) -> &mut Actor {
         self
+    }
+}
+
+impl Renderable for Player {
+    fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
+        if let Some(ref x) = self.sprite {
+            x.render(g,
+                     view,
+                     self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
+                     self.watch_rigth);
+
+        }
+
     }
 }

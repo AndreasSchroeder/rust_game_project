@@ -8,6 +8,7 @@ use piston_window::*;
 
 pub struct Sprite {
     set: Vec<Texture<Resources>>,
+    animation: Vec<f64>,
     frames: usize,
 }
 
@@ -26,6 +27,7 @@ impl Sprite {
                        heigth: u32,
                        mut w: &mut PistonWindow)
                        -> Self {
+        let frames = rows * cols;                
         let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
             Ok(res) => res.join(path),
             Err(_) => panic!("Folder not found!"),
@@ -40,7 +42,7 @@ impl Sprite {
             Ok(x) => x,
             Err(_) => panic!("Can't open {} in {}", path, sprite_string),
         };
-        let mut set: Vec<Texture<Resources>> = Vec::with_capacity((rows * cols) as usize);
+        let mut set: Vec<Texture<Resources>> = Vec::with_capacity((frames) as usize);
 
         for i in 0..(rows) {
             for j in 0..(cols) {
@@ -51,17 +53,33 @@ impl Sprite {
                     .unwrap());
             }
         }
+                let mut vec: Vec<f64> = Vec::with_capacity(frames as usize);
+        let part = 1000.0 / frames as f64;
+        for i in 0..frames {
+            vec.push( ((i as f64) * part) );
+        }
         Sprite {
-            frames: (rows * cols) as usize,
+            frames: frames as usize,
             set: set,
+            animation: vec,
         }
     }
     pub fn render(&self,
                   g: &mut GfxGraphics<Resources, CommandBuffer>,
                   view: math::Matrix2d,
-                  frame: u64) {
+                  dt: u64,
+                  mirror: bool) {
+        let mut frame = 0;
+        let mut new_dt = dt;
+        for (i, val) in self.animation.iter().enumerate() {
+            if new_dt as f64 > *val { 
+                frame = i;
+                new_dt = dt - *val as u64;
+            }
+        }
 
-        image(&self.set[frame as usize], view, g);
+
+        image(&self.set[frame as usize], if mirror { view.flip_h().trans(-65.0,0.0) } else { view }, g);
 
 
     }

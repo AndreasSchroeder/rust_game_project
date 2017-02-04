@@ -22,6 +22,7 @@ mod interactable;
 mod coord;
 mod camera;
 mod bot;
+mod renderable;
 
 use camera::Cam;
 use player::{Player, LastKey};
@@ -33,6 +34,7 @@ use actor::Actor;
 use interactable::Interactable;
 use interactable::InteractableType;
 use io::sprite::Sprite;
+use renderable::Renderable;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -80,7 +82,7 @@ impl App {
         let range = self.cam.get_range();
 
         w.draw_2d(e, |c, gl| {
-            let player_one = &self.player_one.sprite;
+            let player_one = &self.player_one;
             let player_two = &self.player_two;
 
             // Clear the screen.
@@ -103,35 +105,34 @@ impl App {
                             h as u32);
                 }
             }
-            if let Some(ref p1) = *player_one {
+            
                 let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
                                               ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
 
-                p1.render(gl, center_p1, state as u64);
-            }
+                player_one.render(gl, center_p1);
+            
 
             if let Some(ref p2) = *player_two {
-                if let Some (ref x) =p2.sprite {
-
+               
 
                 let center_p2 = c.transform.trans(((p2.coord.get_x() - range.x_min) * 65) as f64,
 
                                               ((p2.coord.get_y() - range.y_min )* 65) as f64);
-                 x.render(gl, center_p2, state as u64);
-                 }
+                 p2.render(gl, center_p2);
+                 
 
             }
 
             for b in &mut self.bots {
 
-                if let Some(ref br) = b.sprite {
+                
                     if b.coord.get_x() >= range.x_min &&  b.coord.get_x() < range.x_max &&
                         b.coord.get_y() >= range.y_min && b.coord.get_y() < range.y_max {
 
                         let center_b1 = c.transform.trans(((b.coord.get_x() - range.x_min )* 65) as f64,
                                                           ((b.coord.get_y() - range.y_min)* 65) as f64);
-                        br.render(gl, center_b1, state as u64);
-                    }
+                        b.render(gl, center_b1);
+                    
                 }
 
             }
@@ -284,7 +285,7 @@ fn main() {
 
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_width() as u64, level.get_height()as u64));
-    app.player_one.set_sprite(Sprite::fill_sprite("knight.png",2,1,64,64,&mut window));
+    app.player_one.set_sprite(Sprite::fill_sprite("explosion.png",1,17,59,64,&mut window));
 
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_width() as u64, level.get_height() as u64));
@@ -301,13 +302,11 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         let now = start.to(PreciseTime::now()).num_milliseconds();
-        if now > 1000 {
-            start = PreciseTime::now();
-        }
+
         let state = if now <= 500 { 0 } else { 1 };
 
         if let Some(_) = e.render_args() {
-            app.on_draw(&mut window, &e, &tileset, &mut level, state);
+            app.on_draw(&mut window, &e, &tileset, &mut level, now as usize);
         }
         if let Some(i) = e.release_args() {
             app.on_input(i, false);
@@ -318,6 +317,9 @@ fn main() {
 
         if let Some(u) = e.update_args() {
             app.on_update(&u, &mut level, state);
+        }
+                if now > 1000 {
+            start = PreciseTime::now();
         }
     }
 }
