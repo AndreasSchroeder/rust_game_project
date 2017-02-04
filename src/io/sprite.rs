@@ -5,6 +5,8 @@ use gfx_device_gl::Resources;
 use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
 use piston_window::*;
+use im::GenericImage;
+
 
 pub struct Sprite {
     set: Vec<Texture<Resources>>,
@@ -20,14 +22,7 @@ impl Sprite {
     pub fn get_set(&mut self) -> &mut Vec<Texture<Resources>> {
         &mut self.set
     }
-    pub fn fill_sprite(path: &str,
-                       rows: u32,
-                       cols: u32,
-                       width: u32,
-                       heigth: u32,
-                       mut w: &mut PistonWindow)
-                       -> Self {
-        let frames = rows * cols;                
+    pub fn fill_sprite(path: &str, width: u32, heigth: u32, mut w: &mut PistonWindow) -> Self {
         let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
             Ok(res) => res.join(path),
             Err(_) => panic!("Folder not found!"),
@@ -42,6 +37,10 @@ impl Sprite {
             Ok(x) => x,
             Err(_) => panic!("Can't open {} in {}", path, sprite_string),
         };
+        let (image_x, image_y) = ts.dimensions();
+        let cols = image_x / width;
+        let rows = image_y / heigth;
+        let frames = rows * cols;
         let mut set: Vec<Texture<Resources>> = Vec::with_capacity((frames) as usize);
 
         for i in 0..(rows) {
@@ -53,10 +52,10 @@ impl Sprite {
                     .unwrap());
             }
         }
-                let mut vec: Vec<f64> = Vec::with_capacity(frames as usize);
+        let mut vec: Vec<f64> = Vec::with_capacity(frames as usize);
         let part = 1000.0 / frames as f64;
         for i in 0..frames {
-            vec.push( ((i as f64) * part) );
+            vec.push(((i as f64) * part));
         }
         Sprite {
             frames: frames as usize,
@@ -72,14 +71,20 @@ impl Sprite {
         let mut frame = 0;
         let mut new_dt = dt;
         for (i, val) in self.animation.iter().enumerate() {
-            if new_dt as f64 > *val { 
+            if new_dt as f64 > *val {
                 frame = i;
                 new_dt = dt - *val as u64;
             }
         }
 
-
-        image(&self.set[frame as usize], if mirror { view.flip_h().trans(-65.0,0.0) } else { view }, g);
+        //println!("render");
+        image(&self.set[frame as usize],
+              if mirror {
+                  view.flip_h().trans(-65.0, 0.0)
+              } else {
+                  view
+              },
+              g);
 
 
     }

@@ -20,7 +20,7 @@ pub enum Weapon {
     Broadsword,
 }
 
-pub struct Player {
+pub struct Player<'a> {
     pub life: i32,
     pub dmg: i32,
     pub inv: Inventory,
@@ -29,7 +29,7 @@ pub struct Player {
     pub pressed: bool,
     pub no_more: bool,
     pub interactable_type: InteractableType,
-    pub sprite: Option<Sprite>,
+    pub sprite: Option<&'a Sprite>,
     pub weapon: Weapon,
     level_w: u64,
     level_h: u64,
@@ -38,7 +38,7 @@ pub struct Player {
 }
 
 
-impl Player {
+impl<'a> Player<'a> {
     pub fn new(x: u64, y: u64, id: u64) -> Self {
         Player {
             coord: Coordinate::new(x, y),
@@ -64,8 +64,8 @@ impl Player {
 
     }
 
-    pub fn set_sprite(&mut self, sprite: Sprite) {
-        self.sprite = Some(sprite);
+    pub fn set_sprite(&mut self, sprite: Option<&'a Sprite>) {
+        self.sprite = sprite;
     }
 
     pub fn on_update(&mut self,
@@ -133,7 +133,7 @@ pub enum LastKey {
     Wait,
 }
 
-impl Actor for Player {
+impl<'a> Actor for Player<'a> {
     fn is_alive(&self) -> bool {
         self.life > 0
     }
@@ -165,7 +165,7 @@ impl Actor for Player {
     fn dying(&self) {}
 }
 
-impl Interactable for Player {
+impl<'a> Interactable for Player<'a> {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
     }
@@ -175,8 +175,9 @@ impl Interactable for Player {
     }
 }
 
-impl Renderable for Player {
+impl<'a> Renderable for Player<'a> {
     fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
+        //println!("player{:?}", match self.sprite {None => "None", _=> "Some"});
         if let Some(ref x) = self.sprite {
             x.render(g,
                      view,

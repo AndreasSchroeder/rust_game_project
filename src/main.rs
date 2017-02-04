@@ -9,7 +9,8 @@ extern crate time;
 extern crate rand;
 
 use piston_window::*;
-use time::{Duration, PreciseTime};
+use time::{ PreciseTime};
+
 
 mod player;
 mod io;
@@ -23,6 +24,7 @@ mod coord;
 mod camera;
 mod bot;
 mod renderable;
+mod all_sprites;
 
 use camera::Cam;
 use player::{Player, LastKey};
@@ -30,33 +32,48 @@ use bot::Bot;
 use io::render_tile;
 use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
 use level::Level;
-use actor::Actor;
-use interactable::Interactable;
+
+
 use interactable::InteractableType;
-use io::sprite::Sprite;
+
 use renderable::Renderable;
+use all_sprites::SpriteMap;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
-const SPRITE_P_1: &'static str = "warrior2.png";
-const SPRITE_P_2: &'static str = "paladin.png";
+
+
 const CAMERA_BUF_X: u64 = 4;
 const CAMERA_BUF_Y: u64 = 4;
 
 const WIDTH: i64 = 586;
 const HEIGHT: i64 = 586;
 
-const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-pub struct App {
-    player_one: Player,
-    player_two: Option<Player>,
-    bots: Vec<Bot>,
-    cam: Cam,
+pub struct Settings {
+        pub sprite_map: SpriteMap,
 }
 
-impl App {
+impl Settings {
+    pub fn new( mut w: &mut PistonWindow) -> Self {
+                let sprite_map = SpriteMap::init(w);
+                Settings{
+                    sprite_map: sprite_map,
+                }
+    }
+}
+
+pub struct App<'a> {
+    player_one: Player<'a>,
+    player_two: Option<Player<'a>>,
+    bots: Vec<Bot<'a>>,
+    cam: Cam,
+
+}
+
+impl<'a> App<'a> {
     fn new(two_player: bool) -> Self {
         App {
             // 0,0 Dummy-Value
@@ -69,6 +86,7 @@ impl App {
             },
             bots: vec![Bot::new(2, 2, 1), Bot::new(4, 4, 2), Bot::new(6, 6, 3), Bot::new(8, 6, 4), Bot::new(18, 18, 5), Bot::new(18, 18, 6), Bot::new(18, 18, 7), Bot::new(18, 18, 8), Bot::new(18, 18, 9), Bot::new(18, 18, 10)],
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
+           
         }
     }
 
@@ -247,8 +265,9 @@ fn main() {
 
 
     // Create a new game and run it.
-
+    let map = Settings::new(&mut window).sprite_map;
     let mut app = App::new(TWO_PLAYER);
+
 
     let mut events = window.events();
 
@@ -285,17 +304,18 @@ fn main() {
 
     let mut start = PreciseTime::now();
     app.cam.set_borders((level.get_width() as u64, level.get_height()as u64));
-    app.player_one.set_sprite(Sprite::fill_sprite("explosion.png",1,17,59,64,&mut window));
+    let sprite_p1 = map.get_sprite("explosion.png");
+    app.player_one.set_sprite(sprite_p1);
 
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_width() as u64, level.get_height() as u64));
-        p2.set_sprite(Sprite::fill_sprite("paladin.png", 2, 1, 64, 64, &mut window));
+        p2.set_sprite(map.get_sprite("paladin.png"));
     }
     let mut i = 0;
     for b in &mut app.bots {
 
         let file = if i %3 == 0 {"chicken_pink.png"} else if i% 3 == 1 {"chicken_brown.png"} else {"chicken_white.png"};
-        b.set_sprite(Sprite::fill_sprite(file,2,1,64,64,&mut window));
+        b.set_sprite(map.get_sprite(file));
         b.set_borders((level.get_width() as u64, level.get_height()as u64));
         i = i +1; 
     }
