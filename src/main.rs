@@ -46,8 +46,8 @@ const TWO_PLAYER: bool = true;
 const CAMERA_BUF_X: u64 = 4;
 const CAMERA_BUF_Y: u64 = 4;
 
-const WIDTH: i64 = 586;
-const HEIGHT: i64 = 586;
+const WIDTH: i64 = 584;
+const HEIGHT: i64 = 584;
 
 
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -255,7 +255,7 @@ impl<'a> App<'a> {
 }
 
 fn main() {
-    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament",
+    let mut window: PistonWindow = WindowSettings::new("Chicken Fight 3000 Ultimate Tournament",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         .fullscreen(false)
@@ -272,7 +272,7 @@ fn main() {
     let mut events = window.events();
 
     let tiles = match find_folder::Search::Kids(1).for_folder("tiles") {
-        Ok(res) => res.join("tileset-pokemon_dawn.png"),
+        Ok(res) => res.join("tiles2.png"), //tileset-pokemon_dawn.png for full tileset
         Err(_) => panic!("Folder 'tiles' not found!"),
     };
 
@@ -282,7 +282,7 @@ fn main() {
     };
 
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
-        Ok(res) => res.join("level1.lvl"),
+        Ok(res) => res.join("level1_small_tileset.lvl"),
         Err(_) => panic!("Folder 'src' not found!"),
     };
 
@@ -317,7 +317,7 @@ fn main() {
         let file = if i %3 == 0 {"chicken_pink.png"} else if i% 3 == 1 {"chicken_brown.png"} else {"chicken_white.png"};
         b.set_sprite(map.get_sprite(file));
         b.set_borders((level.get_width() as u64, level.get_height()as u64));
-        i = i +1; 
+        i = i +1;
     }
 
     while let Some(e) = events.next(&mut window) {
