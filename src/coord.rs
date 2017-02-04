@@ -47,6 +47,11 @@ impl Coordinate {
         };
     }
 
+    pub fn force_move(&mut self, dx: i64, dy: i64){
+        self.x = (self.x as i64 + dx) as u64;
+        self.y = (self.y as i64 + dy) as u64;
+    }
+
     pub fn move_coord_without_cam(&mut self,
                                   dx: i64,
                                   dy: i64,

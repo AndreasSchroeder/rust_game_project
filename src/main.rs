@@ -162,9 +162,13 @@ impl<'a> App<'a> {
                 }
 
             }
-            let center_test = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* 65) as f64,
-                                              ((self.player_one.coord.get_y() - range.y_min)* 65) as f64);
-            effects.render(gl, center_test);
+           
+            
+            for e in &effects.effects {
+                let center = c.transform.trans(((e.coord.get_x() - range.x_min )* 65) as f64,
+                                              ((e.coord.get_y() - range.y_min)* 65) as f64);
+                e.render(gl, center);
+        }
         });
     }
 
@@ -193,19 +197,24 @@ impl<'a> App<'a> {
         }
 
         self.cam.calc_coordinates(coord1, coord2, level);
+
+        // FOR TESTING KEY Q TO ACTIVATE ANIMATION
         if self.player_one.dead {
-            effects.handle(coord1, EffectOption::Dead, Direction::No);
+            effects.handle(coord1, EffectOption::Sword, Direction::Down);
         }
+        // END OB TESTING
         effects.on_update(args)
     }
 
     fn on_input(&mut self, inp: Button, pressed: bool) {
 
         match inp {
+            // BUTTON Q FOR TESTING
             Button::Keyboard(Key::Q) => {
 
                 self.player_one.dead = pressed;
             }
+            // ENF OF TESTING
             Button::Keyboard(Key::Up) => {
                 if pressed {
                     self.player_one.last = LastKey::Up;

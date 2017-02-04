@@ -67,7 +67,8 @@ impl Sprite {
                   g: &mut GfxGraphics<Resources, CommandBuffer>,
                   view: math::Matrix2d,
                   dt: u64,
-                  mirror: bool) {
+                  mirror_h: bool,
+                  degree: u32) {
         let mut frame = 0;
         let mut new_dt = dt;
         for (i, val) in self.animation.iter().enumerate() {
@@ -79,9 +80,14 @@ impl Sprite {
 
         //println!("render");
         image(&self.set[frame as usize],
-              if mirror {
+              if mirror_h {
                   view.flip_h().trans(-65.0, 0.0)
-              } else {
+              } else if degree == 270  {
+                view.trans(0.0, 65.0).rot_deg(degree as f64)
+              } else if degree == 90 {
+                view.trans(65.0, 0.0).rot_deg(degree as f64)
+              }
+              else {
                   view
               },
               g);

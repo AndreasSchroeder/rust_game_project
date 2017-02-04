@@ -9,9 +9,11 @@ use player::*;
 use time::PreciseTime;
 use all_sprites::SpriteMap;
 
-struct Effect<'a> {
+pub struct Effect<'a> {
     pub sprite: Option<&'a Sprite>,
-    coord: Coordinate,
+    pub coord: Coordinate,
+    pub mirror_h: bool,
+    pub degree: u32,
     start: PreciseTime,
 }
 
@@ -21,6 +23,8 @@ impl<'a> Effect<'a> {
             sprite: None,
             coord: coord,
             start: PreciseTime::now(),
+            mirror_h: false,
+            degree: 0,
         }
     }
     pub fn set_sprite(&mut self, sprite: Option<&'a Sprite>) {
@@ -31,7 +35,7 @@ impl<'a> Effect<'a> {
     }
 }
 pub struct EffectHandler<'a> {
-    effects: Vec<Effect<'a>>,
+    pub effects: Vec<Effect<'a>>,
     map: &'a SpriteMap,
 }
 impl<'a> EffectHandler<'a> {
@@ -45,13 +49,83 @@ impl<'a> EffectHandler<'a> {
 
 
     pub fn handle(&mut self, coord: Coordinate, typ: EffectOption, direction: Direction) {
-        let mut effect = Effect::new(coord);
+        let mut effect = Effect::new(coord.clone());
         match (typ, direction) {
             (EffectOption::Dead, _) => {
                 effect.set_sprite(self.map.get_sprite("explosion.png"));
 
             }
-            (_, _) => {}
+            (EffectOption::Dagger, x) => {
+
+                effect.set_sprite(self.map.get_sprite("swipe_dagger.png"));
+                match x {
+                    Direction::Up => {
+                        effect.coord.force_move(0, -1);
+                        effect.degree = 270
+                    }
+                    Direction::Down => {
+                        effect.coord.force_move(0, 1);
+                        effect.degree = 90
+                    }
+                    Direction::Left => {
+                        effect.coord.force_move(-1, 0);
+                        effect.mirror_h = true;
+                    }
+                    Direction::Right => {
+                        effect.coord.force_move(1, 0);
+                    }
+                    _ => {}
+
+                }
+            }
+            (EffectOption::Spear, x) => {
+                effect.set_sprite(self.map.get_sprite("swipe_longsword.png"));
+                match x {
+                    Direction::Up => {
+                        effect.coord.force_move(0, -1);
+                        effect.degree = 270
+                    }
+                    Direction::Down => {
+                        effect.coord.force_move(0, 1);
+                        effect.degree = 90
+                    }
+                    Direction::Left => {
+                        effect.coord.force_move(-1, 0);
+                        effect.mirror_h = true;
+                    }
+                    Direction::Right => {
+                        effect.coord.force_move(1, 0);
+                    }
+                    _ => {}
+
+                }
+
+
+            }
+            (EffectOption::Sword, x) => {
+                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png"));
+                match x {
+                    Direction::Up => {
+                        effect.coord.force_move(-1, -1);
+                        effect.degree = 270
+                    }
+                    Direction::Down => {
+                        effect.coord.force_move(1, 1);
+                        effect.degree = 90
+                    }
+                    Direction::Left => {
+                        effect.coord.force_move(-1, -1);
+                        effect.mirror_h = true;
+                    }
+                    Direction::Right => {
+                        effect.coord.force_move(1, -1);
+                    }
+                    _ => {}
+
+                }
+
+            }
+           
 
         }
         effect.reset_time();
@@ -62,11 +136,6 @@ impl<'a> EffectHandler<'a> {
         self.effects.retain(|ref i| i.start.to(PreciseTime::now()).num_milliseconds() <= 1000);
 
     }
-    pub fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
-        for e in &self.effects {
-            e.render(g, view);
-        }
-    }
 }
 
 impl<'a> Renderable for Effect<'a> {
@@ -75,7 +144,8 @@ impl<'a> Renderable for Effect<'a> {
             x.render(g,
                      view,
                      self.start.to(PreciseTime::now()).num_milliseconds() as u64,
-                     false);
+                     self.mirror_h,
+                     self.degree);
 
         }
     }

@@ -152,7 +152,7 @@ impl<'a> Renderable for Bot<'a> {
             x.render(g,
                      view,
                      self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
-                     self.watch_rigth);
+                     self.watch_rigth, 0);
 
         }
 

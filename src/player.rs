@@ -57,9 +57,8 @@ impl<'a> Player<'a> {
             weapon: Weapon::Sword,
             dt: PreciseTime::now(),
             watch_rigth: false,
-                //for test
-
-            dead:false,
+            //for test
+            dead: false,
         }
     }
 
@@ -195,7 +194,7 @@ impl<'a> Renderable for Player<'a> {
             x.render(g,
                      view,
                      self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
-                     self.watch_rigth);
+                     self.watch_rigth, 0);
 
         }
 
