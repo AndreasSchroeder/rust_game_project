@@ -11,7 +11,7 @@ use player::*;
 use time::PreciseTime;
 use io::all_sprites::SpriteMap;
 
-/// Struct for representing Effects. 
+/// Struct for representing Effects.
 /// sprites: Sprite of effect
 /// coord: Coordinate of effect
 /// mirror_h: true if mirror horizontal
@@ -104,7 +104,7 @@ impl<'a> EffectHandler<'a> {
 
                 }
             }
-            // Same as Dagger 
+            // Same as Dagger
             (EffectOption::Spear, x) => {
                 effect.set_sprite(self.map.get_sprite("swipe_longsword.png"));
                 match x {
@@ -128,7 +128,7 @@ impl<'a> EffectHandler<'a> {
             }
             // Same as Sword, only moving of Coordinates changes
             (EffectOption::Sword, x) => {
-                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png"));
+                effect.set_sprite(self.map.get_sprite("swipe_broadsword.png"));
                 match x {
                     Direction::Up => {
                         effect.coord.force_move(-1, -1);

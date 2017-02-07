@@ -8,8 +8,8 @@ use gfx_graphics::GfxGraphics;
 use piston_window::*;
 use im::GenericImage;
 
-use ::SIZE_PER_TILE;
-use ::BORDER_BETWEEN_TILES;
+use SIZE_PER_TILE;
+use BORDER_BETWEEN_TILES;
 
 /// Struct for Sprites
 /// sets: for every state of animation
@@ -99,14 +99,16 @@ impl Sprite {
         // render image
         image(&self.set[frame as usize],
               if mirror_h {
-                // translate
-                view.flip_h().trans((-1 * (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as i64) as f64, 0.0)
-              } else if degree == 270  {
-                view.trans(0.0, (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as f64).rot_deg(degree as f64)
+                  // translate
+                  view.flip_h().trans((-1 * (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as i64) as f64,
+                                      0.0)
+              } else if degree == 270 {
+                  view.trans(0.0, (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as f64)
+                      .rot_deg(degree as f64)
               } else if degree == 90 {
-                view.trans((SIZE_PER_TILE + BORDER_BETWEEN_TILES) as f64, 0.0).rot_deg(degree as f64)
-              }
-              else {
+                  view.trans((SIZE_PER_TILE + BORDER_BETWEEN_TILES) as f64, 0.0)
+                      .rot_deg(degree as f64)
+              } else {
                   view
               },
               g);
