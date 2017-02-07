@@ -6,7 +6,7 @@ use super::super::io::tileset::Tileset;
 use super::super::io::read_tileset;
 use super::super::io::read_level;
 use super::super::level::Level;
-use all_sprites::SpriteMap;
+use super::super::io::all_sprites::SpriteMap;
 use std::str::FromStr;
 use std::fs::File;
 use std::io::BufReader;

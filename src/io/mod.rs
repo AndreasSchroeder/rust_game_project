@@ -1,6 +1,7 @@
 pub mod tileset;
 pub mod sprite;
 pub mod xml;
+pub mod all_sprites;
 
 extern crate find_folder;
 extern crate image as im;
