@@ -52,12 +52,12 @@ impl<'a> EffectHandler<'a> {
         let mut effect = Effect::new(coord.clone());
         match (typ, direction) {
             (EffectOption::Dead, _) => {
-                effect.set_sprite(self.map.get_sprite("explosion.png"));
+                effect.set_sprite(self.map.get_sprite("explosion.png".to_string()));
 
             }
             (EffectOption::Dagger, x) => {
 
-                effect.set_sprite(self.map.get_sprite("swipe_dagger.png"));
+                effect.set_sprite(self.map.get_sprite("swipe_dagger.png".to_string()));
                 match x {
                     Direction::Up => {
                         effect.coord.force_move(0, -1);
@@ -79,7 +79,7 @@ impl<'a> EffectHandler<'a> {
                 }
             }
             (EffectOption::Spear, x) => {
-                effect.set_sprite(self.map.get_sprite("swipe_longsword.png"));
+                effect.set_sprite(self.map.get_sprite("swipe_longsword.png".to_string()));
                 match x {
                     Direction::Up => {
                         effect.coord.force_move(0, -1);
@@ -103,7 +103,7 @@ impl<'a> EffectHandler<'a> {
 
             }
             (EffectOption::Sword, x) => {
-                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png"));
+                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png".to_string()));
                 match x {
                     Direction::Up => {
                         effect.coord.force_move(-1, -1);
@@ -125,7 +125,7 @@ impl<'a> EffectHandler<'a> {
                 }
 
             }
-           
+
 
         }
         effect.reset_time();
