@@ -1,12 +1,16 @@
+// Module for reading sprides and saving them in a HashMap
+
 use std::collections::HashMap;
 use piston_window::*;
 use io::sprite::Sprite;
 
+/// HashMap for all given sprites
 pub struct SpriteMap {
     pub map: HashMap<&'static str, Sprite>,
 }
 
 impl SpriteMap {
+    /// Initialize the SpriteMap with given window, fills Map with all Sprites
     pub fn init(mut w: &mut PistonWindow) -> Self {
         let mut map2: HashMap<&'static str, Sprite> = HashMap::new();
         for i in SPRITES {
@@ -17,28 +21,26 @@ impl SpriteMap {
         SpriteMap { map: map2 }
 
     }
+
+    /// creates empty SpriteMap
     pub fn new() -> Self {
         SpriteMap { map: HashMap::new() }
     }
+
+    /// returns a Sprite with given Name
     pub fn get_sprite(&self, file: &'static str) -> Option<&Sprite> {
         self.map.get(file)
     }
 }
 
+/// Struct for representing Necessary information about sprites
 struct SpriteModel {
     image: &'static str,
     size_x: usize,
     size_y: usize,
 }
-impl SpriteModel {
-    pub fn new(image: &'static str, size_x: usize, size_y: usize) -> Self {
-        SpriteModel {
-            image: image,
-            size_x: size_x,
-            size_y: size_y,
-        }
-    }
-}
+
+/// const with all Sprites
 const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                               image: "bowman.png",
                                               size_x: 64,
