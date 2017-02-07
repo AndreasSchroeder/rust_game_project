@@ -1,3 +1,4 @@
+// Module for Trait Renderable
 use gfx_device_gl::Resources;
 use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
