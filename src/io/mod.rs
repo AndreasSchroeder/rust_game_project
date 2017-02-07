@@ -1,5 +1,6 @@
 pub mod tileset;
 pub mod sprite;
+pub mod xml;
 pub mod all_sprites;
 
 extern crate find_folder;
@@ -12,25 +13,25 @@ use gfx_graphics::GfxGraphics;
 use std::fs::File;
 use std::io::prelude::*;
 use std::str::FromStr;
-use self::tileset::{Tileset, TILESET_HEIGHT, TILE_HEIGHT, TILESET_WIDTH, TILE_WIDTH};
+use self::tileset::Tileset;
 use level::Level;
 use field::Field;
 
 const SCALE_FACTOR: f64 = 4.0;
 
-pub fn read_tileset(path: &str, mut w: &mut PistonWindow) -> Tileset {
+pub fn read_tileset(path: &str, mut w: &mut PistonWindow, th: u32, tw: u32, tsh: u32, tsw: u32) -> Tileset {
 
-    let mut tileset = Tileset::new();
+    let mut tileset = Tileset::new(th, tw, tsh, tsw);
 
     let mut ts = match im::open(path) {
         Ok(x) => x,
         Err(i) => panic!("{:?}", i),
     };
 
-    for i in 0..(TILESET_HEIGHT / TILE_HEIGHT) {
-        for j in 0..(TILESET_WIDTH / TILE_WIDTH) {
+    for i in 0..(tileset.get_tileset_height() / tileset.get_tile_height()) {
+        for j in 0..(tileset.get_tileset_width() / tileset.get_tile_width()) {
 
-            let tile = ts.crop(j * TILE_WIDTH, i * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT).to_rgba();
+            let tile = ts.crop(j * tileset.get_tile_width(), i * tileset.get_tile_height(), tileset.get_tile_width(), tileset.get_tile_height()).to_rgba();
 
             tileset.get_set()
                 .push(Texture::from_image(&mut w.factory, &tile, &TextureSettings::new()).unwrap());
@@ -112,8 +113,8 @@ pub fn render_level(tileset: &Tileset,
             render_tile(&tile,
                         g,
                         view,
-                        j as u32 * TILE_HEIGHT,
-                        i as u32 * TILE_WIDTH,
+                        j as u32 * tileset.get_tile_height(),
+                        i as u32 * tileset.get_tile_width(),
                         i as u32,
                         j as u32);
         }

@@ -8,6 +8,7 @@ extern crate vecmath;
 extern crate image as im;
 extern crate time;
 extern crate rand;
+extern crate xml;
 
 use piston_window::*;
 use time::PreciseTime;
@@ -32,7 +33,8 @@ use camera::Cam;
 use player::{Player, LastKey, Direction};
 use bot::Bot;
 use io::render_tile;
-use io::tileset::{TILE_HEIGHT, TILE_WIDTH, Tileset};
+use io::tileset::Tileset;
+use io::xml::load_xml;
 use level::Level;
 use effect::{EffectHandler, EffectOption};
 use interactable::InteractableType;
@@ -76,31 +78,31 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     /// Constructor
-    fn new(two_player: bool) -> Self {
-        App {
-            // 0,0 Dummy-Value
-            player_one: Player::new(1, 1, 1),
-            player_two: if two_player {
-                // 0,0 Dummy-Value
-                Some(Player::new(1, 2, 2))
-            } else {
-                None
+    fn new(mut players: Vec<Player<'a>>, mut bots: Vec<Bot<'a>>) -> Self {
+        let mut p1 = match players.pop() {
+            Some(p) => p,
+            None => panic!("No player found!"),
+        };
+
+        let mut p2 = None;
+
+        match players.pop() {
+            Some(p) => {
+                p2 = Some(p1);
+                p1 = p;
             },
-            bots: vec![Bot::new(2, 2, 1),
-                       Bot::new(4, 4, 2),
-                       Bot::new(6, 6, 3),
-                       Bot::new(8, 6, 4),
-                       Bot::new(18, 18, 5),
-                       Bot::new(18, 18, 6),
-                       Bot::new(18, 18, 7),
-                       Bot::new(18, 18, 8),
-                       Bot::new(18, 18, 9),
-                       Bot::new(18, 18, 10)],
+            None => (),
+        };
+
+        App {
+            player_one: p1,
+            player_two: p2,
+            bots: bots,
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
         }
     }
 
-    /// Hanle the rendering of all Objects
+    /// Handle the rendering of all Objects
     fn on_draw(&mut self,
                mut w: &mut PistonWindow,
                e: &Event,
@@ -124,35 +126,34 @@ impl<'a> App<'a> {
             // render all Tiles if in Camera range
             for (h, j) in (range.x_min..range.x_max).enumerate() {
                 for (w, i) in (range.y_min..range.y_max).enumerate() {
-                    // get tile 
+                    // get tile
                     let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
                     Some(x) => x,
                     None => panic!("No texture found."),
                     };
-                    // DEBUG
-                    // tender tile
-                    render_tile(&tile, gl, center_lv,  h as u32 * TILE_HEIGHT,
-                            w as u32 * TILE_WIDTH,
+                    // render tile
+                    render_tile(&tile, gl, center_lv,  h as u32 * tileset.get_tile_height(),
+                            w as u32 * tileset.get_tile_width(),
                             w as u32,
                             h as u32);
                 }
             }
-                // position of Player one in Pixel coordinates
-                let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
-                                              ((self.player_one.coord.get_y() - range.y_min)*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
+            // position of Player one in Pixel coordinates
+            let center_p1 = c.transform.trans(((self.player_one.coord.get_x() - range.x_min )* (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
+                                          ((self.player_one.coord.get_y() - range.y_min)*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
 
-                // render player one
-                player_one.render(gl, center_p1);
-            
+            // render player one
+            player_one.render(gl, center_p1);
+
             // Render Player two
             if let Some(ref p2) = *player_two {
-               
+
 
                 let center_p2 = c.transform.trans(((p2.coord.get_x() - range.x_min) *  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
 
                                               ((p2.coord.get_y() - range.y_min )*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
                  p2.render(gl, center_p2);
-                 
+
 
             }
             // Render all bots
@@ -163,17 +164,15 @@ impl<'a> App<'a> {
                         let center_b1 = c.transform.trans(((b.coord.get_x() - range.x_min )*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
                                                           ((b.coord.get_y() - range.y_min)*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
                         b.render(gl, center_b1);
-                    
                 }
-
             }
-           
+
             // Render all active effects
             for e in &effects.effects {
                 let center = c.transform.trans(((e.coord.get_x() - range.x_min )*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
                                               ((e.coord.get_y() - range.y_min)*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
                 e.render(gl, center);
-        }
+            }
         });
     }
     /// Updates all Players, Bots, effects and camera
@@ -307,34 +306,28 @@ fn main() {
     // Create EffectHandler
     let mut effects = EffectHandler::new(&map);
 
-    // Create new app with one or two players
-    let mut app = App::new(TWO_PLAYER);
-
-    // Create window
-    let mut events = window.events();
-
-    // Load tiles
-    let tiles = match find_folder::Search::Kids(1).for_folder("tiles") {
-        Ok(res) => res.join("tiles2.png"), //tileset-pokemon_dawn.png for full tileset
-        Err(_) => panic!("Folder 'tiles' not found!"),
-    };
-    let file_path = match tiles.to_str() {
-        Some(res) => res,
-        None => panic!("Tileset not found!"),
-    };
+    // Lade XML und erstelle daraus das Level, das Tileset, die Player und die Bots
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
-        Ok(res) => res.join("level1_small_tileset.lvl"),
+        Ok(res) => res.join("level1.xml"),
         Err(_) => panic!("Folder 'src' not found!"),
     };
+
     let level_path = match folder_level.to_str() {
         Some(res) => res,
         None => panic!("Level not found!"),
     };
-    // create Tileset
-    let tileset = io::read_tileset(file_path, &mut window);
 
-    // create Level
-    let mut level = io::read_level(level_path);
+    let (lv, ts, bots, players) = load_xml(level_path, &map, &mut window);
+
+    let tileset = ts;
+
+    let mut level = lv;
+
+    // Create new app with one or two players
+    let mut app = App::new(players, bots);
+
+    // Create window
+    let mut events = window.events();
 
     // insert players in level
     level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize]
@@ -350,30 +343,17 @@ fn main() {
     // set Level-borders to camera
     app.cam.set_borders((level.get_width() as u64, level.get_height() as u64));
 
-    // load sprite for player one and sets border
-    let sprite_p1 = map.get_sprite("paladin.png");
-    app.player_one.set_sprite(sprite_p1);
+    // sets border for player one
     app.player_one.set_borders((level.get_width() as u64, level.get_height() as u64));
 
     // load sprite for player two and sets border
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_width() as u64, level.get_height() as u64));
-        p2.set_sprite(map.get_sprite("paladin.png"));
     }
-    // Load sprite for each bot and set borders
-    let mut i = 0;
-    for b in &mut app.bots {
 
-        let file = if i % 3 == 0 {
-            "chicken_pink.png"
-        } else if i % 3 == 1 {
-            "chicken_brown.png"
-        } else {
-            "chicken_white.png"
-        };
-        b.set_sprite(map.get_sprite(file));
+    // Load sprite for each bot and set borders
+    for b in &mut app.bots {
         b.set_borders((level.get_width() as u64, level.get_height() as u64));
-        i = i + 1;
     }
 
     // End of Loading start game

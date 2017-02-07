@@ -11,7 +11,7 @@ use player::*;
 use time::PreciseTime;
 use io::all_sprites::SpriteMap;
 
-/// Struct for representing Effects. 
+/// Struct for representing Effects.
 /// sprites: Sprite of effect
 /// coord: Coordinate of effect
 /// mirror_h: true if mirror horizontal
@@ -74,11 +74,11 @@ impl<'a> EffectHandler<'a> {
         match (typ, direction) {
             // if Dead no direction needed
             (EffectOption::Dead, _) => {
-                effect.set_sprite(self.map.get_sprite("explosion.png"));
+                effect.set_sprite(self.map.get_sprite("explosion.png".to_string()));
             }
             // Dagger-Attack
             (EffectOption::Dagger, x) => {
-                effect.set_sprite(self.map.get_sprite("swipe_dagger.png"));
+                effect.set_sprite(self.map.get_sprite("swipe_dagger.png".to_string()));
                 // Match direction
                 match x {
                     // Moves coordinate up and rotate effect
@@ -104,9 +104,9 @@ impl<'a> EffectHandler<'a> {
 
                 }
             }
-            // Same as Dagger 
+            // Same as Dagger
             (EffectOption::Spear, x) => {
-                effect.set_sprite(self.map.get_sprite("swipe_longsword.png"));
+                effect.set_sprite(self.map.get_sprite("swipe_longsword.png".to_string()));
                 match x {
                     Direction::Up => {
                         effect.coord.force_move(0, -1);
@@ -128,7 +128,7 @@ impl<'a> EffectHandler<'a> {
             }
             // Same as Sword, only moving of Coordinates changes
             (EffectOption::Sword, x) => {
-                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png"));
+                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png".to_string()));
                 match x {
                     Direction::Up => {
                         effect.coord.force_move(-1, -1);
