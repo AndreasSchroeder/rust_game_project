@@ -45,13 +45,10 @@ use io::all_sprites::SpriteMap;
 use sounds::SoundHandler;
 
 //EINGABEN
-const TWO_PLAYER: bool = true;
 const SIZE_PER_TILE: u64 = 64;
 const BORDER_BETWEEN_TILES: u64 = 1;
-const CAMERA_BUF_X: u64 = 4;
+const CAMERA_BUF_X: u64 = 8;
 const CAMERA_BUF_Y: u64 = 4;
-const WIDTH: i64 = 584;
-const HEIGHT: i64 = 584;
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 /// struct for Settings
@@ -299,7 +296,7 @@ impl<'a> App<'a> {
 /// Main
 fn main() {
     let mut window: PistonWindow = WindowSettings::new("Chicken Fight 3000 Ultimate Tournament",
-                                                       [WIDTH as u32, HEIGHT as u32])
+                                                       [(((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) as u32, (((CAMERA_BUF_Y * 2 ) + 1 ) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) as u32])
         .exit_on_esc(true)
         .fullscreen(false)
         .resizable(false)
