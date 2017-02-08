@@ -131,13 +131,13 @@ impl<'a> App<'a> {
             for (h, j) in (range.x_min..range.x_max).enumerate() {
                 for (w, i) in (range.y_min..range.y_max).enumerate() {
                     // get tile
-                    let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
+                    let tile = match tileset.get_texture(level.get_data()[j as usize][i as usize].get_id()) {
                     Some(x) => x,
                     None => panic!("No texture found."),
                     };
                     // render tile
-                    render_tile(&tile, gl, center_lv,  h as u32 * tileset.get_tile_height(),
-                            w as u32 * tileset.get_tile_width(),
+                    render_tile(&tile, gl, center_lv, h as u32 * tileset.get_tile_width(),
+                            w as u32 * tileset.get_tile_height(),
                             w as u32,
                             h as u32);
                 }
@@ -421,6 +421,7 @@ fn main() {
         }
         // If Key-releas-Event
         if let Some(i) = e.press_args() {
+
             app.on_input(i, true, &mut sounds, &mut level);
         }
         {
