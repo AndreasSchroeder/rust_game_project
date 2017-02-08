@@ -31,8 +31,8 @@ impl Coordinate {
         self.y
     }
 
-    /// Move the coordinates and prevents leaving the camera, leaving the level, 
-    /// or collide with other coordinates, except of the camera. Also checks, if 
+    /// Move the coordinates and prevents leaving the camera, leaving the level,
+    /// or collide with other coordinates, except of the camera. Also checks, if
     /// field on new coordinate is passable
     pub fn move_coord_with_cam(&mut self, dx: i64, dy: i64, level: &mut Level, range: Range) {
         self.move_coord_without_cam(dx, dy, 0, 0, level);
@@ -69,8 +69,8 @@ impl Coordinate {
         self.y = (self.y as i64 + dy) as u64;
     }
 
-    /// Move the coordinates and prevents leaving the level, 
-    /// or collide with other coordinates, except of the camera. Also checks, if 
+    /// Move the coordinates and prevents leaving the level,
+    /// or collide with other coordinates, except of the camera. Also checks, if
     /// field on new coordinate is passable
     pub fn move_coord_without_cam(&mut self,
                                   dx: i64,
@@ -90,7 +90,7 @@ impl Coordinate {
             buf_y
         };
 
-        // checks leaving level 
+        // checks leaving level
         let new_x = if (self.x as i64 + dx) < 0 {
             0
         } else {

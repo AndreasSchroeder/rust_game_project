@@ -2,12 +2,8 @@
 <level>
 	<tileset filename="tiles2.png" tile_height="16" tile_width="16" tileset_height="48" tileset_width="192"/>
 	<file filename="level1_small_tileset.lvl"/>
-	<player1 filename="paladin.png">
-		<numFrames>2</numFrames>
-	</player1>
-	<player2 filename="paladin.png">
-		<numFrames>2</numFrames>
-	</player2>
+	<player1 x="1" y= "1" filename="paladin.png"/>
+	<player2 x="1" y= "2" filename="paladin.png"/>
 	<bot x="2" y="2" filename="chicken_pink.png"/>
 	<bot x="4" y="4" filename="chicken_white.png"/>
 	<bot x="6" y="6" filename="chicken_brown.png"/>
