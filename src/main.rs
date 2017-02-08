@@ -49,6 +49,7 @@ use io::all_sprites::SpriteMap;
 use std::process;
 use sounds::SoundHandler;
 use ears::AudioController;
+use player_hub::PlayerHub;
 
 //EINGABEN
 const HUB_UP: u64 = 52;
@@ -86,6 +87,8 @@ pub struct App<'a> {
     player_two: Option<Player<'a>>,
     bots: Vec<Bot<'a>>,
     cam: Cam,
+    hub_one: PlayerHub<'a>,
+    hub_two: PlayerHub<'a>,
 }
 
 impl<'a> App<'a> {
@@ -111,6 +114,8 @@ impl<'a> App<'a> {
             player_two: p2,
             bots: bots,
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
+            hub_one: PlayerHub::new("Player One", None),
+            hub_two: PlayerHub::new("Player Two", None),
         }
     }
 
@@ -119,8 +124,7 @@ impl<'a> App<'a> {
                mut w: &mut PistonWindow,
                e: &Event,
                tileset: &Tileset,
-               level: &mut Level,
-               state: usize) {
+               level: &mut Level) {
         // Range of the camera
         let range = self.cam.get_range();
 
@@ -128,6 +132,12 @@ impl<'a> App<'a> {
         w.draw_2d(e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
+
+            let center_hub_one = c.transform.trans(10.0, 10.0);
+            self.hub_one.render(gl, center_hub_one);
+
+            let center_hub_two = c.transform.trans(280.0, 10.0);
+            self.hub_two.render(gl, center_hub_two);
 
             let center_lv = c.transform.trans(0.0, 0.0);
 
@@ -154,8 +164,8 @@ impl<'a> App<'a> {
             // render player one
             self.player_one.render(gl, center_p1);
             for e in &self.player_one.get_effect_handler().effects {
-                let center = c.transform.trans(((e.coord.get_x() - range.x_min )*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
-                                              ((e.coord.get_y() - range.y_min)*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
+                let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                              coord_to_pixel_y(e.coord.get_y(), range.y_min));
                 e.render(gl, center);
             }
 
@@ -194,9 +204,11 @@ impl<'a> App<'a> {
         let range = self.cam.get_range_update();
         // Update Player one
         self.player_one.on_update(args, range, level, InteractableType::Player(1));
+        self.hub_one.on_update(&self.player_one);
         // Update Player two
         if let Some(ref mut x) = self.player_two {
             x.on_update(args, range, level, InteractableType::Player(2));
+                    self.hub_two.on_update(x);
         }
         // Updates bots
         for b in &mut self.bots {
@@ -204,12 +216,20 @@ impl<'a> App<'a> {
         }
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
+
     }
 
     /// Handles Input
     fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler, level: &mut Level) {
 
         match inp {
+            Button::Keyboard(Key::Q) => {
+                if pressed {
+                    self.player_one.life  -= 10;
+                    self.player_one.weapon = EffectOption::Spear;
+                }
+                self.player_one.pressed = pressed;
+            }
             Button::Keyboard(Key::Up) => {
                 if pressed {
                     self.player_one.last = LastKey::Up;
@@ -370,10 +390,12 @@ fn main() {
 
     // sets border for player one
     app.player_one.set_borders((level.get_width() as u64, level.get_height() as u64));
+    app.hub_one.set_map(&map);
 
     // load sprite for player two and sets border
     if let Some(ref mut p2) = app.player_two {
         p2.set_borders((level.get_width() as u64, level.get_height() as u64));
+        app.hub_two.set_map(&map);
     }
 
     // Load sprite for each bot and set borders
@@ -392,7 +414,6 @@ fn main() {
     let menu_size = start_menu.len();
 
     let mut active_index = 0;
-
     sounds.play("Welcome.ogg");
 
     while let Some(e) = events.next(&mut window) {
@@ -577,8 +598,7 @@ fn main() {
                 app.on_draw(&mut window,
                             &e,
                             &tileset,
-                            &mut level,
-                            now as usize,);
+                            &mut level);
             }
 
             // If Key-Press-Event
