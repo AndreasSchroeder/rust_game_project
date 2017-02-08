@@ -19,7 +19,13 @@ use field::Field;
 
 const SCALE_FACTOR: f64 = 4.0;
 
-pub fn read_tileset(path: &str, mut w: &mut PistonWindow, th: u32, tw: u32, tsh: u32, tsw: u32) -> Tileset {
+pub fn read_tileset(path: &str,
+                    mut w: &mut PistonWindow,
+                    th: u32,
+                    tw: u32,
+                    tsh: u32,
+                    tsw: u32)
+                    -> Tileset {
 
     let mut tileset = Tileset::new(th, tw, tsh, tsw);
 
@@ -31,7 +37,11 @@ pub fn read_tileset(path: &str, mut w: &mut PistonWindow, th: u32, tw: u32, tsh:
     for i in 0..(tileset.get_tileset_height() / tileset.get_tile_height()) {
         for j in 0..(tileset.get_tileset_width() / tileset.get_tile_width()) {
 
-            let tile = ts.crop(j * tileset.get_tile_width(), i * tileset.get_tile_height(), tileset.get_tile_width(), tileset.get_tile_height()).to_rgba();
+            let tile = ts.crop(j * tileset.get_tile_width(),
+                      i * tileset.get_tile_height(),
+                      tileset.get_tile_width(),
+                      tileset.get_tile_height())
+                .to_rgba();
 
             tileset.get_set()
                 .push(Texture::from_image(&mut w.factory, &tile, &TextureSettings::new()).unwrap());
