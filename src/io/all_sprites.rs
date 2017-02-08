@@ -26,10 +26,8 @@ impl SpriteMap {
     pub fn new() -> Self {
         SpriteMap { map: HashMap::new() }
     }
-
-    /// returns a Sprite with given Name
-    pub fn get_sprite(&self, file: &'static str) -> Option<&Sprite> {
-        self.map.get(file)
+    pub fn get_sprite(&self, file: String) -> Option<&Sprite> {
+        self.map.get(file.as_str())
     }
 }
 
