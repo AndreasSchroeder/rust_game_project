@@ -38,7 +38,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
-                        let mut tileset_path = path.value.clone();
+                        let tileset_path = path.value.clone();
 
                         let tile_height = match it.next() {
                             Some(s) => match u32::from_str(&s.value) {
@@ -121,7 +121,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             None => panic!("Wrong xml format!"),
                         };
 
-                        let mut p1 = Player::new(x, y, 1);
+                        let mut p1 = Player::new(x, y, 1, map);
                         let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
@@ -148,7 +148,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             None => panic!("Wrong xml format!"),
                         };
 
-                        let mut p2 = Player::new(x, y, 2);
+                        let mut p2 = Player::new(x, y, 2, map);
                         let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
@@ -158,7 +158,6 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         players.push(p2);
                     },
                     "bot" => {
-                        i += 1;
                         let mut it = attributes.iter();
 
                         let x = match it.next() {
@@ -185,19 +184,20 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         b.set_sprite(map.get_sprite(sprite));
 
                         bots.push(b);
+                        i += 1;
                     },
                     _ => (),
                 }
             }
             /* Für zukünftige Eigenschaften */
-            Ok(XmlEvent::Characters(s)) => {
+            Ok(XmlEvent::Characters(_)) => {
                 match &last[..] {
                     "player1" | "player2" => (), // Setze irgendwelche Eigenschaften über players.last_mut().
                     "bot" => (), // Setze irgendwelche Eigenschaften über bots.last_mut().
                     _ => (),
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 panic!("Wrong xml format!");
             }
             _ => {}

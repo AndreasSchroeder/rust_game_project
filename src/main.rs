@@ -35,19 +35,20 @@ mod player_hub;
 // own uses
 use util::{coord_to_pixel_x, coord_to_pixel_y};
 use camera::Cam;
-use player::{Player, LastKey, Direction, Weapon};
+use player::{Player, LastKey};
 use bot::Bot;
 use actor::Actor;
 use io::render_tile;
 use io::tileset::Tileset;
 use io::xml::load_xml;
 use level::Level;
-use effect::{EffectHandler, EffectOption};
+use effect::EffectOption;
 use interactable::InteractableType;
 use renderable::Renderable;
 use io::all_sprites::SpriteMap;
 use std::process;
 use sounds::SoundHandler;
+use ears::AudioController;
 
 //EINGABEN
 const HUB_UP: u64 = 52;
@@ -119,16 +120,12 @@ impl<'a> App<'a> {
                e: &Event,
                tileset: &Tileset,
                level: &mut Level,
-               state: usize,
-               effects: &EffectHandler) {
+               state: usize) {
         // Range of the camera
         let range = self.cam.get_range();
 
         // draw in 2D
         w.draw_2d(e, |c, gl| {
-            let player_one = &self.player_one;
-            let player_two = &self.player_two;
-
             // Clear the screen.
             clear(BLACK, gl);
 
@@ -155,10 +152,15 @@ impl<'a> App<'a> {
                                           coord_to_pixel_y(self.player_one.coord.get_y(), range.y_min));
 
             // render player one
-            player_one.render(gl, center_p1);
+            self.player_one.render(gl, center_p1);
+            for e in &self.player_one.get_effect_handler().effects {
+                let center = c.transform.trans(((e.coord.get_x() - range.x_min )*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64,
+                                              ((e.coord.get_y() - range.y_min)*  (SIZE_PER_TILE+ BORDER_BETWEEN_TILES)) as f64);
+                e.render(gl, center);
+            }
 
             // Render Player two
-            if let Some(ref p2) = *player_two {
+            if let Some(ref p2) = self.player_two {
 
 
                 let center_p2 = c.transform.trans(coord_to_pixel_x(p2.coord.get_x(), range.x_min),
@@ -175,20 +177,13 @@ impl<'a> App<'a> {
                         b.render(gl, center_b1);
                 }
             }
-            // Render all active effects
-            for e in &effects.effects {
-                let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min ),
-                                              coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                e.render(gl, center);
-            }
         });
     }
     /// Updates all Players, Bots, effects and camera
     fn on_update(&mut self,
                  args: &UpdateArgs,
                  level: &mut Level,
-                 state: usize,
-                 effects: &mut EffectHandler) {
+                 state: usize) {
         // Update Coordinates
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
@@ -209,52 +204,37 @@ impl<'a> App<'a> {
         }
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
-
-        // FOR TESTING KEY Q TO ACTIVATE ANIMATION
-        if self.player_one.dead {
-            effects.handle(coord1, EffectOption::Sword, Direction::Down);
-        }
-        // END OB TESTING
-
-        // Update Effects
-        effects.on_update(args)
     }
 
     /// Handles Input
     fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler, level: &mut Level) {
 
         match inp {
-            // BUTTON Q FOR TESTING
-            Button::Keyboard(Key::Q) => {
-                if pressed {
-                    sounds.play("test.ogg");
-                }
-
-                 self.player_one.dead = pressed;
-
-            }
-            // ENF OF TESTING
             Button::Keyboard(Key::Up) => {
                 if pressed {
                     self.player_one.last = LastKey::Up;
+                    self.player_one.dir = LastKey::Up;
                 }
                 self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Down) => {
                 if pressed {
                     self.player_one.last = LastKey::Down;
+                    self.player_one.dir = LastKey::Down;
                 }
                 self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Left) => {
                 if pressed {
                     self.player_one.last = LastKey::Left;
+                    self.player_one.dir = LastKey::Left;
                 }
                 self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Right) => {
                 if pressed {
                     self.player_one.last = LastKey::Right;
+                    self.player_one.dir = LastKey::Right;
                 }
                 self.player_one.pressed = pressed;
             }
@@ -291,31 +271,35 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                match self.player_one.weapon{
-                    Weapon::Sword => {
-                        let last = &self.player_one.last;
-                        let p1_pos = &self.player_one.coord;
+                if pressed {
+                    sounds.play("test.ogg");
+                }
 
-                        match *last {
+                match self.player_one.weapon{
+                    EffectOption::Dagger => {
+                        let dir = self.player_one.dir;
+                        let p1_pos = &self.player_one.coord.clone();
+
+                        match dir {
                             LastKey::Up => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots);
+                                &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
                             },
                             LastKey::Down => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots);
+                                &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
                             },
                             LastKey::Left => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots);
+                                &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
                             },
                             LastKey::Right => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots);
+                                &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
                             },
                             _ => {}
                         }
@@ -346,9 +330,6 @@ fn main() {
 
     // Create map for sprites and load all sprites
     let map = Settings::new(&mut window).sprite_map;
-
-    // Create EffectHandler
-    let mut effects = EffectHandler::new(&map);
 
     // Lade XML und erstelle daraus das Level, das Tileset, die Player und die Bots
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
@@ -421,8 +402,110 @@ fn main() {
                     /* Check arrow keys for menu */
                     Button::Keyboard(Key::Return) => {
                         match active_index {
+                            // Start Game
                             0 => start_game = true,
-                            1 | 2 => (),
+                            // Load Game
+                            1 => (),
+                            // Settings
+                            2 => {
+                                // Submenu Settings
+                                let mut settings = true;
+
+                                let mut sub_start_menu = vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                                let sub_menu_size = sub_start_menu.len();
+                                let mut sub_active_index = 0;
+
+                                while let Some(a) = window.next() {
+                                    if !settings {
+                                        break;
+                                    }
+                                    if let Some(_) = a.render_args() {
+                                        window.draw_2d(&a, |c, gl| {
+                                            // Clear the screen.
+                                            clear(BLACK, gl);
+
+                                            // Render menu
+                                            text::Text::new_color(WHITE, 32).draw(
+                                                start_menu[2],
+                                                &mut glyphs,
+                                                &c.draw_state,
+                                                c.transform.trans(width as f64 / 2.0 - 80.0, 100.0), gl
+                                            );
+
+                                            let mut distance = 0.0;
+
+                                            for s in &sub_start_menu {
+                                                let color = match &sub_start_menu[sub_active_index] == s {
+                                                    true => WHITE,
+                                                    false => GREY,
+                                                };
+
+                                                text::Text::new_color(color, 32).draw(
+                                                    s,
+                                                    &mut glyphs,
+                                                    &c.draw_state,
+                                                    c.transform.trans(width as f64 / 2.0 - 100.0, 300.0 + distance), gl
+                                                );
+                                                distance += 50.0;
+                                            }
+                                        });
+                                    }
+                                    if let Some(b) = a.press_args() {
+                                        match b {
+                                            /* Check arrow keys for menu */
+                                            Button::Keyboard(Key::Return) => {
+                                                match sub_active_index {
+                                                    // Fullscreen
+                                                    0 => {
+                                                        /* Neue Zuweisung funktioniert leider nicht (panickt!)
+                                                           Neue Idee gesucht
+                                                         window = WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
+                                                                    [width, height])
+                                                            .exit_on_esc(true)
+                                                            .fullscreen(true)
+                                                            .resizable(false)
+                                                            .build()
+                                                            .unwrap();*/
+                                                    }
+                                                    // Mute
+                                                    1 => {
+                                                        if sub_start_menu[1] == "Mute" {
+                                                            for sound in  sounds.map.values_mut() {
+                                                                sound.set_volume(0.0);
+                                                            }
+                                                            sub_start_menu[1] = "Unmute";
+                                                        } else {
+                                                            for sound in  sounds.map.values_mut() {
+                                                                sound.set_volume(1.0);
+                                                            }
+                                                            sub_start_menu[1] = "Mute";
+                                                        }
+                                                    },
+                                                    // Back
+                                                    2 => settings = false,
+                                                    _ => (),
+                                                }
+                                            }
+                                            Button::Keyboard(Key::Down) => {
+                                                if sub_active_index == sub_menu_size - 1 {
+                                                    sub_active_index = 0;
+                                                } else {
+                                                    sub_active_index += 1;
+                                                }
+                                            },
+                                            Button::Keyboard(Key::Up) => {
+                                                if sub_active_index == 0 {
+                                                    sub_active_index = sub_menu_size - 1;
+                                                } else {
+                                                    sub_active_index -= 1;
+                                                }
+                                            },
+                                            _ => (),
+                                        }
+                                    }
+                                }
+                            },
+                            // Exit
                             3 => process::exit(1),
                             _ => (),
                         }
@@ -495,8 +578,7 @@ fn main() {
                             &e,
                             &tileset,
                             &mut level,
-                            now as usize,
-                            &effects);
+                            now as usize,);
             }
 
             // If Key-Press-Event
@@ -511,7 +593,7 @@ fn main() {
             {
                 // if update
                 if let Some(u) = e.update_args() {
-                    app.on_update(&u, &mut level, state, &mut effects);
+                    app.on_update(&u, &mut level, state);
                 }
 
                 // restart time if 1 second over
