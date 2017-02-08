@@ -32,6 +32,7 @@ mod effect;
 use camera::Cam;
 use player::{Player, LastKey, Direction, Weapon};
 use bot::Bot;
+use actor::Actor;
 use io::render_tile;
 use io::tileset::Tileset;
 use io::xml::load_xml;
