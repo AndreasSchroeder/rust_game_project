@@ -495,24 +495,25 @@ fn main() {
                             &effects);
             }
 
-        // If Key-Press-Event
-        if let Some(i) = e.release_args() {
-            app.on_input(i, false, &mut sounds, &mut level);
-        }
-        // If Key-releas-Event
-        if let Some(i) = e.press_args() {
-
-            app.on_input(i, true, &mut sounds, &mut level);
-        }
-        {
-            // if update
-            if let Some(u) = e.update_args() {
-                app.on_update(&u, &mut level, state, &mut effects);
+            // If Key-Press-Event
+            if let Some(i) = e.release_args() {
+                app.on_input(i, false, &mut sounds, &mut level);
             }
+            // If Key-releas-Event
+            if let Some(i) = e.press_args() {
 
-            // restart time if 1 second over
-            if now > 1000 {
-                start = PreciseTime::now();
+                app.on_input(i, true, &mut sounds, &mut level);
+            }
+            {
+                // if update
+                if let Some(u) = e.update_args() {
+                    app.on_update(&u, &mut level, state, &mut effects);
+                }
+
+                // restart time if 1 second over
+                if now > 1000 {
+                    start = PreciseTime::now();
+                }
             }
         }
     }
