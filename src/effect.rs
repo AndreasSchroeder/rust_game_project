@@ -66,7 +66,7 @@ impl<'a> EffectHandler<'a> {
     /// coord: Coordinate of Effect
     /// typ: Type of Effect (Dead, Dagger-Attack...)
     /// Direction of Effect
-    pub fn handle(&mut self, coord: Coordinate, typ: EffectOption, direction: Direction) {
+    pub fn handle(&mut self, coord: Coordinate, typ: EffectOption, direction: LastKey) {
         // Clones given Coordinates
         let mut effect = Effect::new(coord.clone());
 
@@ -82,22 +82,22 @@ impl<'a> EffectHandler<'a> {
                 // Match direction
                 match x {
                     // Moves coordinate up and rotate effect
-                    Direction::Up => {
+                    LastKey::Up => {
                         effect.coord.force_move(0, -1);
                         effect.degree = 270
                     }
                     // Moves Coordinate down and rotate effect
-                    Direction::Down => {
+                    LastKey::Down => {
                         effect.coord.force_move(0, 1);
                         effect.degree = 90
                     }
                     // Moves Coordinate left and mirror effect
-                    Direction::Left => {
+                    LastKey::Left => {
                         effect.coord.force_move(-1, 0);
                         effect.mirror_h = true;
                     }
                     // Moves Coordinate right
-                    Direction::Right => {
+                    LastKey::Right => {
                         effect.coord.force_move(1, 0);
                     }
                     _ => {}
@@ -108,19 +108,19 @@ impl<'a> EffectHandler<'a> {
             (EffectOption::Spear, x) => {
                 effect.set_sprite(self.map.get_sprite("swipe_longsword.png".to_string()));
                 match x {
-                    Direction::Up => {
+                    LastKey::Up => {
                         effect.coord.force_move(0, -1);
                         effect.degree = 270
                     }
-                    Direction::Down => {
+                    LastKey::Down => {
                         effect.coord.force_move(0, 1);
                         effect.degree = 90
                     }
-                    Direction::Left => {
+                    LastKey::Left => {
                         effect.coord.force_move(-1, 0);
                         effect.mirror_h = true;
                     }
-                    Direction::Right => {
+                    LastKey::Right => {
                         effect.coord.force_move(1, 0);
                     }
                     _ => {}
@@ -130,19 +130,19 @@ impl<'a> EffectHandler<'a> {
             (EffectOption::Sword, x) => {
                  effect.set_sprite(self.map.get_sprite("swipe_broadsword.png".to_string()));
                 match x {
-                    Direction::Up => {
+                    LastKey::Up => {
                         effect.coord.force_move(-1, -1);
                         effect.degree = 270
                     }
-                    Direction::Down => {
+                    LastKey::Down => {
                         effect.coord.force_move(1, 1);
                         effect.degree = 90
                     }
-                    Direction::Left => {
+                    LastKey::Left => {
                         effect.coord.force_move(-1, -1);
                         effect.mirror_h = true;
                     }
-                    Direction::Right => {
+                    LastKey::Right => {
                         effect.coord.force_move(1, -1);
                     }
                     _ => {}
@@ -176,6 +176,7 @@ impl<'a> Renderable for Effect<'a> {
 }
 
 /// Enum with all EffectTypes
+#[derive(Copy, Clone)]
 pub enum EffectOption {
     Dagger,
     Spear,

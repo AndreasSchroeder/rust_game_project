@@ -13,13 +13,8 @@ use gfx_graphics::GfxGraphics;
 use piston_window::*;
 use time::PreciseTime;
 use renderable::Renderable;
-
-
-pub enum Weapon {
-    Sword,
-    Spear,
-    Broadsword,
-}
+use effect::{EffectHandler, EffectOption};
+use io::all_sprites::SpriteMap;
 
 pub struct Player<'a> {
     pub life: i32,
@@ -31,18 +26,19 @@ pub struct Player<'a> {
     pub no_more: bool,
     pub interactable_type: InteractableType,
     pub sprite: Option<&'a Sprite>,
-    pub weapon: Weapon,
+    pub weapon: EffectOption,
+    pub effect: EffectHandler<'a>,
+    pub dir: LastKey,
     level_w: u64,
     level_h: u64,
     dt: PreciseTime,
     watch_rigth: bool,
-    //for test
     pub dead: bool,
 }
 
 
 impl<'a> Player<'a> {
-    pub fn new(x: u64, y: u64, id: u64) -> Self {
+    pub fn new(x: u64, y: u64, id: u64, map: &'a SpriteMap) -> Self {
         Player {
             coord: Coordinate::new(x, y),
             last: LastKey::Wait,
@@ -55,10 +51,11 @@ impl<'a> Player<'a> {
             level_h: 0,
             sprite: None,
             no_more: true,
-            weapon: Weapon::Sword,
+            weapon: EffectOption::Dagger,
             dt: PreciseTime::now(),
             watch_rigth: false,
-            //for test
+            effect: EffectHandler::new(map),
+            dir: LastKey::Wait,
             dead: false,
         }
     }
@@ -127,23 +124,22 @@ impl<'a> Player<'a> {
             self.last = LastKey::Wait;
             self.no_more = true;
         }
+
+        self.effect.on_update(args);
+    }
+
+    pub fn get_effect_handler(&self) -> &EffectHandler {
+        &self.effect
     }
 }
 
+#[derive(Copy, Clone)]
 pub enum LastKey {
     Up,
     Down,
     Left,
     Right,
     Wait,
-}
-
-pub enum Direction {
-    Up,
-    Down,
-    Left,
-    Right,
-    No,
 }
 
 impl<'a> Actor for Player<'a> {
@@ -159,7 +155,8 @@ impl<'a> Actor for Player<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>) {
+    fn attack(&mut self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>, dir: LastKey) {
+        self.effect.handle(self.coord, self.weapon, dir);
         for t in target {
             match t {
                 Some(x) => {
@@ -167,11 +164,11 @@ impl<'a> Actor for Player<'a> {
                         InteractableType::Player(_) => {}
                         InteractableType::Bot(id) => {
                             //x.conv_to_actor().damage_taken(self.dmg)
-                            if bots[(id-1) as usize].is_alive() {
-                                bots[(id-1) as usize].damage_taken(self.dmg);
+                            if bots[id as usize].is_alive() {
+                                bots[id as usize].damage_taken(self.dmg);
                             }
 
-                            println!("{}", bots[(id-1) as usize].get_life());
+                            println!("{}", bots[id as usize].get_life());
                         }
 
                         InteractableType::Useable(_) => {}
@@ -207,6 +204,5 @@ impl<'a> Renderable for Player<'a> {
                      0);
 
         }
-
     }
 }

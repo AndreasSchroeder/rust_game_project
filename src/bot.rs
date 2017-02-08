@@ -1,5 +1,4 @@
 use piston_window::*;
-use inventory::Inventory;
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
@@ -14,6 +13,7 @@ use gfx_device_gl::Resources;
 use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
 use time::PreciseTime;
+use player::LastKey;
 
 pub struct Bot<'a> {
     pub life: i32,
@@ -115,7 +115,7 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>) {
+    fn attack(&mut self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>, dir: LastKey) {
         /*for t in target {
             match t {
                 Some(x) => {
