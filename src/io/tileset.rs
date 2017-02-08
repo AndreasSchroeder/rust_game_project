@@ -1,20 +1,23 @@
 use piston_window::*;
 use gfx_device_gl::Resources;
 
-pub const TILE_WIDTH: u32 = 16;
-pub const TILE_HEIGHT: u32 = 16;
-pub const TILESET_HEIGHT: u32 = 2519;
-pub const TILESET_WIDTH: u32 = 1504;
-
 pub struct Tileset {
     set: Vec<Texture<Resources>>,
+    tile_width: u32,
+    tile_height: u32,
+    tileset_height: u32,
+    tileset_width: u32,
 }
 
 impl Tileset {
-    pub fn new() -> Self {
+    pub fn new(th: u32, tw: u32, tsh: u32, tsw: u32) -> Self {
         Tileset {
-            set: Vec::with_capacity((TILESET_HEIGHT / TILE_HEIGHT) as usize *
-                                    (TILESET_WIDTH / TILE_WIDTH) as usize),
+            set: Vec::with_capacity((tsh / th) as usize *
+                                    (tsw / tw) as usize),
+            tile_width: tw,
+            tile_height: th,
+            tileset_height: tsh,
+            tileset_width: tsw,
         }
     }
 
@@ -24,5 +27,18 @@ impl Tileset {
 
     pub fn get_set(&mut self) -> &mut Vec<Texture<Resources>> {
         &mut self.set
+    }
+
+    pub fn get_tile_height(&self) -> u32 {
+        self.tile_height
+    }
+    pub fn get_tile_width(&self) -> u32 {
+        self.tile_width
+    }
+    pub fn get_tileset_height(&self) -> u32 {
+        self.tileset_height
+    }
+    pub fn get_tileset_width(&self) -> u32 {
+        self.tileset_width
     }
 }
