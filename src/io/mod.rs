@@ -92,13 +92,13 @@ pub fn read_level(path: &str) -> Level {
                 Ok(a) => a,
                 Err(e) => panic!("{:?}", e),
             };
-            level.get_data()[i][j] = Field::new(n);
+            level.get_data()[j][i] = Field::new(n);
         }
     }
 
     level
 }
-
+/*
 pub fn render_level(tileset: &Tileset,
                     g: &mut GfxGraphics<Resources, CommandBuffer>,
                     view: math::Matrix2d,
@@ -120,7 +120,7 @@ pub fn render_level(tileset: &Tileset,
         }
     }
 }
-
+*/
 pub fn render_tile(texture: &Texture<Resources>,
                    g: &mut GfxGraphics<Resources, CommandBuffer>,
                    view: math::Matrix2d,

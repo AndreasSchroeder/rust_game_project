@@ -32,8 +32,9 @@ mod sounds;
 
 // own uses
 use camera::Cam;
-use player::{Player, LastKey, Direction};
+use player::{Player, LastKey, Direction, Weapon};
 use bot::Bot;
+use actor::Actor;
 use io::render_tile;
 use io::tileset::Tileset;
 use io::xml::load_xml;
@@ -127,13 +128,13 @@ impl<'a> App<'a> {
             for (h, j) in (range.x_min..range.x_max).enumerate() {
                 for (w, i) in (range.y_min..range.y_max).enumerate() {
                     // get tile
-                    let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
+                    let tile = match tileset.get_texture(level.get_data()[j as usize][i as usize].get_id()) {
                     Some(x) => x,
                     None => panic!("No texture found."),
                     };
                     // render tile
-                    render_tile(&tile, gl, center_lv,  h as u32 * tileset.get_tile_height(),
-                            w as u32 * tileset.get_tile_width(),
+                    render_tile(&tile, gl, center_lv, h as u32 * tileset.get_tile_width(),
+                            w as u32 * tileset.get_tile_height(),
                             w as u32,
                             h as u32);
                 }
@@ -213,15 +214,15 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler) {
+    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler, level: &mut Level) {
 
         match inp {
             // BUTTON Q FOR TESTING
             Button::Keyboard(Key::Q) => {
                 if pressed {
-                    sounds.play("test.ogg"); 
+                    sounds.play("test.ogg");
                 }
-                
+
                  self.player_one.dead = pressed;
 
             }
@@ -283,8 +284,36 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                if pressed {
-                    println!("Space!!!");
+                match self.player_one.weapon{
+                    Weapon::Sword => {
+                        let last = &self.player_one.last;
+                        let p1_pos = &self.player_one.coord;
+
+                        match *last {
+                            LastKey::Up => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Down => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Left => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Right => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            _ => {}
+                        }
+                    }
+                    _ => {}
                 }
             }
             _ => {}
@@ -385,11 +414,12 @@ fn main() {
 
         // If Key-Press-Event
         if let Some(i) = e.release_args() {
-            app.on_input(i, false, &mut sounds);
+            app.on_input(i, false, &mut sounds, &mut level);
         }
         // If Key-releas-Event
         if let Some(i) = e.press_args() {
-            app.on_input(i, true, &mut sounds);
+
+            app.on_input(i, true, &mut sounds, &mut level);
         }
         {
             // if update
