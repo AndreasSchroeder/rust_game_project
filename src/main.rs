@@ -315,24 +315,6 @@ fn main() {
 
     let mut effects = EffectHandler::new(&map);
 
-    // Create SoundHandler
-    let mut sounds = SoundHandler::fill();
-
-    // Create new app with one or two players
-    let mut app = App::new(TWO_PLAYER);
-
-    // Create window
-    let mut events = window.events();
-
-    // Load tiles
-    let tiles = match find_folder::Search::Kids(1).for_folder("tiles") {
-        Ok(res) => res.join("tiles2.png"), //tileset-pokemon_dawn.png for full tileset
-        Err(_) => panic!("Folder 'tiles' not found!"),
-    };
-    let file_path = match tiles.to_str() {
-        Some(res) => res,
-        None => panic!("Tileset not found!"),
-    };
     // Lade XML und erstelle daraus das Level, das Tileset, die Player und die Bots
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
         Ok(res) => res.join("level1.xml"),
@@ -349,6 +331,9 @@ fn main() {
     let tileset = ts;
 
     let mut level = lv;
+
+        // Create SoundHandler
+    let mut sounds = SoundHandler::fill();
 
     // Create new app with one or two players
     let mut app = App::new(players, bots);
