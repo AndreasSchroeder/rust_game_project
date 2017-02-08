@@ -15,13 +15,12 @@ pub struct PlayerHub<'a> {
 }
 
 impl<'a> PlayerHub<'a> {
-    pub fn new(name: &str, map: Option<&'a SpriteMap>) -> Self{
+    pub fn new(name: &str, map: Option<&'a SpriteMap>) -> Self {
         PlayerHub {
             name: name.to_string(),
             life: 100,
             item: EffectOption::Dagger,
             map: map,
-
         }
     }
     pub fn on_update(&mut self, player: &Player) {
@@ -30,7 +29,7 @@ impl<'a> PlayerHub<'a> {
 
     }
 
-    pub fn set_map(&mut self, map: &'a SpriteMap){
+    pub fn set_map(&mut self, map: &'a SpriteMap) {
         self.map = Some(map)
     }
 
@@ -50,7 +49,7 @@ impl<'a> PlayerHub<'a> {
         self.life
     }
 
-    pub fn set_life (&mut self, life: u64) {
+    pub fn set_life(&mut self, life: u64) {
         self.life = life;
     }
 
@@ -67,9 +66,9 @@ impl<'a> PlayerHub<'a> {
         let mut left_life: i64 = self.life as i64;
         let mut vec: Vec<&str> = Vec::new();
         for _ in 0..5 {
-            if left_life -20 >= 0 {
+            if left_life - 20 >= 0 {
                 vec.push("Heart_full.png");
-            } else if left_life -10 >= 0 {
+            } else if left_life - 10 >= 0 {
                 vec.push("Heart_half.png");
             } else {
                 vec.push("Heart_empty.png");
@@ -78,14 +77,11 @@ impl<'a> PlayerHub<'a> {
         }
         vec
     }
-
-
-
 }
 
 impl<'a> Renderable for PlayerHub<'a> {
     fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
-        
+
         if let Some(map) = self.map {
             let mut counter = 0;
             for (i, val) in self.get_sprite_heart().iter().enumerate() {

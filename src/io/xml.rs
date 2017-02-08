@@ -13,8 +13,11 @@ use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
 use piston_window::*;
 
-pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) -> (Level, Tileset, Vec<Bot<'a>>, Vec<Player<'a>>) {
-    let mut bots : Vec<Bot> = Vec::new();
+pub fn load_xml<'a>(path: &str,
+                    map: &'a SpriteMap,
+                    mut w: &mut PistonWindow)
+                    -> (Level, Tileset, Vec<Bot<'a>>, Vec<Player<'a>>) {
+    let mut bots: Vec<Bot> = Vec::new();
     let mut tileset = Tileset::new(1, 1, 1, 1);
     let mut level = Level::with_size(0, 0);
     let mut players = Vec::new();
@@ -41,34 +44,42 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         let tileset_path = path.value.clone();
 
                         let tile_height = match it.next() {
-                            Some(s) => match u32::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u32::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
 
                         let tile_width = match it.next() {
-                            Some(s) => match u32::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u32::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
 
                         let tileset_height = match it.next() {
-                            Some(s) => match u32::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u32::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
 
                         let tileset_width = match it.next() {
-                            Some(s) => match u32::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u32::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
 
@@ -82,8 +93,13 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             None => panic!("Tileset not found!"),
                         };
 
-                        tileset = read_tileset(file_path, &mut w, tile_height, tile_width, tileset_height, tileset_width);
-                    },
+                        tileset = read_tileset(file_path,
+                                               &mut w,
+                                               tile_height,
+                                               tile_width,
+                                               tileset_height,
+                                               tileset_width);
+                    }
                     "file" => {
                         let path = match attributes.first() {
                             Some(s) => s,
@@ -102,22 +118,26 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         };
 
                         level = read_level(level_path);
-                    },
+                    }
                     "player1" => {
                         let mut it = attributes.iter();
 
                         let x = match it.next() {
-                            Some(s) => match u64::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
                         let y = match it.next() {
-                            Some(s) => match u64::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
 
@@ -129,22 +149,26 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         let sprite = p.value.clone();
                         p1.set_sprite(map.get_sprite(sprite));
                         players.push(p1);
-                    },
+                    }
                     "player2" => {
                         let mut it = attributes.iter();
 
                         let x = match it.next() {
-                            Some(s) => match u64::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
                         let y = match it.next() {
-                            Some(s) => match u64::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
 
@@ -156,22 +180,26 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         let sprite = p.value.clone();
                         p2.set_sprite(map.get_sprite(sprite));
                         players.push(p2);
-                    },
+                    }
                     "bot" => {
                         let mut it = attributes.iter();
 
                         let x = match it.next() {
-                            Some(s) => match u64::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
                         let y = match it.next() {
-                            Some(s) => match u64::from_str(&s.value) {
-                                Ok(n) => n,
-                                Err(_) => panic!("{:?} is not a number!", s.value),
-                            },
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
                             None => panic!("Wrong xml format!"),
                         };
                         let p = match it.next() {
@@ -185,7 +213,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
 
                         bots.push(b);
                         i += 1;
-                    },
+                    }
                     _ => (),
                 }
             }

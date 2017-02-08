@@ -143,7 +143,4 @@ const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                               image: "weapon_spear_small.png",
                                               size_x: 32,
                                               size_y: 32,
-                                          },
-
-
-                                          ];
+                                          }];

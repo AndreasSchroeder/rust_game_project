@@ -128,7 +128,7 @@ impl<'a> EffectHandler<'a> {
             }
             // Same as Sword, only moving of Coordinates changes
             (EffectOption::Sword, x) => {
-                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png".to_string()));
+                effect.set_sprite(self.map.get_sprite("swipe_broadsword.png".to_string()));
                 match x {
                     LastKey::Up => {
                         effect.coord.force_move(-1, -1);

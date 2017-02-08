@@ -105,7 +105,7 @@ impl<'a> App<'a> {
             Some(p) => {
                 p2 = Some(p1);
                 p1 = p;
-            },
+            }
             None => (),
         };
 
@@ -190,10 +190,7 @@ impl<'a> App<'a> {
         });
     }
     /// Updates all Players, Bots, effects and camera
-    fn on_update(&mut self,
-                 args: &UpdateArgs,
-                 level: &mut Level,
-                 state: usize) {
+    fn on_update(&mut self, args: &UpdateArgs, level: &mut Level, state: usize) {
         // Update Coordinates
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
@@ -208,7 +205,7 @@ impl<'a> App<'a> {
         // Update Player two
         if let Some(ref mut x) = self.player_two {
             x.on_update(args, range, level, InteractableType::Player(2));
-                    self.hub_two.on_update(x);
+            self.hub_two.on_update(x);
         }
         // Updates bots
         for b in &mut self.bots {
@@ -220,12 +217,16 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler, level: &mut Level) {
+    fn on_input(&mut self,
+                inp: Button,
+                pressed: bool,
+                sounds: &mut SoundHandler,
+                level: &mut Level) {
 
         match inp {
             Button::Keyboard(Key::Q) => {
                 if pressed {
-                    self.player_one.life  -= 10;
+                    self.player_one.life -= 10;
                     self.player_one.weapon = EffectOption::Spear;
                 }
                 self.player_one.pressed = pressed;
@@ -295,7 +296,7 @@ impl<'a> App<'a> {
                     sounds.play("test.ogg");
                 }
 
-                match self.player_one.weapon{
+                match self.player_one.weapon {
                     EffectOption::Dagger => {
                         let dir = self.player_one.dir;
                         let p1_pos = &self.player_one.coord.clone();
@@ -305,22 +306,22 @@ impl<'a> App<'a> {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
                                 &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
-                            },
+                            }
                             LastKey::Down => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
                                 &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
-                            },
+                            }
                             LastKey::Left => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
                                 &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
-                            },
+                            }
                             LastKey::Right => {
                                 let mut targets = Vec::new();
                                 targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
                                 &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
-                            },
+                            }
                             _ => {}
                         }
                     }
@@ -335,15 +336,18 @@ impl<'a> App<'a> {
 
 /// Main
 fn main() {
-    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + CAM_BORDER * 2) as u32;
-    let height = ((((CAMERA_BUF_Y * 2 ) + 1 ) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + CAM_BORDER + HUB_UP) as u32;
-    let mut window: PistonWindow = WindowSettings::new(format!("{}{}", GAME_NAME_PART1, GAME_NAME_PART2),
-                                                        [width, height])
-        .exit_on_esc(true)
-        .fullscreen(false)
-        .resizable(false)
-        .build()
-        .unwrap();
+    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+                 CAM_BORDER * 2) as u32;
+    let height = ((((CAMERA_BUF_Y * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+                  CAM_BORDER + HUB_UP) as u32;
+    let mut window: PistonWindow =
+        WindowSettings::new(format!("{}{}", GAME_NAME_PART1, GAME_NAME_PART2),
+                            [width, height])
+            .exit_on_esc(true)
+            .fullscreen(false)
+            .resizable(false)
+            .build()
+            .unwrap();
 
     // Create window
     let mut events = window.events();
@@ -368,7 +372,7 @@ fn main() {
 
     let mut level = lv;
 
-        // Create SoundHandler
+    // Create SoundHandler
     let mut sounds = SoundHandler::fill();
 
     // Create new app with one or two players
@@ -432,7 +436,8 @@ fn main() {
                                 // Submenu Settings
                                 let mut settings = true;
 
-                                let mut sub_start_menu = vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                                let mut sub_start_menu =
+                                    vec!["Fullscreen (not working yet)", "Mute", "Back"];
                                 let sub_menu_size = sub_start_menu.len();
                                 let mut sub_active_index = 0;
 
@@ -446,27 +451,31 @@ fn main() {
                                             clear(BLACK, gl);
 
                                             // Render menu
-                                            text::Text::new_color(WHITE, 32).draw(
-                                                start_menu[2],
-                                                &mut glyphs,
-                                                &c.draw_state,
-                                                c.transform.trans(width as f64 / 2.0 - 80.0, 100.0), gl
-                                            );
+                                            text::Text::new_color(WHITE, 32)
+                                                .draw(start_menu[2],
+                                                      &mut glyphs,
+                                                      &c.draw_state,
+                                                      c.transform
+                                                          .trans(width as f64 / 2.0 - 80.0, 100.0),
+                                                      gl);
 
                                             let mut distance = 0.0;
 
                                             for s in &sub_start_menu {
-                                                let color = match &sub_start_menu[sub_active_index] == s {
-                                                    true => WHITE,
-                                                    false => GREY,
-                                                };
+                                                let color =
+                                                    match &sub_start_menu[sub_active_index] == s {
+                                                        true => WHITE,
+                                                        false => GREY,
+                                                    };
 
-                                                text::Text::new_color(color, 32).draw(
-                                                    s,
-                                                    &mut glyphs,
-                                                    &c.draw_state,
-                                                    c.transform.trans(width as f64 / 2.0 - 100.0, 300.0 + distance), gl
-                                                );
+                                                text::Text::new_color(color, 32)
+                                                    .draw(s,
+                                                          &mut glyphs,
+                                                          &c.draw_state,
+                                                          c.transform
+                                                              .trans(width as f64 / 2.0 - 100.0,
+                                                                     300.0 + distance),
+                                                          gl);
                                                 distance += 50.0;
                                             }
                                         });
@@ -491,17 +500,17 @@ fn main() {
                                                     // Mute
                                                     1 => {
                                                         if sub_start_menu[1] == "Mute" {
-                                                            for sound in  sounds.map.values_mut() {
+                                                            for sound in sounds.map.values_mut() {
                                                                 sound.set_volume(0.0);
                                                             }
                                                             sub_start_menu[1] = "Unmute";
                                                         } else {
-                                                            for sound in  sounds.map.values_mut() {
+                                                            for sound in sounds.map.values_mut() {
                                                                 sound.set_volume(1.0);
                                                             }
                                                             sub_start_menu[1] = "Mute";
                                                         }
-                                                    },
+                                                    }
                                                     // Back
                                                     2 => settings = false,
                                                     _ => (),
@@ -513,38 +522,38 @@ fn main() {
                                                 } else {
                                                     sub_active_index += 1;
                                                 }
-                                            },
+                                            }
                                             Button::Keyboard(Key::Up) => {
                                                 if sub_active_index == 0 {
                                                     sub_active_index = sub_menu_size - 1;
                                                 } else {
                                                     sub_active_index -= 1;
                                                 }
-                                            },
+                                            }
                                             _ => (),
                                         }
                                     }
                                 }
-                            },
+                            }
                             // Exit
                             3 => process::exit(1),
                             _ => (),
                         }
-                    },
+                    }
                     Button::Keyboard(Key::Down) => {
                         if active_index == menu_size - 1 {
                             active_index = 0;
                         } else {
                             active_index += 1;
                         }
-                    },
+                    }
                     Button::Keyboard(Key::Up) => {
                         if active_index == 0 {
                             active_index = menu_size - 1;
                         } else {
                             active_index -= 1;
                         }
-                    },
+                    }
                     _ => (),
                 }
             }
@@ -554,18 +563,20 @@ fn main() {
                     clear(BLACK, gl);
 
                     // Render menu
-                    text::Text::new_color(WHITE, 32).draw(
-                        GAME_NAME_PART1,
-                        &mut glyphs,
-                        &c.draw_state,
-                        c.transform.trans(width as f64 / 2.0 - 180.0, 100.0), gl
-                    );
-                    text::Text::new_color(WHITE, 32).draw(
-                        GAME_NAME_PART2,
-                        &mut glyphs,
-                        &c.draw_state,
-                        c.transform.trans(width as f64 / 2.0 - 200.0, 150.0), gl
-                    );
+                    text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART1,
+                                                          &mut glyphs,
+                                                          &c.draw_state,
+                                                          c.transform
+                                                              .trans(width as f64 / 2.0 - 180.0,
+                                                                     100.0),
+                                                          gl);
+                    text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART2,
+                                                          &mut glyphs,
+                                                          &c.draw_state,
+                                                          c.transform
+                                                              .trans(width as f64 / 2.0 - 200.0,
+                                                                     150.0),
+                                                          gl);
 
                     let mut distance = 0.0;
 
@@ -575,12 +586,14 @@ fn main() {
                             false => GREY,
                         };
 
-                        text::Text::new_color(color, 32).draw(
-                            s,
-                            &mut glyphs,
-                            &c.draw_state,
-                            c.transform.trans(width as f64 / 2.0 - 100.0, 400.0 + distance), gl
-                        );
+                        text::Text::new_color(color, 32).draw(s,
+                                                              &mut glyphs,
+                                                              &c.draw_state,
+                                                              c.transform
+                                                                  .trans(width as f64 / 2.0 -
+                                                                         100.0,
+                                                                         400.0 + distance),
+                                                              gl);
                         distance += 50.0;
                     }
                 });
@@ -595,10 +608,7 @@ fn main() {
 
             // If Render-Event
             if let Some(_) = e.render_args() {
-                app.on_draw(&mut window,
-                            &e,
-                            &tileset,
-                            &mut level);
+                app.on_draw(&mut window, &e, &tileset, &mut level);
             }
 
             // If Key-Press-Event

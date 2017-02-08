@@ -115,7 +115,10 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&mut self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>, dir: LastKey) {
+    fn attack(&mut self,
+              target: Vec<Option<InteractableType>>,
+              bots: &mut Vec<Bot>,
+              dir: LastKey) {
         /*for t in target {
             match t {
                 Some(x) => {

@@ -12,8 +12,7 @@ pub struct Tileset {
 impl Tileset {
     pub fn new(th: u32, tw: u32, tsh: u32, tsw: u32) -> Self {
         Tileset {
-            set: Vec::with_capacity((tsh / th) as usize *
-                                    (tsw / tw) as usize),
+            set: Vec::with_capacity((tsh / th) as usize * (tsw / tw) as usize),
             tile_width: tw,
             tile_height: th,
             tileset_height: tsh,

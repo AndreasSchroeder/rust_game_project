@@ -46,9 +46,7 @@ impl Field {
 // Hier wird bis jetzt statisch hinterlegt, ob ein Tile passable ist oder nicht
 fn get_passable(id: u64) -> bool {
     match id {
-        9  | 10 | 11 | 
-        21 | 22 | 23 |
-        33 | 34 | 35 => false,
+        9 | 10 | 11 | 21 | 22 | 23 | 33 | 34 | 35 => false,
 
         _ => true,
     }
