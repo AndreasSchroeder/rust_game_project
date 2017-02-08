@@ -32,8 +32,9 @@ mod sounds;
 
 // own uses
 use camera::Cam;
-use player::{Player, LastKey, Direction};
+use player::{Player, LastKey, Direction, Weapon};
 use bot::Bot;
+use actor::Actor;
 use io::render_tile;
 use io::tileset::Tileset;
 use io::xml::load_xml;
@@ -216,15 +217,15 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler) {
+    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler, level: &mut Level) {
 
         match inp {
             // BUTTON Q FOR TESTING
             Button::Keyboard(Key::Q) => {
                 if pressed {
-                    sounds.play("test.ogg"); 
+                    sounds.play("test.ogg");
                 }
-                
+
                  self.player_one.dead = pressed;
 
             }
@@ -286,8 +287,36 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                if pressed {
-                    println!("Space!!!");
+                match self.player_one.weapon{
+                    Weapon::Sword => {
+                        let last = &self.player_one.last;
+                        let p1_pos = &self.player_one.coord;
+
+                        match *last {
+                            LastKey::Up => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Down => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Left => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Right => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            _ => {}
+                        }
+                    }
+                    _ => {}
                 }
             }
             _ => {}
@@ -298,7 +327,7 @@ impl<'a> App<'a> {
 
 /// Main
 fn main() {
-    let mut window: PistonWindow = WindowSettings::new("Chicken Fight 3000 Ultimate Tournament",
+    let mut window: PistonWindow = WindowSettings::new("chicken_fight_3000_ultimate_tournament_reloaded_uncut_director's_edition",
                                                        [WIDTH as u32, HEIGHT as u32])
         .exit_on_esc(true)
         .fullscreen(false)
@@ -388,11 +417,11 @@ fn main() {
 
         // If Key-Press-Event
         if let Some(i) = e.release_args() {
-            app.on_input(i, false, &mut sounds);
+            app.on_input(i, false, &mut sounds, &mut level);
         }
         // If Key-releas-Event
         if let Some(i) = e.press_args() {
-            app.on_input(i, true, &mut sounds);
+            app.on_input(i, true, &mut sounds, &mut level);
         }
         {
             // if update
