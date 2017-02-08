@@ -30,6 +30,7 @@ mod renderable;
 mod effect;
 mod sounds;
 mod util;
+mod player_hub;
 
 // own uses
 use util::{coord_to_pixel_x, coord_to_pixel_y};
@@ -49,7 +50,7 @@ use std::process;
 use sounds::SoundHandler;
 
 //EINGABEN
-const HUB_UP: u64 = 50;
+const HUB_UP: u64 = 52;
 const CAM_BORDER: u64 = 20;
 const SIZE_PER_TILE: u64 = 64;
 const BORDER_BETWEEN_TILES: u64 = 1;
@@ -142,8 +143,9 @@ impl<'a> App<'a> {
                     None => panic!("No texture found."),
                     };
                     // render tile
-                    render_tile(&tile, gl, center_lv, h as u32 * tileset.get_tile_width(),
-                            w as u32 * tileset.get_tile_height(),
+                    render_tile(&tile, gl, center_lv,
+                            (h as u32 * tileset.get_tile_width()) + (CAM_BORDER/4) as u32,
+                            (w as u32 * tileset.get_tile_height()) + (HUB_UP/4) as u32,
                             w as u32,
                             h as u32);
                 }
@@ -329,8 +331,8 @@ impl<'a> App<'a> {
 
 /// Main
 fn main() {
-    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + BORDER_BETWEEN_TILES * 2) as u32;
-    let height = ((((CAMERA_BUF_Y * 2 ) + 1 ) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + BORDER_BETWEEN_TILES + HUB_UP) as u32;
+    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + CAM_BORDER * 2) as u32;
+    let height = ((((CAMERA_BUF_Y * 2 ) + 1 ) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + CAM_BORDER + HUB_UP) as u32;
     let mut window: PistonWindow = WindowSettings::new(format!("{}{}", GAME_NAME_PART1, GAME_NAME_PART2),
                                                         [width, height])
         .exit_on_esc(true)

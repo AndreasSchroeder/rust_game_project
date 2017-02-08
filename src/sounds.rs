@@ -24,7 +24,7 @@ impl SoundHandler {
             };
 
             // Open path an create image
-            println!("{}", sound_string);
+            //println!("{}", sound_string);
             let sound = match Sound::new(sound_string) {
                 Some(x) => x,
                 None => panic!("Can't open {} in {}", path, sound_string),
