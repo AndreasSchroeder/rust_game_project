@@ -104,8 +104,25 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         level = read_level(level_path);
                     },
                     "player1" => {
-                        let mut p1 = Player::new(1, 1, 1);
-                        let p = match attributes.first() {
+                        let mut it = attributes.iter();
+
+                        let x = match it.next() {
+                            Some(s) => match u64::from_str(&s.value) {
+                                Ok(n) => n,
+                                Err(e) => panic!("{:?} is not a number!", s.value),
+                            },
+                            None => panic!("Wrong xml format!"),
+                        };
+                        let y = match it.next() {
+                            Some(s) => match u64::from_str(&s.value) {
+                                Ok(n) => n,
+                                Err(e) => panic!("{:?} is not a number!", s.value),
+                            },
+                            None => panic!("Wrong xml format!"),
+                        };
+
+                        let mut p1 = Player::new(x, y, 1);
+                        let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
@@ -114,8 +131,25 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         players.push(p1);
                     },
                     "player2" => {
-                        let mut p2 = Player::new(1, 2, 2);
-                        let p = match attributes.first() {
+                        let mut it = attributes.iter();
+
+                        let x = match it.next() {
+                            Some(s) => match u64::from_str(&s.value) {
+                                Ok(n) => n,
+                                Err(e) => panic!("{:?} is not a number!", s.value),
+                            },
+                            None => panic!("Wrong xml format!"),
+                        };
+                        let y = match it.next() {
+                            Some(s) => match u64::from_str(&s.value) {
+                                Ok(n) => n,
+                                Err(e) => panic!("{:?} is not a number!", s.value),
+                            },
+                            None => panic!("Wrong xml format!"),
+                        };
+
+                        let mut p2 = Player::new(x, y, 2);
+                        let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
