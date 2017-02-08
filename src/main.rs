@@ -47,6 +47,8 @@ use std::process;
 use sounds::SoundHandler;
 
 //EINGABEN
+const HUB_UP: u64 = 50;
+const CAM_BORDER: u64 = 20;
 const SIZE_PER_TILE: u64 = 64;
 const BORDER_BETWEEN_TILES: u64 = 1;
 const CAMERA_BUF_X: u64 = 8;
@@ -329,8 +331,8 @@ impl<'a> App<'a> {
 
 /// Main
 fn main() {
-    let width = (((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) as u32;
-    let height = (((CAMERA_BUF_Y * 2 ) + 1 ) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) as u32;
+    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + BORDER_BETWEEN_TILES * 2) as u32;
+    let height = ((((CAMERA_BUF_Y * 2 ) + 1 ) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) + BORDER_BETWEEN_TILES + HUB_UP) as u32;
     let mut window: PistonWindow = WindowSettings::new(format!("{}{}", GAME_NAME_PART1, GAME_NAME_PART2),
                                                         [width, height])
         .exit_on_esc(true)
