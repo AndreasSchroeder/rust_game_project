@@ -8,6 +8,7 @@ extern crate vecmath;
 extern crate image as im;
 extern crate time;
 extern crate rand;
+extern crate ears;
 extern crate xml;
 
 use piston_window::*;
@@ -27,6 +28,7 @@ mod camera;
 mod bot;
 mod renderable;
 mod effect;
+mod sounds;
 
 // own uses
 use camera::Cam;
@@ -40,6 +42,7 @@ use effect::{EffectHandler, EffectOption};
 use interactable::InteractableType;
 use renderable::Renderable;
 use io::all_sprites::SpriteMap;
+use sounds::SoundHandler;
 
 //EINGABEN
 const TWO_PLAYER: bool = true;
@@ -213,13 +216,17 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self, inp: Button, pressed: bool) {
+    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler) {
 
         match inp {
             // BUTTON Q FOR TESTING
             Button::Keyboard(Key::Q) => {
+                if pressed {
+                    sounds.play("test.ogg"); 
+                }
+                
+                 self.player_one.dead = pressed;
 
-                self.player_one.dead = pressed;
             }
             // ENF OF TESTING
             Button::Keyboard(Key::Up) => {
@@ -299,11 +306,13 @@ fn main() {
         .build()
         .unwrap();
 
-
+    println!("test");
     // Create map for sprites and load all sprites
     let map = Settings::new(&mut window).sprite_map;
 
     // Create EffectHandler
+
+
     let mut effects = EffectHandler::new(&map);
 
     // Lade XML und erstelle daraus das Level, das Tileset, die Player und die Bots
@@ -322,6 +331,9 @@ fn main() {
     let tileset = ts;
 
     let mut level = lv;
+
+        // Create SoundHandler
+    let mut sounds = SoundHandler::fill();
 
     // Create new app with one or two players
     let mut app = App::new(players, bots);
@@ -376,11 +388,11 @@ fn main() {
 
         // If Key-Press-Event
         if let Some(i) = e.release_args() {
-            app.on_input(i, false);
+            app.on_input(i, false, &mut sounds);
         }
         // If Key-releas-Event
         if let Some(i) = e.press_args() {
-            app.on_input(i, true);
+            app.on_input(i, true, &mut sounds);
         }
         {
             // if update
