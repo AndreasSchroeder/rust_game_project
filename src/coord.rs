@@ -93,11 +93,15 @@ impl Coordinate {
         // checks leaving level
         let new_x = if (self.x as i64 + dx) < 0 {
             0
+        } else if (self.x as i64 + dx) as u64 >= level.get_width() as u64 {
+            level.get_width() as u64
         } else {
             (self.x as i64 + dx) as u64
         };
         let new_y = if (self.y as i64 + dy) < 0 {
             0
+        } else if (self.y as i64 + dy) as u64 >= level.get_height() as u64 {
+            level.get_height() as u64
         } else {
             (self.y as i64 + dy) as u64
         };
@@ -122,15 +126,15 @@ impl Coordinate {
         // sets coordinates after last checks
         self.x = if new_x < buf_x {
             buf_x
-        } else if new_x > (level.get_width() as u64) - buf_x {
-            level.get_width() as u64 - buf_x
+        } else if new_x > (level.get_width() as u64) - buf_x - 1  {
+            level.get_width() as u64 - buf_x - 1
         } else {
             new_x
         };
         self.y = if new_y < buf_y {
             buf_y
-        } else if new_y > (level.get_height() as u64) - buf_y {
-            level.get_height() as u64 - buf_y
+        } else if new_y > (level.get_height() as u64) - buf_y - 1 {
+            level.get_height() as u64 - buf_y - 1
         } else {
             new_y
         };
