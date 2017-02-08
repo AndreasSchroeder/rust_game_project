@@ -410,7 +410,8 @@ fn main() {
 
     let mut active_index = 0;
 
-    // End of Loading start game
+    sounds.play("Welcome.ogg");
+
     while let Some(e) = events.next(&mut window) {
         if !start_game {
             if let Some(i) = e.press_args() {
@@ -479,6 +480,7 @@ fn main() {
                 });
             }
         } else {
+            // End of Loading start game
             // Calculate Milliseconds
             let now = start.to(PreciseTime::now()).num_milliseconds();
 
