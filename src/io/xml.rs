@@ -38,7 +38,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
-                        let mut tileset_path = path.value.clone();
+                        let tileset_path = path.value.clone();
 
                         let tile_height = match it.next() {
                             Some(s) => match u32::from_str(&s.value) {
@@ -190,7 +190,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                 }
             }
             /* Für zukünftige Eigenschaften */
-            Ok(XmlEvent::Characters(s)) => {
+            Ok(XmlEvent::Characters(_)) => {
                 match &last[..] {
                     "player1" | "player2" => (), // Setze irgendwelche Eigenschaften über players.last_mut().
                     "bot" => (), // Setze irgendwelche Eigenschaften über bots.last_mut().
