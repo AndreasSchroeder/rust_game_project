@@ -46,4 +46,13 @@ impl SoundHandler {
     }
 }
 
-const SOUNDS: &'static [&'static str] = &["test.ogg", "Welcome.ogg"];
+const SOUNDS: &'static [&'static str] = &[
+                                            "Chicken.ogg", 
+                                            "Dagger.ogg",
+                                            "Dead.ogg",
+                                            "Item.ogg",
+                                            "Spear.ogg",
+                                            "Sword.ogg",
+                                            "test.ogg",
+                                            "Welcome.ogg",
+                                            ];
