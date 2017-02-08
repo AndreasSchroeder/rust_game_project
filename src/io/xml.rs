@@ -121,7 +121,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             None => panic!("Wrong xml format!"),
                         };
 
-                        let mut p1 = Player::new(x, y, 1);
+                        let mut p1 = Player::new(x, y, 1, map);
                         let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
@@ -148,7 +148,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                             None => panic!("Wrong xml format!"),
                         };
 
-                        let mut p2 = Player::new(x, y, 2);
+                        let mut p2 = Player::new(x, y, 2, map);
                         let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
@@ -158,7 +158,6 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         players.push(p2);
                     },
                     "bot" => {
-                        i += 1;
                         let mut it = attributes.iter();
 
                         let x = match it.next() {
@@ -185,6 +184,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                         b.set_sprite(map.get_sprite(sprite));
 
                         bots.push(b);
+                        i += 1;
                     },
                     _ => (),
                 }
@@ -197,7 +197,7 @@ pub fn load_xml<'a>(path: &str, map: &'a SpriteMap, mut w: &mut PistonWindow) ->
                     _ => (),
                 }
             }
-            Err(e) => {
+            Err(_) => {
                 panic!("Wrong xml format!");
             }
             _ => {}
