@@ -8,6 +8,7 @@ extern crate vecmath;
 extern crate image as im;
 extern crate time;
 extern crate rand;
+extern crate ears;
 extern crate xml;
 
 use piston_window::*;
@@ -27,11 +28,13 @@ mod camera;
 mod bot;
 mod renderable;
 mod effect;
+mod sounds;
 
 // own uses
 use camera::Cam;
-use player::{Player, LastKey, Direction};
+use player::{Player, LastKey, Direction, Weapon};
 use bot::Bot;
+use actor::Actor;
 use io::render_tile;
 use io::tileset::Tileset;
 use io::xml::load_xml;
@@ -41,6 +44,7 @@ use interactable::InteractableType;
 use renderable::Renderable;
 use io::all_sprites::SpriteMap;
 use std::process;
+use sounds::SoundHandler;
 
 //EINGABEN
 const SIZE_PER_TILE: u64 = 64;
@@ -131,13 +135,13 @@ impl<'a> App<'a> {
             for (h, j) in (range.x_min..range.x_max).enumerate() {
                 for (w, i) in (range.y_min..range.y_max).enumerate() {
                     // get tile
-                    let tile = match tileset.get_texture(level.get_data()[i as usize][j as usize].get_id()) {
+                    let tile = match tileset.get_texture(level.get_data()[j as usize][i as usize].get_id()) {
                     Some(x) => x,
                     None => panic!("No texture found."),
                     };
                     // render tile
-                    render_tile(&tile, gl, center_lv,  h as u32 * tileset.get_tile_height(),
-                            w as u32 * tileset.get_tile_width(),
+                    render_tile(&tile, gl, center_lv, h as u32 * tileset.get_tile_width(),
+                            w as u32 * tileset.get_tile_height(),
                             w as u32,
                             h as u32);
                 }
@@ -217,13 +221,17 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self, inp: Button, pressed: bool) {
+    fn on_input(&mut self, inp: Button, pressed: bool, sounds: &mut SoundHandler, level: &mut Level) {
 
         match inp {
             // BUTTON Q FOR TESTING
             Button::Keyboard(Key::Q) => {
+                if pressed {
+                    sounds.play("test.ogg");
+                }
 
-                self.player_one.dead = pressed;
+                 self.player_one.dead = pressed;
+
             }
             // ENF OF TESTING
             Button::Keyboard(Key::Up) => {
@@ -283,8 +291,36 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                if pressed {
-                    println!("Space!!!");
+                match self.player_one.weapon{
+                    Weapon::Sword => {
+                        let last = &self.player_one.last;
+                        let p1_pos = &self.player_one.coord;
+
+                        match *last {
+                            LastKey::Up => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Down => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Left => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            LastKey::Right => {
+                                let mut targets = Vec::new();
+                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
+                                &self.player_one.attack(targets, &mut self.bots);
+                            },
+                            _ => {}
+                        }
+                    }
+                    _ => {}
                 }
             }
             _ => {}
@@ -328,6 +364,9 @@ fn main() {
     let tileset = ts;
 
     let mut level = lv;
+
+        // Create SoundHandler
+    let mut sounds = SoundHandler::fill();
 
     // Create new app with one or two players
     let mut app = App::new(players, bots);
@@ -456,19 +495,19 @@ fn main() {
                             &effects);
             }
 
-            // If Key-Press-Event
-            if let Some(i) = e.release_args() {
-                app.on_input(i, false);
-            }
-            // If Key-releas-Event
-            if let Some(i) = e.press_args() {
-                app.on_input(i, true);
-            }
-            {
-                // if update
-                if let Some(u) = e.update_args() {
-                    app.on_update(&u, &mut level, state, &mut effects);
-                }
+        // If Key-Press-Event
+        if let Some(i) = e.release_args() {
+            app.on_input(i, false, &mut sounds, &mut level);
+        }
+        // If Key-releas-Event
+        if let Some(i) = e.press_args() {
+
+            app.on_input(i, true, &mut sounds, &mut level);
+        }
+        {
+            // if update
+            if let Some(u) = e.update_args() {
+                app.on_update(&u, &mut level, state, &mut effects);
             }
 
             // restart time if 1 second over

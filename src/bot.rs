@@ -63,7 +63,7 @@ impl<'a> Bot<'a> {
             if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
                 self.dt = PreciseTime::now();
             }
-            let dir = rng.gen_range(0, 4);
+            let dir = rng.gen_range(0, 6);
             match dir {
                 0 => {
                     //Up
@@ -115,8 +115,8 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&self, target: Vec<Option<&mut Interactable>>) {
-        for t in target {
+    fn attack(&self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>) {
+        /*for t in target {
             match t {
                 Some(x) => {
                     match x.get_interactable_type() {
@@ -128,7 +128,7 @@ impl<'a> Actor for Bot<'a> {
                 }
                 None => {}
             }
-        }
+        }*/
     }
 
 
@@ -152,7 +152,8 @@ impl<'a> Renderable for Bot<'a> {
             x.render(g,
                      view,
                      self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
-                     self.watch_rigth, 0);
+                     self.watch_rigth,
+                     0);
 
         }
 

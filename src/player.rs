@@ -6,6 +6,7 @@ use coord::Coordinate;
 use camera::Range;
 use level::Level;
 use io::sprite::Sprite;
+use bot::Bot;
 use gfx_device_gl::Resources;
 use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
@@ -158,13 +159,21 @@ impl<'a> Actor for Player<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&self, target: Vec<Option<&mut Interactable>>) {
+    fn attack(&self, target: Vec<Option<InteractableType>>, bots: &mut Vec<Bot>) {
         for t in target {
             match t {
                 Some(x) => {
-                    match x.get_interactable_type() {
-                        InteractableType::Player(_) |
-                        InteractableType::Bot(_) => x.conv_to_actor().damage_taken(self.dmg),
+                    match x {
+                        InteractableType::Player(_) => {}
+                        InteractableType::Bot(id) => {
+                            //x.conv_to_actor().damage_taken(self.dmg)
+                            if bots[(id-1) as usize].is_alive() {
+                                bots[(id-1) as usize].damage_taken(self.dmg);
+                            }
+
+                            println!("{}", bots[(id-1) as usize].get_life());
+                        }
+
                         InteractableType::Useable(_) => {}
                         InteractableType::Collectable(_) => {}
                     }
@@ -194,7 +203,8 @@ impl<'a> Renderable for Player<'a> {
             x.render(g,
                      view,
                      self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
-                     self.watch_rigth, 0);
+                     self.watch_rigth,
+                     0);
 
         }
 
