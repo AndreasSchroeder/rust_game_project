@@ -13,7 +13,7 @@ use gfx_graphics::GfxGraphics;
 use piston_window::*;
 use time::PreciseTime;
 use renderable::Renderable;
-use effect::{EffectHandler, EffectOption};
+use effect::{EffectHandler, EffectOption, Effect};
 use io::all_sprites::SpriteMap;
 
 pub struct Player<'a> {
@@ -131,6 +131,11 @@ impl<'a> Player<'a> {
     pub fn get_effect_handler(&self) -> &EffectHandler {
         &self.effect
     }
+    pub fn get_effects(&mut self) -> &'a [Effect] {
+        &mut self.effect.effects
+    }
+
+    
 }
 
 #[derive(Copy, Clone)]
