@@ -23,6 +23,8 @@ pub struct Effect<'a> {
     pub mirror_h: bool,
     pub degree: u32,
     start: PreciseTime,
+    sound: &'a str,
+    sound_played: bool,
 }
 
 impl<'a> Effect<'a> {
@@ -34,6 +36,8 @@ impl<'a> Effect<'a> {
             start: PreciseTime::now(),
             mirror_h: false,
             degree: 0,
+            sound: "",
+            sound_played: false,
         }
     }
     /// Sets the sprite of the effect
@@ -43,6 +47,22 @@ impl<'a> Effect<'a> {
     /// Resets the time
     pub fn reset_time(&mut self) {
         self.start = PreciseTime::now();
+    }
+
+    pub fn set_sound_str(&mut self, sound: &'a str){
+        self.sound = sound;
+    }
+
+    pub fn get_sound_str(&self) -> &str {
+        self.sound
+    }
+
+    pub fn get_played(&self) -> bool {
+        self.sound_played
+    }
+
+    pub fn played(&mut self){
+        self.sound_played = true;
     }
 }
 
@@ -75,10 +95,12 @@ impl<'a> EffectHandler<'a> {
             // if Dead no direction needed
             (EffectOption::Dead, _) => {
                 effect.set_sprite(self.map.get_sprite("explosion.png".to_string()));
+                effect.set_sound_str("Dead.ogg");
             }
             // Dagger-Attack
             (EffectOption::Dagger, x) => {
                 effect.set_sprite(self.map.get_sprite("swipe_dagger.png".to_string()));
+                effect.set_sound_str("Dagger.ogg");
                 // Match direction
                 match x {
                     // Moves coordinate up and rotate effect
@@ -107,6 +129,7 @@ impl<'a> EffectHandler<'a> {
             // Same as Dagger
             (EffectOption::Spear, x) => {
                 effect.set_sprite(self.map.get_sprite("swipe_longsword.png".to_string()));
+                effect.set_sound_str("Spear.ogg");
                 match x {
                     LastKey::Up => {
                         effect.coord.force_move(0, -1);
@@ -129,6 +152,7 @@ impl<'a> EffectHandler<'a> {
             // Same as Sword, only moving of Coordinates changes
             (EffectOption::Sword, x) => {
                 effect.set_sprite(self.map.get_sprite("swipe_broadsword.png".to_string()));
+                effect.set_sound_str("Sword.ogg");
                 match x {
                     LastKey::Up => {
                         effect.coord.force_move(-1, -1);
