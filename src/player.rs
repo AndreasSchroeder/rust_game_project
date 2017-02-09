@@ -133,7 +133,7 @@ impl<'a> Player<'a> {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum LastKey {
     Up,
     Down,
@@ -159,6 +159,7 @@ impl<'a> Actor for Player<'a> {
               target: Vec<Option<InteractableType>>,
               bots: &mut Vec<Bot>,
               dir: LastKey) {
+        println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
         self.effect.handle(self.coord, self.weapon, dir);
         for t in target {
             match t {
