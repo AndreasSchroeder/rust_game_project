@@ -1,4 +1,4 @@
-use inventory::Inventory;
+//use inventory::Inventory;
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
@@ -19,7 +19,7 @@ use io::all_sprites::SpriteMap;
 pub struct Player<'a> {
     pub life: i32,
     pub dmg: i32,
-    pub inv: Inventory,
+    //pub inv: Inventory,
     pub coord: Coordinate,
     pub last: LastKey,
     pub pressed: bool,
@@ -45,7 +45,7 @@ impl<'a> Player<'a> {
             interactable_type: InteractableType::Player(id),
             life: 100,
             dmg: 10,
-            inv: Inventory::new(),
+            //inv: Inventory::new(),
             pressed: false,
             level_w: 0,
             level_h: 0,
@@ -138,7 +138,7 @@ impl<'a> Player<'a> {
     
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum LastKey {
     Up,
     Down,
@@ -157,13 +157,14 @@ impl<'a> Actor for Player<'a> {
     }
 
     fn damage_taken(&mut self, dmg: i32) {
-        self.life -= dmg;
+        self.life = if self.life - dmg > 100 { 100 } else if self.life - dmg < 0 { 0 } else { self.life - dmg };
     }
 
     fn attack(&mut self,
               target: Vec<Option<InteractableType>>,
               bots: &mut Vec<Bot>,
               dir: LastKey) {
+        println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
         self.effect.handle(self.coord, self.weapon, dir);
         for t in target {
             match t {

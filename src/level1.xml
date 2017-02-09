@@ -12,5 +12,10 @@
 	<bot x="18" y="17" filename="chicken_brown.png"/>
 	<bot x="17" y="18" filename="chicken_pink.png"/>
 	<bot x="17" y="17" filename="chicken.png"/>
+	<item x ="3" y="9" filename="Heart_10.png"/>
+	<item x ="3" y="8" filename="Heart_20.png"/>
+	<item x ="3" y="5" filename="weapon_broadsword.png"/>
+	<item x ="3" y="6" filename="weapon_dagger.png"/>
+	<item x ="3" y="7" filename="weapon_spear.png"/>
 </level>
 

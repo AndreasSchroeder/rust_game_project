@@ -200,7 +200,7 @@ impl<'a> Renderable for Effect<'a> {
 }
 
 /// Enum with all EffectTypes
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum EffectOption {
     Dagger,
     Spear,
