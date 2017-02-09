@@ -33,6 +33,7 @@ mod util;
 mod player_hub;
 
 // own uses
+use effect::EffectHandler;
 use util::{coord_to_pixel_x, coord_to_pixel_y};
 use camera::Cam;
 use player::{Player, LastKey};
@@ -190,7 +191,7 @@ impl<'a> App<'a> {
         });
     }
     /// Updates all Players, Bots, effects and camera
-    fn on_update(&mut self, args: &UpdateArgs, level: &mut Level, state: usize) {
+    fn on_update(&mut self, args: & UpdateArgs, level: &mut Level, state: usize, sounds: &mut SoundHandler) {
         // Update Coordinates
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
@@ -202,6 +203,14 @@ impl<'a> App<'a> {
         // Update Player one
         self.player_one.on_update(args, range, level, InteractableType::Player(1));
         self.hub_one.on_update(&self.player_one);
+        for e in &mut self.player_one.effect.effects{
+            if !e.get_played(){
+                sounds.play(e.get_sound_str());
+                e.played();
+            }
+        }
+        
+
         // Update Player two
         if let Some(ref mut x) = self.player_two {
             x.on_update(args, range, level, InteractableType::Player(2));
@@ -220,7 +229,6 @@ impl<'a> App<'a> {
     fn on_input(&mut self,
                 inp: Button,
                 pressed: bool,
-                sounds: &mut SoundHandler,
                 level: &mut Level) {
 
         match inp {
@@ -292,9 +300,6 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                if pressed {
-                    sounds.play("test.ogg");
-                }
 
                 match self.player_one.weapon {
                     EffectOption::Dagger => {
@@ -613,17 +618,17 @@ fn main() {
 
             // If Key-Press-Event
             if let Some(i) = e.release_args() {
-                app.on_input(i, false, &mut sounds, &mut level);
+                app.on_input(i, false, &mut level);
             }
             // If Key-releas-Event
             if let Some(i) = e.press_args() {
 
-                app.on_input(i, true, &mut sounds, &mut level);
+                app.on_input(i, true, &mut level);
             }
             {
                 // if update
                 if let Some(u) = e.update_args() {
-                    app.on_update(&u, &mut level, state);
+                    app.on_update(&u, &mut level, state, &mut sounds);
                 }
 
                 // restart time if 1 second over
