@@ -1,4 +1,4 @@
-use inventory::Inventory;
+//use inventory::Inventory;
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
@@ -19,7 +19,7 @@ use io::all_sprites::SpriteMap;
 pub struct Player<'a> {
     pub life: i32,
     pub dmg: i32,
-    pub inv: Inventory,
+    //pub inv: Inventory,
     pub coord: Coordinate,
     pub last: LastKey,
     pub pressed: bool,
@@ -45,7 +45,7 @@ impl<'a> Player<'a> {
             interactable_type: InteractableType::Player(id),
             life: 100,
             dmg: 10,
-            inv: Inventory::new(),
+            //inv: Inventory::new(),
             pressed: false,
             level_w: 0,
             level_h: 0,

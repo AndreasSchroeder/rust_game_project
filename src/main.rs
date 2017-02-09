@@ -18,7 +18,7 @@ use time::PreciseTime;
 mod player;
 mod io;
 mod level;
-mod inventory;
+//mod inventory;
 mod item;
 mod actor;
 mod field;
@@ -50,6 +50,7 @@ use std::process;
 use sounds::SoundHandler;
 use ears::AudioController;
 use player_hub::PlayerHub;
+use item::Item;
 
 //EINGABEN
 const HUB_UP: u64 = 52;
@@ -86,6 +87,7 @@ pub struct App<'a> {
     player_one: Player<'a>,
     player_two: Option<Player<'a>>,
     bots: Vec<Bot<'a>>,
+    items: Vec<Item<'a>>,
     cam: Cam,
     hub_one: PlayerHub<'a>,
     hub_two: PlayerHub<'a>,
@@ -93,7 +95,7 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     /// Constructor
-    fn new(mut players: Vec<Player<'a>>, bots: Vec<Bot<'a>>) -> Self {
+    fn new(mut players: Vec<Player<'a>>, bots: Vec<Bot<'a>>, items: Vec<Item<'a>>) -> Self {
         let mut p1 = match players.pop() {
             Some(p) => p,
             None => panic!("No player found!"),
@@ -113,6 +115,7 @@ impl<'a> App<'a> {
             player_one: p1,
             player_two: p2,
             bots: bots,
+            items: items,
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
             hub_one: PlayerHub::new("Player One", None),
             hub_two: PlayerHub::new("Player Two", None),
@@ -157,6 +160,18 @@ impl<'a> App<'a> {
                             h as u32);
                 }
             }
+
+            // items
+            for i in &mut self.items {
+                    if i.coord.get_x() >= range.x_min &&  i.coord.get_x() < range.x_max &&
+                        i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
+
+                        let center_b1 = c.transform.trans(coord_to_pixel_x(i.coord.get_x(), range.x_min ),
+                                                          coord_to_pixel_y(i.coord.get_y(), range.y_min));
+                        i.render(gl, center_b1);
+                }
+            }
+
             // position of Player one in Pixel coordinates
             let center_p1 = c.transform.trans(coord_to_pixel_x(self.player_one.coord.get_x(), range.x_min),
                                           coord_to_pixel_y(self.player_one.coord.get_y(), range.y_min));
@@ -202,10 +217,17 @@ impl<'a> App<'a> {
         // Update Player one
         self.player_one.on_update(args, range, level, InteractableType::Player(1));
         self.hub_one.on_update(&self.player_one);
+        for i in &mut self.items {
+            i.collect(&mut self.player_one);
+        }
         // Update Player two
         if let Some(ref mut x) = self.player_two {
             x.on_update(args, range, level, InteractableType::Player(2));
             self.hub_two.on_update(x);
+            for i in &mut self.items {
+                i.collect(x);
+            }
+
         }
         // Updates bots
         for b in &mut self.bots {
@@ -213,6 +235,7 @@ impl<'a> App<'a> {
         }
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
+        self.items.retain(|ref i| !i.get_gone());
 
     }
 
@@ -366,7 +389,7 @@ fn main() {
         None => panic!("Level not found!"),
     };
 
-    let (lv, ts, bots, players) = load_xml(level_path, &map, &mut window);
+    let (lv, ts, bots, players, items) = load_xml(level_path, &map, &mut window);
 
     let tileset = ts;
 
@@ -376,7 +399,7 @@ fn main() {
     let mut sounds = SoundHandler::fill();
 
     // Create new app with one or two players
-    let mut app = App::new(players, bots);
+    let mut app = App::new(players, bots, items);
 
     // insert players in level
     level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize]
