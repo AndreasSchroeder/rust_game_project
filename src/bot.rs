@@ -17,6 +17,9 @@ use player::LastKey;
 use effect::EffectHandler;
 use io::all_sprites::SpriteMap;
 use sounds::SoundHandler;
+use player::Player;
+use field::Field;
+use effect::EffectOption;
 
 pub struct Bot<'a> {
     pub life: i32,
@@ -61,7 +64,7 @@ impl<'a> Bot<'a> {
         self.sprite = sprite;
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, state: usize, sounds: &mut SoundHandler) {
+    pub fn on_update(&mut self, args: &UpdateArgs, mut level: &mut Level, state: usize, sounds: &mut SoundHandler, enemy: &mut Vec<Option<Player>>) {
         let mut rng = rand::thread_rng();
 
 
@@ -105,11 +108,11 @@ impl<'a> Bot<'a> {
             }
 
             self.old_state = state;
-            //self.attack(&mut level,);
+            self.attack(level, enemy);
         }
         self.effect.on_update(args);
 
-        self.effect.on_update(args);
+
         for e in &mut self.effect.effects {
             if !e.get_played() {
                 sounds.play(e.get_sound_str());
@@ -136,20 +139,18 @@ impl<'a> Actor for Bot<'a> {
     fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
-        (level, enemy);
-        /*for t in target {
-            match t {
-                Some(x) => {
-                    match x.get_interactable_type() {
-                        InteractableType::Player(_) |
-                        InteractableType::Bot(_) => x.conv_to_actor().damage_taken(self.dmg),
-                        InteractableType::Useable(_) => {}
-                        InteractableType::Collectable(_) => {}
+       let targeting_fields: Vec<(& Field, LastKey)> = self.coord.get_neighbours(level);
+        for (f, dir) in targeting_fields {
+            if let Some(t) = f.get_fieldstatus(){
+                if let InteractableType::Player(id_in_field) = t {
+                    if let &mut Some(ref mut p) = &mut enemy[id_in_field as usize - 1]{
+                        p.damage_taken(10);
+                        self.effect.handle(self.coord, EffectOption::Chicken, dir);
+                        return
                     }
                 }
-                None => {}
             }
-        }*/
+        }
     }
 
 

@@ -228,7 +228,7 @@ impl<'a> App<'a> {
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        for (i, x) in &mut self.players.iter_mut().enumerate() {
+        for x in &mut self.players{
             if let &mut Some(ref mut p) = x {
                 let id = if let InteractableType::Player(x) = p.get_interactable_type() {x} else {42};
                 p.on_update(args, range, level, InteractableType::Player(id), &mut sounds);
@@ -266,7 +266,7 @@ impl<'a> App<'a> {
                         }
                     );
                 } else {
-                    b.on_update(args, range, level, state, &mut sounds);
+                    b.on_update(args, level, state, &mut sounds, &mut self.players);
                 }
             }
         }
@@ -620,6 +620,11 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                     0 => {
                         start_game = true;
                         // Spielerauswahl
+                        // Mute Welcome Sound
+                        match sounds.map.get_mut("Welcome.ogg") {
+                            Some(s) => s.set_volume(0.0),
+                            None => (),
+                        };
                         two_players = select_player(window);
                     },
                     // Load Game
@@ -629,8 +634,7 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                         // Submenu Settings
                         let mut settings = true;
 
-                        let mut sub_start_menu =
-                            vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                        let mut sub_start_menu = vec!["Fullscreen (not working yet)", "Mute", "Back"];
                         let sub_menu_size = sub_start_menu.len();
                         let mut sub_active_index = 0;
 
