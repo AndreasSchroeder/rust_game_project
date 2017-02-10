@@ -209,9 +209,6 @@ impl<'a> Interactable for Player<'a> {
         self.interactable_type
     }
 
-    fn conv_to_actor(&mut self) -> &mut Actor {
-        self
-    }
 }
 
 impl<'a> Renderable for Player<'a> {
