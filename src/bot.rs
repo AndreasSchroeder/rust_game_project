@@ -64,51 +64,57 @@ impl<'a> Bot<'a> {
         self.sprite = sprite;
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, mut level: &mut Level, state: usize, sounds: &mut SoundHandler, enemy: &mut Vec<Option<Player>>) {
-        let mut rng = rand::thread_rng();
+    pub fn on_update(&mut self,
+                     args: &UpdateArgs,
+                     mut level: &mut Level,
+                     state: usize,
+                     sounds: &mut SoundHandler,
+                     enemy: &mut Vec<Option<Player>>) {
+        if self.is_alive() {
+            let mut rng = rand::thread_rng();
 
 
 
-        if self.old_state != state {
-            if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
-                self.dt = PreciseTime::now();
+            if self.old_state != state {
+                if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
+                    self.dt = PreciseTime::now();
+                }
+                let dir = rng.gen_range(0, 6);
+                match dir {
+                    0 => {
+                        //Up
+                        self.coord.move_coord_without_cam(0, -1, 0, 0, level);
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+                    }
+                    1 => {
+                        //Down
+                        self.coord.move_coord_without_cam(0, 1, 0, 0, level);
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+                    }
+                    2 => {
+                        //Left
+                        self.watch_rigth = false;
+                        self.coord.move_coord_without_cam(-1, 0, 0, 0, level);
+
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+
+                    }
+                    3 => {
+                        //Right
+                        self.watch_rigth = true;
+                        self.coord.move_coord_without_cam(1, 0, 0, 0, level);
+
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+                    }
+                    _ => self.attack(level, enemy),
+                }
+                self.old_state = state;
+
             }
-            let dir = rng.gen_range(0, 6);
-            match dir {
-                0 => {
-                    //Up
-                    self.coord.move_coord_without_cam(0, -1, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-                }
-                1 => {
-                    //Down
-                    self.coord.move_coord_without_cam(0, 1, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-                }
-                2 => {
-                    //Left
-                    self.watch_rigth = false;
-                    self.coord.move_coord_without_cam(-1, 0, 0, 0, level);
-
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-
-                }
-                3 => {
-                    //Right
-                    self.watch_rigth = true;
-                    self.coord.move_coord_without_cam(1, 0, 0, 0, level);
-
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-                }
-                _ => {}
-            }
-
-            self.old_state = state;
-            self.attack(level, enemy);
         }
         self.effect.on_update(args);
 
@@ -139,14 +145,14 @@ impl<'a> Actor for Bot<'a> {
     fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
-       let targeting_fields: Vec<(& Field, LastKey)> = self.coord.get_neighbours(level);
+        let targeting_fields: Vec<(&Field, LastKey)> = self.coord.get_neighbours(level);
         for (f, dir) in targeting_fields {
-            if let Some(t) = f.get_fieldstatus(){
+            if let Some(t) = f.get_fieldstatus() {
                 if let InteractableType::Player(id_in_field) = t {
-                    if let &mut Some(ref mut p) = &mut enemy[id_in_field as usize - 1]{
+                    if let &mut Some(ref mut p) = &mut enemy[id_in_field as usize - 1] {
                         p.damage_taken(10);
                         self.effect.handle(self.coord, EffectOption::Chicken, dir);
-                        return
+                        return;
                     }
                 }
             }

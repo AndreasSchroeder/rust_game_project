@@ -62,8 +62,8 @@ impl<'a> Item<'a> {
     /// collects an Item if Player is on same field.
     pub fn collect(&mut self, player: &mut Player<'a>) {
         if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
-                self.dt = PreciseTime::now();
-            }
+            self.dt = PreciseTime::now();
+        }
         if player.coord.get_x() == self.coord.get_x() &&
            player.coord.get_y() == self.coord.get_y() && !self.get_gone() {
             if let Some(ref item) = self.item_type {
@@ -99,7 +99,11 @@ impl<'a> Renderable for Item<'a> {
     /// Renders the Item
     fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
         if let Some(ref x) = self.sprite {
-            x.render(g, view, self.dt.to(PreciseTime::now()).num_milliseconds() as u64, false, 0);
+            x.render(g,
+                     view,
+                     self.dt.to(PreciseTime::now()).num_milliseconds() as u64,
+                     false,
+                     0);
         } else {
             //println!("None");
         }

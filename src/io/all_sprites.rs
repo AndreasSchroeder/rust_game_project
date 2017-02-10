@@ -15,7 +15,12 @@ impl SpriteMap {
         let mut map2: HashMap<&'static str, Sprite> = HashMap::new();
         for i in SPRITES {
             map2.insert(i.image,
-                        Sprite::fill_sprite(i.image, i.size_x as u32, i.size_y as u32,i.dur as u64, i.once, w));
+                        Sprite::fill_sprite(i.image,
+                                            i.size_x as u32,
+                                            i.size_y as u32,
+                                            i.dur as u64,
+                                            i.once,
+                                            w));
         }
 
         SpriteMap { map: map2 }
