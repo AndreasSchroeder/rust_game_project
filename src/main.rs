@@ -434,6 +434,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Up;
+                        x.dir = LastKey::Up;
                     }
                     x.pressed = pressed;
                 }
@@ -442,6 +443,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Down;
+                        x.dir = LastKey::Down;
                     }
                     x.pressed = pressed;
                 }
@@ -450,6 +452,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Left;
+                        x.dir = LastKey::Left;
                     }
                     x.pressed = pressed;
                 }
@@ -458,6 +461,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Right;
+                        x.dir = LastKey::Right;
                     }
                     x.pressed = pressed;
                 }
@@ -467,12 +471,18 @@ impl<'a> App<'a> {
                     if pressed {
                         p.attack(level, &mut self.bots);
                     }
+                    else {
+                        p.delay_attack = false;
+                    }
                 }
             }
             Button::Keyboard(Key::Space) => {
                 if let &mut Some(ref mut p) = &mut self.players[1] {
                     if pressed {
                         p.attack(level, &mut self.bots);
+                    }
+                    else {
+                        p.delay_attack = false;
                     }
                 }
             }
