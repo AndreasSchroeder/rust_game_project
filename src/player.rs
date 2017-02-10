@@ -172,7 +172,7 @@ impl<'a> Actor for Player<'a> {
         };
     }
 
-    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<T>)
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
         //println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
@@ -249,8 +249,10 @@ impl<'a> Actor for Player<'a> {
                         InteractableType::Player(_) => {}
                         InteractableType::Bot(id) => {
                             //x.conv_to_actor().damage_taken(self.dmg)
-                            if enemy[id as usize].is_alive() {
-                                enemy[id as usize].damage_taken(self.dmg);
+                            if let &mut Some(ref mut e) = &mut enemy[id as usize]{
+                                if e.is_alive() {
+                                    e.damage_taken(self.dmg);
+                                }
                             }
                         }
 

@@ -1,3 +1,4 @@
+
 use level::Level;
 
 pub trait Actor {
@@ -5,5 +6,5 @@ pub trait Actor {
     fn get_life(&self) -> i32;
     fn damage_taken(&mut self, dmg: i32);
     fn dying(&self);
-    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<T>) where T: Actor;
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>) where T: Actor;
 }

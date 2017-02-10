@@ -1,5 +1,4 @@
 use actor::Actor;
-use std::fmt;
 
 pub trait Interactable {
     fn get_interactable_type(&self) -> InteractableType;
