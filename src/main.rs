@@ -215,14 +215,14 @@ impl<'a> App<'a> {
 
         let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
             (&None, &None) => (Coordinate::new(0,0), Coordinate::new(0,0)),
-            (&None, &Some(ref y)) => (Coordinate::new(0,0), y.coord.clone()),
-            (&Some(ref x), &None) => (x.coord.clone(), Coordinate::new(0,0)),
+            (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
+            (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
             (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
         };
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        for (i, x) in &mut self.players.iter_mut().enumerate() {
+        for x in &mut self.players{
             if let &mut Some(ref mut p) = x {
                 let id = if let InteractableType::Player(x) = p.get_interactable_type() {x} else {42};
                 p.on_update(args, range, level, InteractableType::Player(id), &mut sounds);
@@ -246,7 +246,7 @@ impl<'a> App<'a> {
         }
         for x in &mut self.bots {
             if let &mut Some(ref mut b) = x{
-                b.on_update(args, range, level, state, &mut sounds)
+                b.on_update(args, level, state, &mut sounds, &mut self.players)
             }
         }        
         // Update Camera
