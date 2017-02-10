@@ -172,6 +172,34 @@ impl<'a> EffectHandler<'a> {
                     _ => {}
                 }
             }
+            (EffectOption::Chicken, x) => {
+                effect.set_sprite(self.map.get_sprite("swipe_enemy.png".to_string()));
+                effect.set_sound_str("Chicken.ogg");
+                // Match direction
+                match x {
+                    // Moves coordinate up and rotate effect
+                    LastKey::Up => {
+                        effect.coord.force_move(0, -1);
+                        effect.degree = 270
+                    }
+                    // Moves Coordinate down and rotate effect
+                    LastKey::Down => {
+                        effect.coord.force_move(0, 1);
+                        effect.degree = 90
+                    }
+                    // Moves Coordinate left and mirror effect
+                    LastKey::Left => {
+                        effect.coord.force_move(-1, 0);
+                        effect.mirror_h = true;
+                    }
+                    // Moves Coordinate right
+                    LastKey::Right => {
+                        effect.coord.force_move(1, 0);
+                    }
+                    _ => {}
+
+                }
+            }
         }
         // Resets time and push to active effects
         effect.reset_time();
@@ -206,4 +234,5 @@ pub enum EffectOption {
     Spear,
     Sword,
     Dead,
+    Chicken,
 }

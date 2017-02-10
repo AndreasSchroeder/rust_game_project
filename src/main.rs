@@ -192,18 +192,21 @@ impl<'a> App<'a> {
 
                         let center_b1 = c.transform.trans(coord_to_pixel_x(b.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(b.coord.get_y(), range.y_min));
-                        b.render(gl, center_b1);
+                        if b.is_alive(){
+                            b.render(gl, center_b1);
+                        }
+
                         // Render all Effects in Camera
                         for e in &b.effect.effects {
-                        if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
-                            e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
-                            let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
-                                                      coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                            e.render(gl, center);
+                            if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                                e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                                let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                          coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                                e.render(gl, center);
+                            }
                         }
                     }
                 }
-            }
             }
         });
     }
@@ -225,7 +228,7 @@ impl<'a> App<'a> {
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        for (i, x) in &mut self.players.iter_mut().enumerate() {
+        for x in &mut self.players{
             if let &mut Some(ref mut p) = x {
                 let id = if let InteractableType::Player(x) = p.get_interactable_type() {x} else {42};
                 p.on_update(args, range, level, InteractableType::Player(id), &mut sounds);
@@ -247,11 +250,38 @@ impl<'a> App<'a> {
                 }
             }
         }
+
+        let mut dead = Vec::new();
         for x in &mut self.bots {
+
             if let &mut Some(ref mut b) = x{
-                b.on_update(args, range, level, state, &mut sounds)
+                if !b.is_alive() && !b.dead{
+                    b.effect.handle(b.coord, EffectOption::Dead, LastKey::Wait);
+                    b.dead = true;
+                    level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize].free_fieldstatus();
+                    dead.push(
+                        match b.get_interactable_type() {
+                            InteractableType::Bot(i) => i,
+                            _ => {panic!("No Bot found!");},
+                        }
+                    );
+                } else {
+                    b.on_update(args, level, state, &mut sounds, &mut self.players);
+                }
             }
         }
+
+        for d in dead {
+            let mut delete = false;
+            if let Some(ref b) = self.bots[d as usize] {
+                delete = b.effect.effects.len() == 0;
+            }
+
+            if delete {
+                self.bots[d as usize] = None;
+            }
+        }
+
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
         self.items.retain(|ref i| !i.get_gone());

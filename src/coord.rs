@@ -1,6 +1,8 @@
 // Module to represent World coordinates for Player, Bots, Camera, etc.
 use camera::Range;
 use level::Level;
+use field::Field;
+use player::LastKey;
 
 /// Struct to represent the world coordinates
 #[derive(Copy, Clone, Debug)]
@@ -16,11 +18,6 @@ impl Coordinate {
         Coordinate { x: x, y: y }
     }
 
-    /// Creates a Coordinate in the origin (0,0)
-    pub fn origin() -> Self {
-        Coordinate::new(0, 0)
-    }
-
     /// Getter for the x-value in the coordinates
     pub fn get_x(&self) -> u64 {
         self.x
@@ -29,6 +26,25 @@ impl Coordinate {
     /// Getter for the y-value in the coordinates
     pub fn get_y(&self) -> u64 {
         self.y
+    }
+
+    pub fn get_neighbours<'a>(&self, level: &'a Level) -> Vec<(&'a Field, LastKey)> {
+        let mut vec: Vec<(&'a Field, LastKey)> = Vec::new();
+        if self.x > 0 {
+            vec.push((&level.get_field_at(self.x as usize - 1, self.y as usize), LastKey::Left));
+        }
+        if self.y > 0 {
+            vec.push((&level.get_field_at(self.x as usize , self.y as usize - 1), LastKey::Up));
+        }
+        if self.y < level.get_width() as u64 {
+            vec.push((&level.get_field_at(self.x as usize + 1, self.y as usize), LastKey::Right));
+        }
+        if self.y < level.get_height() as u64 {
+            vec.push((&level.get_field_at(self.x as usize , self.y as usize + 1), LastKey::Down));
+        }
+        
+        
+        vec
     }
 
     /// Move the coordinates and prevents leaving the camera, leaving the level,
