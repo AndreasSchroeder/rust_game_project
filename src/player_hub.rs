@@ -1,3 +1,4 @@
+// Module for PlayerHub
 use effect::EffectOption;
 use renderable::Renderable;
 use gfx_device_gl::Resources;
@@ -7,6 +8,11 @@ use piston_window::*;
 use io::all_sprites::SpriteMap;
 use player::Player;
 
+/// Represents the Hub of a Player
+/// name: Name of Player
+/// life: Life of Player
+/// item: Item of Player
+/// map: SpriteMap with all Sprites
 pub struct PlayerHub<'a> {
     name: String,
     life: u64,
@@ -15,6 +21,7 @@ pub struct PlayerHub<'a> {
 }
 
 impl<'a> PlayerHub<'a> {
+    /// Constructor
     pub fn new(name: &str, map: Option<&'a SpriteMap>) -> Self {
         PlayerHub {
             name: name.to_string(),
@@ -23,36 +30,44 @@ impl<'a> PlayerHub<'a> {
             map: map,
         }
     }
+    /// Update Hub with given Player
     pub fn on_update(&mut self, player: &Player) {
         self.set_item(player.weapon);
         self.set_life(player.life as u64);
 
     }
 
+    /// Set SpriteMap
     pub fn set_map(&mut self, map: &'a SpriteMap) {
         self.map = Some(map)
     }
 
+    /// Set Item
     pub fn set_item(&mut self, weapon: EffectOption) {
         self.item = weapon;
     }
 
+    /// Get Item
     pub fn get_item(&self) -> &EffectOption {
         &self.item
     }
 
+    /// Get Name
     pub fn get_name(&self) -> &String {
         &self.name
     }
 
+    /// Get life
     pub fn get_life(&self) -> u64 {
         self.life
     }
 
+    /// set life
     pub fn set_life(&mut self, life: u64) {
         self.life = life;
     }
 
+    /// Get String of Sprite
     pub fn get_sprite_item(&self) -> &str {
         match self.item {
             EffectOption::Dagger => "weapon_dagger_small.png",
@@ -62,6 +77,7 @@ impl<'a> PlayerHub<'a> {
         }
     }
 
+    /// Get the Strings of Heartsprites for Player life
     pub fn get_sprite_heart(&self) -> Vec<&str> {
         let mut left_life: i64 = self.life as i64;
         let mut vec: Vec<&str> = Vec::new();
@@ -80,6 +96,7 @@ impl<'a> PlayerHub<'a> {
 }
 
 impl<'a> Renderable for PlayerHub<'a> {
+    /// Render
     fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
 
         if let Some(map) = self.map {

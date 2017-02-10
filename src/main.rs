@@ -164,7 +164,7 @@ impl<'a> App<'a> {
                 }
             }
 
-            // items
+            // Render all in Camera items
             for i in &mut self.items {
                     if i.coord.get_x() >= range.x_min &&  i.coord.get_x() < range.x_max &&
                         i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
@@ -182,18 +182,29 @@ impl<'a> App<'a> {
             // render player one
             self.player_one.render(gl, center_p1);
             for e in &self.player_one.get_effect_handler().effects {
-                let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
-                                              coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                e.render(gl, center);
+                // Rendr all Effects in Camera
+                if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                        e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                    let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                  coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                    e.render(gl, center);
+                }
             }
 
             // Render Player two
             if let Some(ref p2) = self.player_two {
-
-
                 let center_p2 = c.transform.trans(coord_to_pixel_x(p2.coord.get_x(), range.x_min),
                                               coord_to_pixel_y(p2.coord.get_y(), range.y_min));
-                 p2.render(gl, center_p2);
+                p2.render(gl, center_p2);
+                // Render all Effects in Camera
+                for e in &p2.get_effect_handler().effects {
+                    if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                        e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                        let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                  coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                        e.render(gl, center);
+                    }
+                }
             }
             // Render all bots
             for b in &mut self.bots {
@@ -203,12 +214,25 @@ impl<'a> App<'a> {
                         let center_b1 = c.transform.trans(coord_to_pixel_x(b.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(b.coord.get_y(), range.y_min));
                         b.render(gl, center_b1);
+                        // Render all Effects in Camera
+                        for e in &b.effect.effects {
+                        if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                            e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                            let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                      coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                            e.render(gl, center);
+                        }
+                    }
                 }
             }
         });
     }
     /// Updates all Players, Bots, effects and camera
-    fn on_update(&mut self, args: & UpdateArgs, level: &mut Level, state: usize, sounds: &mut SoundHandler) {
+    fn on_update(&mut self,
+                 args: &UpdateArgs,
+                 level: &mut Level,
+                 state: usize,
+                 mut sounds: &mut SoundHandler) {
         // Update Coordinates
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
@@ -218,7 +242,7 @@ impl<'a> App<'a> {
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        self.player_one.on_update(args, range, level, InteractableType::Player(1));
+        self.player_one.on_update(args, range, level, InteractableType::Player(1), &mut sounds);
         self.hub_one.on_update(&self.player_one);
         for i in &mut self.items {
             i.collect(&mut self.player_one);
@@ -232,7 +256,7 @@ impl<'a> App<'a> {
 
         // Update Player two
         if let Some(ref mut x) = self.player_two {
-            x.on_update(args, range, level, InteractableType::Player(2));
+            x.on_update(args, range, level, InteractableType::Player(2), &mut sounds);
             self.hub_two.on_update(x);
             for i in &mut self.items {
                 i.collect(x);
@@ -241,7 +265,7 @@ impl<'a> App<'a> {
         }
         // Updates bots
         for b in &mut self.bots {
-            b.on_update(args, range, level, state);
+            b.on_update(args, range, level, state, &mut sounds);
         }
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
@@ -367,7 +391,6 @@ impl<'a> App<'a> {
                 level: &mut Level,
                 sounds: &mut SoundHandler,
                 window: &mut PistonWindow) {
-
         match inp {
             Button::Keyboard(Key::Escape) => {
                 if pressed {
@@ -442,41 +465,46 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-
-                match self.player_one.weapon {
-                    EffectOption::Dagger => {
-                        let dir = self.player_one.dir;
-                        let p1_pos = &self.player_one.coord.clone();
-
-                        match dir {
-                            LastKey::Up => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
-                            }
-                            LastKey::Down => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
-                            }
-                            LastKey::Left => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
-                            }
-                            LastKey::Right => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
-                            }
-                            _ => {}
-                        }
-                    }
-                    _ => {}
+                if pressed {
+                    self.on_attack(level);
                 }
             }
             _ => {}
 
+        }
+    }
+
+    fn on_attack(&mut self, level: &mut Level) {
+        match self.player_one.weapon{
+            EffectOption::Dagger => {
+                let dir = self.player_one.dir;
+                let p1_pos = &self.player_one.coord.clone();
+
+                match dir {
+                    LastKey::Up => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[(p1_pos.get_x() - 1) as usize][p1_pos.get_y() as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
+                    },
+                    LastKey::Down => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[(p1_pos.get_x() + 1) as usize][p1_pos.get_y() as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
+                    },
+                    LastKey::Left => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[p1_pos.get_x() as usize][(p1_pos.get_y() -1) as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
+                    },
+                    LastKey::Right => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[p1_pos.get_x() as usize][(p1_pos.get_y() +1) as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
+                    },
+                    _ => {}
+                }
+            }
+            _ => {}
         }
     }
 }
