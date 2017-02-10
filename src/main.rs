@@ -33,6 +33,7 @@ mod util;
 mod player_hub;
 
 // own uses
+use interactable::Interactable;
 use effect::EffectHandler;
 use util::{coord_to_pixel_x, coord_to_pixel_y};
 use camera::Cam;
@@ -52,6 +53,7 @@ use sounds::SoundHandler;
 use ears::AudioController;
 use player_hub::PlayerHub;
 use item::Item;
+use coord::Coordinate;
 
 //EINGABEN
 const HUB_UP: u64 = 52;
@@ -85,9 +87,8 @@ impl Settings {
 /// bots: Vector of all bots
 /// cam: the Camera
 pub struct App<'a> {
-    player_one: Player<'a>,
-    player_two: Option<Player<'a>>,
-    bots: Vec<Bot<'a>>,
+    players: Vec<Option<Player<'a>>>,
+    bots: Vec<Option<Bot<'a>>>,
     items: Vec<Item<'a>>,
     cam: Cam,
     hub_one: PlayerHub<'a>,
@@ -97,25 +98,10 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     /// Constructor
-    fn new(mut players: Vec<Player<'a>>, bots: Vec<Bot<'a>>, items: Vec<Item<'a>>) -> Self {
-        let mut p1 = match players.pop() {
-            Some(p) => p,
-            None => panic!("No player found!"),
-        };
-
-        let mut p2 = None;
-
-        match players.pop() {
-            Some(p) => {
-                p2 = Some(p1);
-                p1 = p;
-            }
-            None => (),
-        };
+    fn new(mut players: Vec<Option<Player<'a>>>, bots: Vec<Option<Bot<'a>>>,   items: Vec<Item<'a>>) -> Self {
 
         App {
-            player_one: p1,
-            player_two: p2,
+            players: players,
             bots: bots,
             items: items,
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
@@ -175,39 +161,30 @@ impl<'a> App<'a> {
                 }
             }
 
-            // position of Player one in Pixel coordinates
-            let center_p1 = c.transform.trans(coord_to_pixel_x(self.player_one.coord.get_x(), range.x_min),
-                                          coord_to_pixel_y(self.player_one.coord.get_y(), range.y_min));
+            for x in &mut self.players {
+                if let &mut Some(ref mut p) = x {
+                    // position of Player one in Pixel coordinates
+                    let center_p = c.transform.trans(coord_to_pixel_x(p.coord.get_x(), range.x_min),
+                                                  coord_to_pixel_y(p.coord.get_y(), range.y_min));
 
-            // render player one
-            self.player_one.render(gl, center_p1);
-            for e in &self.player_one.get_effect_handler().effects {
-                // Rendr all Effects in Camera
-                if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
-                        e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
-                    let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
-                                                  coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                    e.render(gl, center);
-                }
-            }
-
-            // Render Player two
-            if let Some(ref p2) = self.player_two {
-                let center_p2 = c.transform.trans(coord_to_pixel_x(p2.coord.get_x(), range.x_min),
-                                              coord_to_pixel_y(p2.coord.get_y(), range.y_min));
-                p2.render(gl, center_p2);
-                // Render all Effects in Camera
-                for e in &p2.get_effect_handler().effects {
-                    if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
-                        e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
-                        let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
-                                                  coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                        e.render(gl, center);
+                    // render player one
+                    p.render(gl, center_p);
+                    for e in p.get_effect_handler().effects {
+                        // Rendr all Effects in Camera
+                        if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                                e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                            let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                          coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                            e.render(gl, center);
+                        }
                     }
+
                 }
             }
+
             // Render all bots
-            for b in &mut self.bots {
+            for x in &mut self.bots {
+                if let &mut Some(ref mut b) = x {
                     if b.coord.get_x() >= range.x_min &&  b.coord.get_x() < range.x_max &&
                         b.coord.get_y() >= range.y_min && b.coord.get_y() < range.y_max {
 
@@ -225,6 +202,7 @@ impl<'a> App<'a> {
                     }
                 }
             }
+            }
         });
     }
     /// Updates all Players, Bots, effects and camera
@@ -234,39 +212,39 @@ impl<'a> App<'a> {
                  state: usize,
                  mut sounds: &mut SoundHandler) {
         // Update Coordinates
-        let coord1 = self.player_one.coord.clone();
-        let mut coord2 = coord1.clone();
-        if let Some(ref p2) = self.player_two {
-            coord2 = p2.coord.clone();
-        }
+
+
+        let (coord1, coord2) = match (self.players[0], self.players[1]) {
+            (None, None) => (Coordinate::new(0,0), Coordinate::new(0,0)),
+            (None, Some(y)) => (Coordinate::new(0,0), y.coord.clone()),
+            (Some(x), None) => (x.coord.clone(), Coordinate::new(0,0)),
+            (Some(x), Some(y)) => (x.coord.clone(), y.coord.clone()),
+        };
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        self.player_one.on_update(args, range, level, InteractableType::Player(1), &mut sounds);
-        self.hub_one.on_update(&self.player_one);
-        for i in &mut self.items {
-            i.collect(&mut self.player_one);
-        }
-        for e in &mut self.player_one.effect.effects{
-            if !e.get_played(){
-                sounds.play(e.get_sound_str());
-                e.played();
-            }
-        }
+        for (i, x) in &mut self.players.iter_mut().enumerate() {
+            if let &mut Some(ref mut p) = x {
+                let id = if let InteractableType::Player(x) = p.get_interactable_type() {x} else {42};
+                p.on_update(args, range, level, InteractableType::Player(id), &mut sounds);
+                if id == 1 {
+                    self.hub_one.on_update(&p);
+                } else if id == 2 {
+                    self.hub_two.on_update(&p);
+                }
 
-        // Update Player two
-        if let Some(ref mut x) = self.player_two {
-            x.on_update(args, range, level, InteractableType::Player(2), &mut sounds);
-            self.hub_two.on_update(x);
-            for i in &mut self.items {
-                i.collect(x);
+                
+                for i in &mut self.items {
+                    i.collect(&mut p);
+                }
+                for e in &mut p.effect.effects{
+                    if !e.get_played(){
+                        sounds.play(e.get_sound_str());
+                        e.played();
+                    }
+                }
             }
-
-        }
-        // Updates bots
-        for b in &mut self.bots {
-            b.on_update(args, range, level, state, &mut sounds);
-        }
+        }        
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
         self.items.retain(|ref i| !i.get_gone());
@@ -391,6 +369,9 @@ impl<'a> App<'a> {
                 level: &mut Level,
                 sounds: &mut SoundHandler,
                 window: &mut PistonWindow) {
+        let mut p1 = self.players[0];
+        let mut p2 = self.players[1];
+
         match inp {
             Button::Keyboard(Key::Escape) => {
                 if pressed {
@@ -398,42 +379,54 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Q) => {
-                if pressed {
-                    self.player_one.life -= 10;
-                    self.player_one.weapon = EffectOption::Spear;
+                if let Some(ref mut p) = p1 {
+                    if pressed {
+                    
+
+                        p.life -= 10;
+                        p.weapon = EffectOption::Spear;
+                    }
+                    p.pressed = pressed;
                 }
-                self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Up) => {
-                if pressed {
-                    self.player_one.last = LastKey::Up;
-                    self.player_one.dir = LastKey::Up;
+                if let Some(ref mut p) = p1 {
+                    if pressed {
+                        p.last = LastKey::Up;
+                        p.dir = LastKey::Up;
+                    }
+                    p.pressed = pressed;
                 }
-                self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Down) => {
-                if pressed {
-                    self.player_one.last = LastKey::Down;
-                    self.player_one.dir = LastKey::Down;
+                if let Some(ref mut p) = p1 {
+                    if pressed {
+                        p.last = LastKey::Down;
+                        p.dir = LastKey::Down;
+                    }
+                    p.pressed = pressed;
                 }
-                self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Left) => {
-                if pressed {
-                    self.player_one.last = LastKey::Left;
-                    self.player_one.dir = LastKey::Left;
+                if let Some(ref mut p) = p1 {
+                    if pressed {
+                        p.last = LastKey::Left;
+                        p.dir = LastKey::Left;
+                    }
+                    p.pressed = pressed;
                 }
-                self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::Right) => {
-                if pressed {
-                    self.player_one.last = LastKey::Right;
-                    self.player_one.dir = LastKey::Right;
+                if let Some(ref mut p) = p1 {
+                    if pressed {
+                        p.last = LastKey::Right;
+                        p.dir = LastKey::Right;
+                    }
+                    p.pressed = pressed;
                 }
-                self.player_one.pressed = pressed;
             }
             Button::Keyboard(Key::W) => {
-                if let Some(ref mut x) = self.player_two {
+                if let Some(ref mut x) = p2 {
                     if pressed {
                         x.last = LastKey::Up;
                     }
@@ -441,7 +434,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::S) => {
-                if let Some(ref mut x) = self.player_two {
+                if let Some(ref mut x) = p2 {
                     if pressed {
                         x.last = LastKey::Down;
                     }
@@ -449,7 +442,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::A) => {
-                if let Some(ref mut x) = self.player_two {
+                if let Some(ref mut x) = p2 {
                     if pressed {
                         x.last = LastKey::Left;
                     }
@@ -457,16 +450,25 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::D) => {
-                if let Some(ref mut x) = self.player_two {
+                if let Some(ref mut x) = p2 {
                     if pressed {
                         x.last = LastKey::Right;
                     }
                     x.pressed = pressed;
                 }
             }
+            Button::Keyboard(Key::Return) => {
+                if let Some(ref mut p) = p1 {
+                    if pressed {
+                        p.attack(level, &mut self.bots);
+                    }
+                }
+            }
             Button::Keyboard(Key::Space) => {
-                if pressed {
-                    &self.player_one.attack(level, &mut self.bots);
+                if let Some(ref mut p) = p2 {
+                    if pressed {
+                        p.attack(level, &mut self.bots);
+                    }
                 }
             }
             _ => {}
@@ -474,6 +476,7 @@ impl<'a> App<'a> {
         }
     }
 }
+
 
 fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, glyphs: &mut Glyphs, start_menu: &[&str], ai: u32, app: &mut App) -> (bool, u32) {
     let mut active_index = ai;
@@ -706,11 +709,13 @@ fn main() {
     let mut app = App::new(players, bots, items);
 
     // insert players in level
-    level.get_data()[app.player_one.coord.get_x() as usize][app.player_one.coord.get_y() as usize]
-        .set_fieldstatus(InteractableType::Player(1));
-    if let Some(ref p2) = app.player_two {
-        level.get_data()[p2.coord.get_x() as usize][p2.coord.get_y() as usize]
-            .set_fieldstatus(InteractableType::Player(2));
+    for x in &app.players {
+        if let &Some(p) = x {
+            level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
+                .set_fieldstatus(p.get_interactable_type());
+            p.set_borders((level.get_width() as u64, level.get_height() as u64));
+
+        }
     }
 
     // Start counter
@@ -719,19 +724,21 @@ fn main() {
     // set Level-borders to camera
     app.cam.set_borders((level.get_width() as u64, level.get_height() as u64));
 
-    // sets border for player one
-    app.player_one.set_borders((level.get_width() as u64, level.get_height() as u64));
-    app.hub_one.set_map(&map);
-
+    
+    // Set hubs
+    if let Some(ref mut p1) = app.players[0] {
+        app.hub_one.set_map(&map);
+    }
     // load sprite for player two and sets border
-    if let Some(ref mut p2) = app.player_two {
-        p2.set_borders((level.get_width() as u64, level.get_height() as u64));
+    if let Some(ref mut p2) = app.players[1] {
         app.hub_two.set_map(&map);
     }
 
     // Load sprite for each bot and set borders
-    for b in &mut app.bots {
-        b.set_borders((level.get_width() as u64, level.get_height() as u64));
+    for x in &mut app.bots {
+        if let &mut Some(ref mut b) = x {
+                b.set_borders((level.get_width() as u64, level.get_height() as u64));
+        }
     }
 
     let mut start_game = false;

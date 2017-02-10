@@ -172,7 +172,7 @@ impl<'a> Actor for Player<'a> {
         };
     }
 
-    fn attack(&mut self, level: &mut Level, bots: &mut Vec<Bot>) {
+    fn attack(&mut self, level: &mut Level, bots: &mut Vec<Option<Bot>>) {
         //println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
         self.effect.handle(self.coord, self.weapon, self.dir);
         let mut targets = Vec::new();

@@ -17,12 +17,12 @@ use item::Item;
 pub fn load_xml<'a>(path: &str,
                     map: &'a SpriteMap,
                     mut w: &mut PistonWindow)
-                    -> (Level, Tileset, Vec<Bot<'a>>, Vec<Player<'a>>, Vec<Item<'a>>) {
-    let mut bots: Vec<Bot> = Vec::new();
+                    -> (Level, Tileset, Vec<Option<Bot<'a>>>, Vec<Option<Player<'a>>>, Vec<Item<'a>>) {
+    let mut bots: Vec<Option<Bot>> = Vec::new();
     let mut items: Vec<Item> = Vec::new();
     let mut tileset = Tileset::new(1, 1, 1, 1);
     let mut level = Level::with_size(0, 0);
-    let mut players = Vec::new();
+    let mut players: Vec<Option<Player>> = Vec::new();
     let mut last = String::new();
     let mut i = 0;
     let mut j = 0;
@@ -151,7 +151,7 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
                         p1.set_sprite(map.get_sprite(sprite));
-                        players.push(p1);
+                        players.push(Some(p1));
                     }
                     "player2" => {
                         let mut it = attributes.iter();
@@ -182,7 +182,7 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
                         p2.set_sprite(map.get_sprite(sprite));
-                        players.push(p2);
+                        players.push(Some(p2));
                     }
                     "bot" => {
                         let mut it = attributes.iter();
@@ -214,7 +214,7 @@ pub fn load_xml<'a>(path: &str,
                         let mut b = Bot::new(x, y, i, &map);
                         b.set_sprite(map.get_sprite(sprite));
 
-                        bots.push(b);
+                        bots.push(Some(b));
                         i += 1;
                     }
                     "item" => {
