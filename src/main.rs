@@ -249,6 +249,117 @@ impl<'a> App<'a> {
 
     }
 
+    fn show_ingame_menu(&mut self, window: &mut PistonWindow, sounds: &mut SoundHandler) {
+        // Show menu
+        let mut settings = true;
+
+        let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
+        let ref font = assets.join("font.ttf");
+        let factory = window.factory.clone();
+        let mut glyphs = Glyphs::new(font, factory).unwrap();
+
+        let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+                     CAM_BORDER * 2) as u32;
+
+        let mut sub_start_menu = Vec::with_capacity(3);
+        sub_start_menu.push("Resume");
+        sub_start_menu.push(match self.muted { true => "Unmute", false => "Mute" });
+        sub_start_menu.push("Exit Game");
+        let sub_menu_size = sub_start_menu.len();
+        let mut sub_active_index = 0;
+
+        while let Some(a) = window.next() {
+            if !settings {
+                break;
+            }
+            if let Some(_) = a.render_args() {
+                window.draw_2d(&a, |c, gl| {
+                    // Clear the screen.
+                    clear(BLACK, gl);
+
+                    // Render menu
+                    text::Text::new_color(WHITE, 32)
+                        .draw("Game Paused",
+                              &mut glyphs,
+                              &c.draw_state,
+                              c.transform
+                                  .trans(width as f64 / 2.0 - 150.0, 100.0),
+                              gl);
+
+                    let mut distance = 0.0;
+
+                    for s in &sub_start_menu {
+                        let color =
+                            match &sub_start_menu[sub_active_index] == s {
+                                true => WHITE,
+                                false => GREY,
+                            };
+
+                        text::Text::new_color(color, 32)
+                            .draw(s,
+                                  &mut glyphs,
+                                  &c.draw_state,
+                                  c.transform
+                                      .trans(width as f64 / 2.0 - 100.0,
+                                             300.0 + distance),
+                                  gl);
+                        distance += 50.0;
+                    }
+                });
+            }
+            if let Some(b) = a.press_args() {
+                match b {
+                    /* Check arrow keys for menu */
+                    Button::Keyboard(Key::Return) => {
+                        match sub_active_index {
+                            // Resume
+                            0 => {
+                                settings = false;
+                            }
+                            // Mute
+                            1 => {
+                                if sub_start_menu[1] == "Mute" {
+                                    for sound in sounds.map.values_mut() {
+                                        sound.set_volume(0.0);
+                                        self.muted = true;
+                                    }
+                                    sub_start_menu[1] = "Unmute";
+                                } else {
+                                    for sound in sounds.map.values_mut() {
+                                        sound.set_volume(1.0);
+                                        self.muted = false;
+                                    }
+                                    sub_start_menu[1] = "Mute";
+                                }
+                            }
+                            // Back
+                            2 => process::exit(1),
+                            _ => (),
+                        }
+                    }
+                    Button::Keyboard(Key::Down) => {
+                        if sub_active_index == sub_menu_size - 1 {
+                            sub_active_index = 0;
+                        } else {
+                            sub_active_index += 1;
+                        }
+                    }
+                    Button::Keyboard(Key::Up) => {
+                        if sub_active_index == 0 {
+                            sub_active_index = sub_menu_size - 1;
+                        } else {
+                            sub_active_index -= 1;
+                        }
+                    }
+                    Button::Keyboard(Key::Escape) => {
+                        settings = false;
+                    }
+                    _ => (),
+                }
+            }
+        }
+    }
+
     /// Handles Input
     fn on_input(&mut self,
                 inp: Button,
@@ -260,114 +371,7 @@ impl<'a> App<'a> {
         match inp {
             Button::Keyboard(Key::Escape) => {
                 if pressed {
-                    // Show menu
-                    let mut settings = true;
-
-                    let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
-                    let ref font = assets.join("font.ttf");
-                    let factory = window.factory.clone();
-                    let mut glyphs = Glyphs::new(font, factory).unwrap();
-
-                    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
-                                 CAM_BORDER * 2) as u32;
-
-                    let mut sub_start_menu = Vec::with_capacity(3);
-                    sub_start_menu.push("Resume");
-                    sub_start_menu.push(match self.muted { true => "Unmute", false => "Mute" });
-                    sub_start_menu.push("Exit Game");
-                    let sub_menu_size = sub_start_menu.len();
-                    let mut sub_active_index = 0;
-
-                    while let Some(a) = window.next() {
-                        if !settings {
-                            break;
-                        }
-                        if let Some(_) = a.render_args() {
-                            window.draw_2d(&a, |c, gl| {
-                                // Clear the screen.
-                                clear(BLACK, gl);
-
-                                // Render menu
-                                text::Text::new_color(WHITE, 32)
-                                    .draw("Game Paused",
-                                          &mut glyphs,
-                                          &c.draw_state,
-                                          c.transform
-                                              .trans(width as f64 / 2.0 - 150.0, 100.0),
-                                          gl);
-
-                                let mut distance = 0.0;
-
-                                for s in &sub_start_menu {
-                                    let color =
-                                        match &sub_start_menu[sub_active_index] == s {
-                                            true => WHITE,
-                                            false => GREY,
-                                        };
-
-                                    text::Text::new_color(color, 32)
-                                        .draw(s,
-                                              &mut glyphs,
-                                              &c.draw_state,
-                                              c.transform
-                                                  .trans(width as f64 / 2.0 - 100.0,
-                                                         300.0 + distance),
-                                              gl);
-                                    distance += 50.0;
-                                }
-                            });
-                        }
-                        if let Some(b) = a.press_args() {
-                            match b {
-                                /* Check arrow keys for menu */
-                                Button::Keyboard(Key::Return) => {
-                                    match sub_active_index {
-                                        // Resume
-                                        0 => {
-                                            settings = false;
-                                        }
-                                        // Mute
-                                        1 => {
-                                            if sub_start_menu[1] == "Mute" {
-                                                for sound in sounds.map.values_mut() {
-                                                    sound.set_volume(0.0);
-                                                    self.muted = true;
-                                                }
-                                                sub_start_menu[1] = "Unmute";
-                                            } else {
-                                                for sound in sounds.map.values_mut() {
-                                                    sound.set_volume(1.0);
-                                                    self.muted = false;
-                                                }
-                                                sub_start_menu[1] = "Mute";
-                                            }
-                                        }
-                                        // Back
-                                        2 => process::exit(1),
-                                        _ => (),
-                                    }
-                                }
-                                Button::Keyboard(Key::Down) => {
-                                    if sub_active_index == sub_menu_size - 1 {
-                                        sub_active_index = 0;
-                                    } else {
-                                        sub_active_index += 1;
-                                    }
-                                }
-                                Button::Keyboard(Key::Up) => {
-                                    if sub_active_index == 0 {
-                                        sub_active_index = sub_menu_size - 1;
-                                    } else {
-                                        sub_active_index -= 1;
-                                    }
-                                }
-                                Button::Keyboard(Key::Escape) => {
-                                    settings = false;
-                                }
-                                _ => (),
-                            }
-                        }
-                    }
+                    self.show_ingame_menu(window, sounds);
                 }
             }
             Button::Keyboard(Key::Q) => {
@@ -477,6 +481,192 @@ impl<'a> App<'a> {
     }
 }
 
+fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, glyphs: &mut Glyphs, start_menu: &[&str], ai: u32, app: &mut App) -> (bool, u32) {
+    let mut active_index = ai;
+    let mut start_game = false;
+    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+             CAM_BORDER * 2) as u32;
+    if let Some(i) = e.press_args() {
+        match i {
+            /* Check arrow keys for menu */
+            Button::Keyboard(Key::Return) => {
+                match active_index {
+                    // Start Game
+                    0 => start_game = true,
+                    // Load Game
+                    1 => (),
+                    // Settings
+                    2 => {
+                        // Submenu Settings
+                        let mut settings = true;
+
+                        let mut sub_start_menu =
+                            vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                        let sub_menu_size = sub_start_menu.len();
+                        let mut sub_active_index = 0;
+
+                        while let Some(a) = window.next() {
+                            if !settings {
+                                break;
+                            }
+                            if let Some(_) = a.render_args() {
+                                window.draw_2d(&a, |c, gl| {
+                                    // Clear the screen.
+                                    clear(BLACK, gl);
+
+                                    // Render menu
+                                    text::Text::new_color(WHITE, 32)
+                                        .draw(start_menu[2],
+                                              glyphs,
+                                              &c.draw_state,
+                                              c.transform
+                                                  .trans(width as f64 / 2.0 - 80.0, 100.0),
+                                              gl);
+
+                                    let mut distance = 0.0;
+
+                                    for s in &sub_start_menu {
+                                        let color =
+                                            match &sub_start_menu[sub_active_index] == s {
+                                                true => WHITE,
+                                                false => GREY,
+                                            };
+
+                                        text::Text::new_color(color, 32)
+                                            .draw(s,
+                                                  glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 100.0,
+                                                             300.0 + distance),
+                                                  gl);
+                                        distance += 50.0;
+                                    }
+                                });
+                            }
+                            if let Some(b) = a.press_args() {
+                                match b {
+                                    /* Check arrow keys for menu */
+                                    Button::Keyboard(Key::Return) => {
+                                        match sub_active_index {
+                                            // Fullscreen
+                                            0 => {
+                                                /* Neue Zuweisung funktioniert leider nicht (panickt!)
+                                                   Neue Idee gesucht
+                                                 window = WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
+                                                            [width, height])
+                                                    .exit_on_esc(true)
+                                                    .fullscreen(true)
+                                                    .resizable(false)
+                                                    .build()
+                                                    .unwrap();*/
+                                            }
+                                            // Mute
+                                            1 => {
+                                                if sub_start_menu[1] == "Mute" {
+                                                    for sound in sounds.map.values_mut() {
+                                                        sound.set_volume(0.0);
+                                                        app.muted = true;
+                                                    }
+                                                    sub_start_menu[1] = "Unmute";
+                                                } else {
+                                                    for sound in sounds.map.values_mut() {
+                                                        sound.set_volume(1.0);
+                                                        app.muted = false;
+                                                    }
+                                                    sub_start_menu[1] = "Mute";
+                                                }
+                                            }
+                                            // Back
+                                            2 => settings = false,
+                                            _ => (),
+                                        }
+                                    }
+                                    Button::Keyboard(Key::Down) => {
+                                        if sub_active_index == sub_menu_size - 1 {
+                                            sub_active_index = 0;
+                                        } else {
+                                            sub_active_index += 1;
+                                        }
+                                    }
+                                    Button::Keyboard(Key::Up) => {
+                                        if sub_active_index == 0 {
+                                            sub_active_index = sub_menu_size - 1;
+                                        } else {
+                                            sub_active_index -= 1;
+                                        }
+                                    }
+                                    _ => (),
+                                }
+                            }
+                        }
+                    }
+                    // Exit
+                    3 => process::exit(1),
+                    _ => (),
+                }
+            }
+            Button::Keyboard(Key::Down) => {
+                if active_index == (start_menu.len() - 1) as u32 {
+                    active_index = 0;
+                } else {
+                    active_index += 1;
+                }
+            }
+            Button::Keyboard(Key::Up) => {
+                if active_index == 0 {
+                    active_index = (start_menu.len() - 1) as u32;
+                } else {
+                    active_index -= 1;
+                }
+            }
+            _ => (),
+        }
+    }
+    if let Some(_) = e.render_args() {
+        window.draw_2d(&e, |c, gl| {
+            // Clear the screen.
+            clear(BLACK, gl);
+
+            // Render menu
+            text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART1,
+                                                  glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 180.0,
+                                                             100.0),
+                                                  gl);
+            text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART2,
+                                                  glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 200.0,
+                                                             150.0),
+                                                  gl);
+
+            let mut distance = 0.0;
+
+            for s in start_menu {
+                let color = match &start_menu[active_index as usize] == s {
+                    true => WHITE,
+                    false => GREY,
+                };
+
+                text::Text::new_color(color, 32).draw(s,
+                                                      glyphs,
+                                                      &c.draw_state,
+                                                      c.transform
+                                                          .trans(width as f64 / 2.0 -
+                                                                 100.0,
+                                                                 400.0 + distance),
+                                                      gl);
+                distance += 50.0;
+            }
+        });
+    }
+    (start_game, active_index)
+}
+
 /// Main
 fn main() {
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
@@ -558,191 +748,15 @@ fn main() {
     let mut glyphs = Glyphs::new(font, factory).unwrap();
 
     let start_menu = vec!["Start Game", "Load Game", "Settings", "Exit"];
-    let menu_size = start_menu.len();
 
     let mut active_index = 0;
-    //sounds.play("Welcome.ogg");
+    sounds.play("Welcome.ogg");
 
     while let Some(e) = events.next(&mut window) {
         if !start_game {
-            if let Some(i) = e.press_args() {
-                match i {
-                    /* Check arrow keys for menu */
-                    Button::Keyboard(Key::Return) => {
-                        match active_index {
-                            // Start Game
-                            0 => start_game = true,
-                            // Load Game
-                            1 => (),
-                            // Settings
-                            2 => {
-                                // Submenu Settings
-                                let mut settings = true;
-
-                                let mut sub_start_menu =
-                                    vec!["Fullscreen (not working yet)", "Mute", "Back"];
-                                let sub_menu_size = sub_start_menu.len();
-                                let mut sub_active_index = 0;
-
-                                while let Some(a) = window.next() {
-                                    if !settings {
-                                        break;
-                                    }
-                                    if let Some(_) = a.render_args() {
-                                        window.draw_2d(&a, |c, gl| {
-                                            // Clear the screen.
-                                            clear(BLACK, gl);
-
-                                            // Render menu
-                                            text::Text::new_color(WHITE, 32)
-                                                .draw(start_menu[2],
-                                                      &mut glyphs,
-                                                      &c.draw_state,
-                                                      c.transform
-                                                          .trans(width as f64 / 2.0 - 80.0, 100.0),
-                                                      gl);
-
-                                            let mut distance = 0.0;
-
-                                            for s in &sub_start_menu {
-                                                let color =
-                                                    match &sub_start_menu[sub_active_index] == s {
-                                                        true => WHITE,
-                                                        false => GREY,
-                                                    };
-
-                                                text::Text::new_color(color, 32)
-                                                    .draw(s,
-                                                          &mut glyphs,
-                                                          &c.draw_state,
-                                                          c.transform
-                                                              .trans(width as f64 / 2.0 - 100.0,
-                                                                     300.0 + distance),
-                                                          gl);
-                                                distance += 50.0;
-                                            }
-                                        });
-                                    }
-                                    if let Some(b) = a.press_args() {
-                                        match b {
-                                            /* Check arrow keys for menu */
-                                            Button::Keyboard(Key::Return) => {
-                                                match sub_active_index {
-                                                    // Fullscreen
-                                                    0 => {
-                                                        /* Neue Zuweisung funktioniert leider nicht (panickt!)
-                                                           Neue Idee gesucht
-                                                         window = WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
-                                                                    [width, height])
-                                                            .exit_on_esc(true)
-                                                            .fullscreen(true)
-                                                            .resizable(false)
-                                                            .build()
-                                                            .unwrap();*/
-                                                    }
-                                                    // Mute
-                                                    1 => {
-                                                        if sub_start_menu[1] == "Mute" {
-                                                            for sound in sounds.map.values_mut() {
-                                                                sound.set_volume(0.0);
-                                                                app.muted = true;
-                                                            }
-                                                            sub_start_menu[1] = "Unmute";
-                                                        } else {
-                                                            for sound in sounds.map.values_mut() {
-                                                                sound.set_volume(1.0);
-                                                                app.muted = false;
-                                                            }
-                                                            sub_start_menu[1] = "Mute";
-                                                        }
-                                                    }
-                                                    // Back
-                                                    2 => settings = false,
-                                                    _ => (),
-                                                }
-                                            }
-                                            Button::Keyboard(Key::Down) => {
-                                                if sub_active_index == sub_menu_size - 1 {
-                                                    sub_active_index = 0;
-                                                } else {
-                                                    sub_active_index += 1;
-                                                }
-                                            }
-                                            Button::Keyboard(Key::Up) => {
-                                                if sub_active_index == 0 {
-                                                    sub_active_index = sub_menu_size - 1;
-                                                } else {
-                                                    sub_active_index -= 1;
-                                                }
-                                            }
-                                            _ => (),
-                                        }
-                                    }
-                                }
-                            }
-                            // Exit
-                            3 => process::exit(1),
-                            _ => (),
-                        }
-                    }
-                    Button::Keyboard(Key::Down) => {
-                        if active_index == menu_size - 1 {
-                            active_index = 0;
-                        } else {
-                            active_index += 1;
-                        }
-                    }
-                    Button::Keyboard(Key::Up) => {
-                        if active_index == 0 {
-                            active_index = menu_size - 1;
-                        } else {
-                            active_index -= 1;
-                        }
-                    }
-                    _ => (),
-                }
-            }
-            if let Some(_) = e.render_args() {
-                window.draw_2d(&e, |c, gl| {
-                    // Clear the screen.
-                    clear(BLACK, gl);
-
-                    // Render menu
-                    text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART1,
-                                                          &mut glyphs,
-                                                          &c.draw_state,
-                                                          c.transform
-                                                              .trans(width as f64 / 2.0 - 180.0,
-                                                                     100.0),
-                                                          gl);
-                    text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART2,
-                                                          &mut glyphs,
-                                                          &c.draw_state,
-                                                          c.transform
-                                                              .trans(width as f64 / 2.0 - 200.0,
-                                                                     150.0),
-                                                          gl);
-
-                    let mut distance = 0.0;
-
-                    for s in &start_menu {
-                        let color = match &start_menu[active_index] == s {
-                            true => WHITE,
-                            false => GREY,
-                        };
-
-                        text::Text::new_color(color, 32).draw(s,
-                                                              &mut glyphs,
-                                                              &c.draw_state,
-                                                              c.transform
-                                                                  .trans(width as f64 / 2.0 -
-                                                                         100.0,
-                                                                         400.0 + distance),
-                                                              gl);
-                        distance += 50.0;
-                    }
-                });
-            }
+            let (start, index) = show_menu(e, &mut window, &mut sounds, &mut glyphs, &start_menu, active_index, &mut app);
+            start_game = start;
+            active_index = index;
         } else {
             // End of Loading start game
             // Calculate Milliseconds
