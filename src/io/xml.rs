@@ -14,10 +14,11 @@ use xml::reader::{EventReader, XmlEvent};
 use piston_window::*;
 use item::Item;
 
-pub fn load_xml<'a>(path: &str,
-                    map: &'a SpriteMap,
-                    mut w: &mut PistonWindow)
-                    -> (Level, Tileset, Vec<Option<Bot<'a>>>, Vec<Option<Player<'a>>>, Vec<Item<'a>>) {
+pub fn load_xml<'a>
+    (path: &str,
+     map: &'a SpriteMap,
+     mut w: &mut PistonWindow)
+     -> (Level, Tileset, Vec<Option<Bot<'a>>>, Vec<Option<Player<'a>>>, Vec<Item<'a>>) {
     let mut bots: Vec<Option<Bot>> = Vec::new();
     let mut items: Vec<Item> = Vec::new();
     let mut tileset = Tileset::new(1, 1, 1, 1);
@@ -25,7 +26,6 @@ pub fn load_xml<'a>(path: &str,
     let mut players: Vec<Option<Player>> = Vec::new();
     let mut last = String::new();
     let mut i = 0;
-
     let file = File::open(path).unwrap();
     let file = BufReader::new(file);
 

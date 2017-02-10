@@ -28,22 +28,25 @@ impl Coordinate {
         self.y
     }
 
+    /// Return the Neighboorhood of own Coordinates with the Direction it is from self
     pub fn get_neighbours<'a>(&self, level: &'a Level) -> Vec<(&'a Field, LastKey)> {
         let mut vec: Vec<(&'a Field, LastKey)> = Vec::new();
+        // Left
         if self.x > 0 {
             vec.push((&level.get_field_at(self.x as usize - 1, self.y as usize), LastKey::Left));
         }
+        // Up
         if self.y > 0 {
-            vec.push((&level.get_field_at(self.x as usize , self.y as usize - 1), LastKey::Up));
+            vec.push((&level.get_field_at(self.x as usize, self.y as usize - 1), LastKey::Up));
         }
+        // Right
         if self.y < level.get_width() as u64 {
             vec.push((&level.get_field_at(self.x as usize + 1, self.y as usize), LastKey::Right));
         }
+        // Down
         if self.y < level.get_height() as u64 {
-            vec.push((&level.get_field_at(self.x as usize , self.y as usize + 1), LastKey::Down));
+            vec.push((&level.get_field_at(self.x as usize, self.y as usize + 1), LastKey::Down));
         }
-        
-        
         vec
     }
 
@@ -62,6 +65,7 @@ impl Coordinate {
     }
 
     /// Sets the positon of the camera and prevents leaving Level
+    /// The Camera can't leave World Coordinates.
     fn cam_border(&mut self, range: Range) {
         self.x = if self.x < range.x_min {
             range.x_min
@@ -94,7 +98,7 @@ impl Coordinate {
                                   mut buf_x: u64,
                                   mut buf_y: u64,
                                   level: &mut Level) {
-        // prevents leaving the the level if a buffer was given
+        // if the camera is bigger as the world,
         buf_x = if (level.get_width() as u64) < buf_x {
             level.get_width() as u64
         } else {
@@ -140,6 +144,7 @@ impl Coordinate {
             level.get_data()[self.x as usize][self.y as usize].free_fieldstatus();
         }
         // sets coordinates after last checks
+        // prevent Level-leaving
         self.x = if new_x < buf_x {
             buf_x
         } else if new_x > (level.get_width() as u64) - buf_x - 1 {

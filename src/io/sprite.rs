@@ -34,46 +34,55 @@ impl Sprite {
     }
 
     /// Read all Sprites for Animation
-    pub fn fill_sprite(path: &str, width: u32, heigth: u32, animation_time: u64, once: bool, mut w: &mut PistonWindow) -> Self {
-        // Sprites are located here Create Path
-        let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
-            Ok(res) => res.join(path),
-            Err(_) => panic!("Folder not found!"),
-        };
-        // Create String from path
-        let sprite_string = match sprite_path.to_str() {
-            Some(res) => res,
-            None => panic!("Sprite not found"),
-        };
-
-        // Open path an create image
-        let mut ts = match im::open(sprite_string) {
-            Ok(x) => x,
-            Err(_) => panic!("Can't open {} in {}", path, sprite_string),
-        };
-        // set dimensions and caculate rows and collumns
-        let (image_x, image_y) = ts.dimensions();
-        let cols = image_x / width;
-        let rows = image_y / heigth;
-        let frames = rows * cols;
+    pub fn fill_sprite(path: &str,
+                       width: u32,
+                       heigth: u32,
+                       animation_time: u64,
+                       once: bool,
+                       mut w: &mut PistonWindow)
+                       -> Self {
         // initialize vector
-        let mut set: Vec<Texture<Resources>> = Vec::with_capacity((frames) as usize);
+        let mut set: Vec<Texture<Resources>> = Vec::new();
+        let mut vec: Vec<f64> = Vec::new();
 
-        // Read all sprites from image
-        for i in 0..(rows) {
-            for j in 0..(cols) {
-                let tile = ts.crop(j * width, i * heigth, width, heigth).to_rgba();
-                set.push(Texture::from_image(&mut w.factory, &tile, &TextureSettings::new())
-                    .unwrap());
+        // Sprites are located here Create Path
+        if let Ok(res) = find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
+            let sprite_path = res.join(path);
+            // Create String from path
+            if let Some(sprite_string) = sprite_path.to_str() {
+                // Open path and create image
+                if let Ok(mut ts) = im::open(sprite_string) {
+                    // set dimensions and caculate rows and collumns
+                    let (image_x, image_y) = ts.dimensions();
+                    let cols = image_x / width;
+                    let rows = image_y / heigth;
+                    let frames = rows * cols;
+
+                    // Read all sprites from image
+                    for i in 0..(rows) {
+                        for j in 0..(cols) {
+                            // Create Sprite
+                            let tile = ts.crop(j * width, i * heigth, width, heigth).to_rgba();
+                            set.push(Texture::from_image(&mut w.factory,
+                                                         &tile,
+                                                         &TextureSettings::new())
+                                .unwrap());
+                        }
+                    }
+                    // Calculate Time-borders for each animation
+                    let part = animation_time as f64 / frames as f64;
+                    for i in 0..frames {
+                        vec.push(((i as f64) * part));
+                    }
+                } else {
+                    println!("Can't open {} in {}", path, sprite_string)
+                }
+            } else {
+                println!("Error creating String to file: {}", path);
             }
+        } else {
+            println!("Folder Sprites not found");
         }
-        // Calculate Time-borders for each animation
-        let mut vec: Vec<f64> = Vec::with_capacity(frames as usize);
-        let part = animation_time as f64 / frames as f64;
-        for i in 0..frames {
-            vec.push(((i as f64) * part));
-        }
-        // Create Sprite
         Sprite {
             animation_time: animation_time as u64,
             set: set,
@@ -89,8 +98,8 @@ impl Sprite {
                   dt: u64,
                   mirror_h: bool,
                   degree: u32) {
-        if self.once && dt >= self.animation_time {}
-        else{
+        if self.once && dt >= self.animation_time {
+        } else {
             let mut frame = 0;
             let mut new_dt = dt % self.animation_time;
             // choose animation by time
@@ -100,14 +109,14 @@ impl Sprite {
                     new_dt = (dt % self.animation_time) - *val as u64;
                 }
             }
-        
 
             // render image
             image(&self.set[frame as usize],
                   if mirror_h {
                       // translate
-                      view.flip_h().trans((-1 * (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as i64) as f64,
-                                          0.0)
+                      view.flip_h()
+                          .trans((-1 * (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as i64) as f64,
+                                 0.0)
                   } else if degree == 270 {
                       view.trans(0.0, (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as f64)
                           .rot_deg(degree as f64)
