@@ -204,7 +204,7 @@ const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                           },
                                           SpriteModel {
                                               image: "swipe_enemy.png",
-                                              size_x: 60,
+                                              size_x: 72,
                                               size_y: 64,
                                               dur: 100,
                                               once: true,
