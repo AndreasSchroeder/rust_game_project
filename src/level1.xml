@@ -2,20 +2,20 @@
 <level>
 	<tileset filename="tiles2.png" tile_height="16" tile_width="16" tileset_height="48" tileset_width="192"/>
 	<file filename="level1_small_tileset.lvl"/>
-	<player1 x="1" y= "1" filename="paladin.png"/>
-	<player2 x="1" y= "2" filename="knight.png"/>
-    <bot x="2" y="2" filename="chicken_pink.png"/>
-	<bot x="4" y="4" filename="chicken_white.png"/>
-	<bot x="6" y="6" filename="chicken_brown.png"/>
-	<bot x="8" y="6" filename="chicken_pink.png"/>
-	<bot x="18" y="18" filename="chicken_white.png"/>
-	<bot x="18" y="17" filename="chicken_brown.png"/>
-	<bot x="17" y="18" filename="chicken_pink.png"/>
-	<bot x="17" y="17" filename="chicken.png"/>
-	<item x ="3" y="9" filename="Heart_10.png"/>
-	<item x ="3" y="8" filename="Heart_20.png"/>
-	<item x ="3" y="5" filename="weapon_broadsword.png"/>
-	<item x ="3" y="6" filename="weapon_dagger.png"/>
-	<item x ="3" y="7" filename="weapon_spear.png"/>
+	<player1 x="2" y= "2" filename="paladin.png"/>
+	<player2 x="2" y= "3" filename="knight.png"/>
+    <bot x="3" y="3" filename="chicken_pink.png"/>
+	<bot x="5" y="4" filename="chicken_white.png"/>
+	<bot x="7" y="7" filename="chicken_brown.png"/>
+	<bot x="9" y="7" filename="chicken_pink.png"/>
+	<bot x="19" y="19" filename="chicken_white.png"/>
+	<bot x="19" y="18" filename="chicken_brown.png"/>
+	<bot x="18" y="19" filename="chicken_pink.png"/>
+	<bot x="18" y="18" filename="chicken.png"/>
+	<item x ="4" y="10" filename="Heart_10.png"/>
+	<item x ="4" y="5" filename="Heart_20.png"/>
+	<item x ="4" y="6" filename="weapon_broadsword.png"/>
+	<item x ="4" y="7" filename="weapon_dagger.png"/>
+	<item x ="4" y="8" filename="weapon_spear.png"/>
 </level>
 
