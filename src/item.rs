@@ -60,19 +60,22 @@ impl<'a> Item<'a> {
 
     /// collects an Item if Player is on same field.
     pub fn collect(&mut self, player: &mut Player<'a>) {
+        // Resets time if 1 seconde is over (for Rendering)
         if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
             self.dt = PreciseTime::now();
         }
+        // Is Player at same position as Item?
         if player.coord.get_x() == self.coord.get_x() &&
            player.coord.get_y() == self.coord.get_y() && !self.get_gone() {
             if let Some(ref item) = self.item_type {
                 match *item {
-                    // Cahnge Weapon
+                    // Change Weapon
                     ItemType::Weapon(weapon) => player.weapon = weapon,
                     // Heal
                     ItemType::Heal(heal) => player.damage_taken(heal as i32 * -1),
                 }
             }
+            // Set to gone. Gone Items will be deletet
             self.gone();
         }
     }
@@ -82,7 +85,7 @@ impl<'a> Item<'a> {
         self.gone
     }
 
-    /// Item will be gone
+    /// Item will be gone. Gone items will be deleted
     pub fn gone(&mut self) {
         self.gone = true;
     }

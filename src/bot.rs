@@ -1,4 +1,8 @@
 use piston_window::*;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
@@ -8,9 +12,6 @@ use level::Level;
 use rand::Rng;
 use rand;
 use renderable::Renderable;
-use gfx_device_gl::Resources;
-use gfx_device_gl::CommandBuffer;
-use gfx_graphics::GfxGraphics;
 use time::PreciseTime;
 use player::LastKey;
 use effect::EffectHandler;

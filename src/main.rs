@@ -80,10 +80,13 @@ impl Settings {
 }
 
 /// Struct for the app
-/// player_one: the first Player
-/// Player_two: teh seconde Player if available
+/// players: Vector with all bots
 /// bots: Vector of all bots
+/// items: Vector of all Items
+/// hub_one: Hub for Player_one
+/// hub_two: Hub for Player_two
 /// cam: the Camera
+/// muted: For muting sounds
 pub struct App<'a> {
     players: Vec<Option<Player<'a>>>,
     bots: Vec<Option<Bot<'a>>>,
@@ -118,14 +121,15 @@ impl<'a> App<'a> {
                e: &Event,
                tileset: &Tileset,
                level: &mut Level) {
-        // Range of the camera
+        // Calculate Range of the camera
         let range = self.cam.get_range();
 
         // draw in 2D
         w.draw_2d(e, |c, gl| {
-            // Clear the screen.
+            // Clear the screen with black
             clear(BLACK, gl);
 
+            // Render Hubs only if player is available
             if let Some(_) = self.players[0] {
                 let center_hub_one = c.transform.trans(10.0, 10.0);
                 self.hub_one.render(gl, center_hub_one);
@@ -135,6 +139,7 @@ impl<'a> App<'a> {
                 self.hub_two.render(gl, center_hub_two);
             }
 
+            // Position for Tileset in Window
             let center_lv = c.transform.trans(0.0, 0.0);
 
             // render all Tiles if in Camera range
@@ -154,54 +159,62 @@ impl<'a> App<'a> {
                 }
             }
 
-            // Render all in Camera items
+            // Render all in-camera items
             for i in &mut self.items {
                     if i.coord.get_x() >= range.x_min &&  i.coord.get_x() < range.x_max &&
-                        i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
-
+                            i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
+                        // position in window for current item   
                         let center_b1 = c.transform.trans(coord_to_pixel_x(i.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(i.coord.get_y(), range.y_min));
+                        // render current item
                         i.render(gl, center_b1);
                 }
             }
 
+            // Render all players if not None
             for x in &mut self.players {
                 if let &mut Some(ref mut p) = x {
-                    // position of Player one in Pixel coordinates
+                    // position of Player in Pixel coordinates
                     let center_p = c.transform.trans(coord_to_pixel_x(p.coord.get_x(), range.x_min),
                                                   coord_to_pixel_y(p.coord.get_y(), range.y_min));
 
                     // render player one
                     p.render(gl, center_p);
+
+                    // render all effects of player
                     for e in &p.get_effect_handler().effects {
-                        // Rendr all Effects in Camera
+                        // Render only Effects in Camera
                         if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
                                 e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                            // Pixel coordinates of player        
                             let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
                                                           coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                            // Render effect
                             e.render(gl, center);
                         }
                     }
-
                 }
             }
 
             // Render all bots
             for x in &mut self.bots {
                 if let &mut Some(ref mut b) = x {
+                    // Render only Bots in Camera
                     if b.coord.get_x() >= range.x_min &&  b.coord.get_x() < range.x_max &&
                         b.coord.get_y() >= range.y_min && b.coord.get_y() < range.y_max {
-
+                        // Pixel coordinates of bot
                         let center_b1 = c.transform.trans(coord_to_pixel_x(b.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(b.coord.get_y(), range.y_min));
+                        // only render if alive. Bot can be dead, but not None, untill all his effects have rendered
                         if b.is_alive(){
                             b.render(gl, center_b1);
                         }
 
-                        // Render all Effects in Camera
+                        // Render all Effects in Camera from bot
                         for e in &b.effect.effects {
                             if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
                                 e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                                // pixel coordinate of effect    
                                 let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
                                                           coord_to_pixel_y(e.coord.get_y(), range.y_min));
                                 e.render(gl, center);
@@ -212,38 +225,33 @@ impl<'a> App<'a> {
             }
         });
     }
-    /// Updates all Players, Bots, effects and camera
+    /// Updates all Players, Bots, effects, items and camera
     fn on_update(&mut self, level: &mut Level, state: usize, mut sounds: &mut SoundHandler) {
-        // Update Coordinates
-
-
-        let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
-            (&None, &None) => (Coordinate::new(0, 0), Coordinate::new(0, 0)),
-            (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
-            (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
-            (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
-        };
-        // Update range with coordinates
+        // Update range
         let range = self.cam.get_range_update();
-        // Update Player one
+        // Update Players
         for x in &mut self.players {
             if let &mut Some(ref mut p) = x {
                 let id = if let InteractableType::Player(x) = p.get_interactable_type() {
                     x
                 } else {
-                    42
+                    0
                 };
+                // Update Player
                 p.on_update(range, level, InteractableType::Player(id), &mut sounds);
+                // Update hubs
                 if id == 1 {
                     self.hub_one.on_update(&p);
                 } else if id == 2 {
                     self.hub_two.on_update(&p);
                 }
 
-
+                // check if on item and update item
                 for i in &mut self.items {
                     i.collect(p);
                 }
+
+                // update all effects of player
                 for e in &mut p.effect.effects {
                     if !e.get_played() {
                         sounds.play(e.get_sound_str());
@@ -252,41 +260,48 @@ impl<'a> App<'a> {
                 }
             }
         }
-
+        // Vec with dead bots
         let mut dead = Vec::new();
         for x in &mut self.bots {
-
             if let &mut Some(ref mut b) = x {
+                // if bot dead
                 if !b.is_alive() {
+                    // and not set dead yet (two bools, because last effect have to render)
                     if !b.dead {
+                        // create last effect
                         b.effect.handle(b.coord, EffectOption::Dead, LastKey::Wait);
                         b.dead = true;
                     }
+                    // Field not longer occupied
                     level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize]
                         .free_fieldstatus();
-                    dead.push(match b.get_interactable_type() {
-                        InteractableType::Bot(i) => i,
-                        _ => {
-                            panic!("No Bot found!");
-                        }
-                    });
+                    // If Bot, add to dead bots
+                    if let InteractableType::Bot(i) = b.get_interactable_type() {
+                        dead.push(i);
+                    }
                 }
+                // update bot (In Bot no update if already dead. Only updates of effects)
                 b.on_update(level, state, &mut sounds, &mut self.players);
             }
         }
-
+        // Delete all dead Bots (Set to None)
         for d in dead {
             let mut delete = false;
             if let Some(ref b) = self.bots[d as usize] {
                 delete = b.effect.effects.len() == 0;
             }
-
             if delete {
                 self.bots[d as usize] = None;
             }
         }
 
         // Update Camera
+        let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
+            (&None, &None) => (Coordinate::new(0, 0), Coordinate::new(0, 0)),
+            (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
+            (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
+            (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
+        };
         self.cam.calc_coordinates(coord1, coord2, level);
         self.items.retain(|ref i| !i.get_gone());
 
@@ -412,24 +427,15 @@ impl<'a> App<'a> {
                 level: &mut Level,
                 sounds: &mut SoundHandler,
                 window: &mut PistonWindow) {
-
+        // Match Key
         match inp {
+            // Activate Menu
             Button::Keyboard(Key::Escape) => {
                 if pressed {
                     self.show_ingame_menu(window, sounds);
                 }
             }
-            Button::Keyboard(Key::Q) => {
-                if let &mut Some(ref mut p) = &mut self.players[0] {
-                    if pressed {
-
-
-                        p.life -= 10;
-                        p.weapon = EffectOption::Spear;
-                    }
-                    p.pressed = pressed;
-                }
-            }
+            // Up Player One
             Button::Keyboard(Key::Up) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -439,6 +445,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Down Player One
             Button::Keyboard(Key::Down) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -448,6 +455,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Left Player One
             Button::Keyboard(Key::Left) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -457,6 +465,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Right Player One
             Button::Keyboard(Key::Right) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -466,6 +475,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Up Player Two
             Button::Keyboard(Key::W) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -475,6 +485,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Down Player Two
             Button::Keyboard(Key::S) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -484,6 +495,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Left Player Two
             Button::Keyboard(Key::A) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -493,6 +505,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Right Player Two
             Button::Keyboard(Key::D) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -502,6 +515,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Attack Player One
             Button::Keyboard(Key::Return) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -511,6 +525,7 @@ impl<'a> App<'a> {
                     }
                 }
             }
+            // Attack Player Two
             Button::Keyboard(Key::Space) => {
                 if let &mut Some(ref mut p) = &mut self.players[1] {
                     if pressed {
@@ -521,7 +536,6 @@ impl<'a> App<'a> {
                 }
             }
             _ => {}
-
         }
     }
 }
@@ -813,10 +827,12 @@ fn show_menu(e: Event,
 
 /// Main
 fn main() {
+    // Calculate size of Window
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                  CAM_BORDER * 2) as u32;
     let height = ((((CAMERA_BUF_Y * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                   CAM_BORDER + HUB_UP) as u32;
+    // Create Window
     let mut window: PistonWindow =
         WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
                             [width, height])
@@ -826,27 +842,30 @@ fn main() {
             .build()
             .unwrap();
 
-    // Create window
+    // CreateEventHandler
     let mut events = window.events();
 
     // Create map for sprites and load all sprites
     let map = Settings::new(&mut window).sprite_map;
 
-    // Lade XML und erstelle daraus das Level, das Tileset, die Player und die Bots
+    // Load XML with all neccessary Data
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
         Ok(res) => res.join("level1.xml"),
         Err(_) => panic!("Folder 'src' not found!"),
     };
-
+    // Save Path
     let level_path = match folder_level.to_str() {
         Some(res) => res,
         None => panic!("Level not found!"),
     };
 
+    // Load all neccessary Data
     let (lv, ts, bots, players, items) = load_xml(level_path, &map, &mut window);
 
+    // safe tileset
     let tileset = ts;
 
+    // save level
     let mut level = lv;
 
     // Create SoundHandler
@@ -886,9 +905,8 @@ fn main() {
             b.set_borders((level.get_width() as u64, level.get_height() as u64));
         }
     }
-
+    // bool for testing if game is started
     let mut start_game = false;
-
     let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
     let ref font = assets.join("font.ttf");
     let factory = window.factory.clone();
