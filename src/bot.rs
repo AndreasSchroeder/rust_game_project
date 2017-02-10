@@ -14,6 +14,9 @@ use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
 use time::PreciseTime;
 use player::LastKey;
+use effect::EffectHandler;
+use io::all_sprites::SpriteMap;
+use sounds::SoundHandler;
 
 pub struct Bot<'a> {
     pub life: i32,
@@ -26,10 +29,11 @@ pub struct Bot<'a> {
     old_state: usize,
     dt: PreciseTime,
     watch_rigth: bool,
+    pub effect: EffectHandler<'a>,
 }
 
 impl<'a> Bot<'a> {
-    pub fn new(x: u64, y: u64, id: u64) -> Self {
+    pub fn new(x: u64, y: u64, id: u64, map: &'a SpriteMap) -> Self {
         Bot {
             coord: Coordinate::new(x, y),
             interactable_type: InteractableType::Bot(id),
@@ -41,6 +45,7 @@ impl<'a> Bot<'a> {
             old_state: 0,
             dt: PreciseTime::now(),
             watch_rigth: false,
+            effect: EffectHandler::new(map),
         }
     }
 
@@ -54,7 +59,7 @@ impl<'a> Bot<'a> {
         self.sprite = sprite;
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, state: usize) {
+    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, state: usize, sounds: &mut SoundHandler) {
         let mut rng = rand::thread_rng();
 
 
@@ -98,6 +103,15 @@ impl<'a> Bot<'a> {
             }
 
             self.old_state = state;
+        }
+        self.effect.on_update(args);
+
+        self.effect.on_update(args);
+        for e in &mut self.effect.effects {
+            if !e.get_played() {
+                sounds.play(e.get_sound_str());
+                e.played();
+            }
         }
     }
 }
