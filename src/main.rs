@@ -218,8 +218,8 @@ impl<'a> App<'a> {
 
         let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
             (&None, &None) => (Coordinate::new(0,0), Coordinate::new(0,0)),
-            (&None, &Some(ref y)) => (Coordinate::new(0,0), y.coord.clone()),
-            (&Some(ref x), &None) => (x.coord.clone(), Coordinate::new(0,0)),
+            (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
+            (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
             (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
         };
         // Update range with coordinates
