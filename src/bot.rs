@@ -129,8 +129,10 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&mut self, level: &mut Level, bots: &mut Vec<Bot>) {
-        (level, bots);
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<T>)
+        where T: Actor
+    {
+        (level, enemy);
         /*for t in target {
             match t {
                 Some(x) => {
@@ -154,10 +156,6 @@ impl<'a> Actor for Bot<'a> {
 impl<'a> Interactable for Bot<'a> {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
-    }
-
-    fn conv_to_actor(&mut self) -> &mut Actor {
-        self
     }
 }
 
