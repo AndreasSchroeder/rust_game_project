@@ -232,7 +232,7 @@ impl<'a> App<'a> {
                     self.hub_two.on_update(&p);
                 }
 
-                
+
                 for i in &mut self.items {
                     i.collect(p);
                 }
@@ -248,7 +248,7 @@ impl<'a> App<'a> {
             if let &mut Some(ref mut b) = x{
                 b.on_update(args, range, level, state, &mut sounds)
             }
-        }        
+        }
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
         self.items.retain(|ref i| !i.get_gone());
@@ -383,7 +383,7 @@ impl<'a> App<'a> {
             Button::Keyboard(Key::Q) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
-                    
+
 
                         p.life -= 10;
                         p.weapon = EffectOption::Spear;
@@ -431,6 +431,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Up;
+                        x.dir = LastKey::Up;
                     }
                     x.pressed = pressed;
                 }
@@ -439,6 +440,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Down;
+                        x.dir = LastKey::Down;
                     }
                     x.pressed = pressed;
                 }
@@ -447,6 +449,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Left;
+                        x.dir = LastKey::Left;
                     }
                     x.pressed = pressed;
                 }
@@ -455,6 +458,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Right;
+                        x.dir = LastKey::Right;
                     }
                     x.pressed = pressed;
                 }
@@ -726,7 +730,7 @@ fn main() {
     // set Level-borders to camera
     app.cam.set_borders((level.get_width() as u64, level.get_height() as u64));
 
-    
+
     // Set hubs
     if let Some(ref mut p1) = app.players[0] {
         app.hub_one.set_map(&map);

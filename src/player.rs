@@ -176,7 +176,13 @@ impl<'a> Actor for Player<'a> {
         where T: Actor
     {
         //println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
-        self.effect.handle(self.coord, self.weapon, self.dir);
+        match self.dir {
+            LastKey::Wait => {},
+            _ => {
+                self.effect.handle(self.coord, self.weapon, self.dir);
+            },
+        }
+
         let mut targets = Vec::new();
         let pos = &self.coord.clone();
 
@@ -243,24 +249,21 @@ impl<'a> Actor for Player<'a> {
 
 
         for t in targets {
-            match t {
-                Some(x) => {
-                    match x {
-                        InteractableType::Player(_) => {}
-                        InteractableType::Bot(id) => {
-                            //x.conv_to_actor().damage_taken(self.dmg)
-                            if let &mut Some(ref mut e) = &mut enemy[id as usize]{
-                                if e.is_alive() {
-                                    e.damage_taken(self.dmg);
-                                }
+            if let Some(x) = t {
+                match x {
+                    InteractableType::Player(_) => {}
+                    InteractableType::Bot(id) => {
+                        //x.conv_to_actor().damage_taken(self.dmg)
+                        if let &mut Some(ref mut e) = &mut enemy[id as usize]{
+                            if e.is_alive() {
+                                e.damage_taken(self.dmg);
                             }
                         }
-
-                        InteractableType::Useable(_) => {}
-                        InteractableType::Collectable(_) => {}
                     }
+
+                    InteractableType::Useable(_) => {}
+                    InteractableType::Collectable(_) => {}
                 }
-                None => {}
             }
         }
     }
