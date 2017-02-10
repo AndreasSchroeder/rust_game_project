@@ -211,7 +211,7 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
 
-                        let mut b = Bot::new(x, y, i);
+                        let mut b = Bot::new(x, y, i, &map);
                         b.set_sprite(map.get_sprite(sprite));
 
                         bots.push(b);
@@ -244,11 +244,11 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
 
-                        let mut item = Item::new(x, y, j);
+                        let mut item = Item::new(x, y);
                         item.load_sprite(map, sprite);
 
                         items.push(item);
-                        j += 1;
+                        
                     }
                     _ => (),
                 }

@@ -49,7 +49,7 @@ impl<'a> Effect<'a> {
         self.start = PreciseTime::now();
     }
 
-    pub fn set_sound_str(&mut self, sound: &'a str){
+    pub fn set_sound_str(&mut self, sound: &'a str) {
         self.sound = sound;
     }
 
@@ -61,7 +61,7 @@ impl<'a> Effect<'a> {
         self.sound_played
     }
 
-    pub fn played(&mut self){
+    pub fn played(&mut self) {
         self.sound_played = true;
     }
 }

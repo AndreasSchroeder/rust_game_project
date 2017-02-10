@@ -15,6 +15,7 @@ use time::PreciseTime;
 use renderable::Renderable;
 use effect::{EffectHandler, EffectOption, Effect};
 use io::all_sprites::SpriteMap;
+use sounds::SoundHandler;
 
 pub struct Player<'a> {
     pub life: i32,
@@ -74,7 +75,8 @@ impl<'a> Player<'a> {
                      args: &UpdateArgs,
                      range: Range,
                      level: &mut Level,
-                     it: InteractableType) {
+                     it: InteractableType,
+                      sounds: &mut SoundHandler) {
         if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
             self.dt = PreciseTime::now();
         }
@@ -126,6 +128,12 @@ impl<'a> Player<'a> {
         }
 
         self.effect.on_update(args);
+        for e in &mut self.effect.effects {
+            if !e.get_played() {
+                sounds.play(e.get_sound_str());
+                e.played();
+            }
+        }
     }
 
     pub fn get_effect_handler(&self) -> &EffectHandler {
@@ -134,8 +142,6 @@ impl<'a> Player<'a> {
     pub fn get_effects(&mut self) -> &'a [Effect] {
         &mut self.effect.effects
     }
-
-    
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -157,7 +163,13 @@ impl<'a> Actor for Player<'a> {
     }
 
     fn damage_taken(&mut self, dmg: i32) {
-        self.life = if self.life - dmg > 100 { 100 } else if self.life - dmg < 0 { 0 } else { self.life - dmg };
+        self.life = if self.life - dmg > 100 {
+            100
+        } else if self.life - dmg < 0 {
+            0
+        } else {
+            self.life - dmg
+        };
     }
 
     fn attack(&mut self,
