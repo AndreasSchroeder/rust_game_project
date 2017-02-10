@@ -225,7 +225,7 @@ impl<'a> App<'a> {
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        for (i, x) in &mut self.players.iter_mut().enumerate() {
+        for x in &mut self.players{
             if let &mut Some(ref mut p) = x {
                 let id = if let InteractableType::Player(x) = p.get_interactable_type() {x} else {42};
                 p.on_update(args, range, level, InteractableType::Player(id), &mut sounds);
@@ -249,7 +249,7 @@ impl<'a> App<'a> {
         }
         for x in &mut self.bots {
             if let &mut Some(ref mut b) = x{
-                b.on_update(args, range, level, state, &mut sounds)
+                b.on_update(args, level, state, &mut sounds, &mut self.players)
             }
         }
         // Update Camera
