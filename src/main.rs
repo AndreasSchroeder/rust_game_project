@@ -590,6 +590,11 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                     0 => {
                         start_game = true;
                         // Spielerauswahl
+                        // Mute Welcome Sound
+                        match sounds.map.get_mut("Welcome.ogg") {
+                            Some(s) => s.set_volume(0.0),
+                            None => (),
+                        };
                         two_players = select_player(window);
                     },
                     // Load Game
@@ -599,8 +604,7 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                         // Submenu Settings
                         let mut settings = true;
 
-                        let mut sub_start_menu =
-                            vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                        let mut sub_start_menu = vec!["Fullscreen (not working yet)", "Mute", "Back"];
                         let sub_menu_size = sub_start_menu.len();
                         let mut sub_active_index = 0;
 
