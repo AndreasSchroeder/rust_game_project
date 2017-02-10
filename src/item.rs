@@ -12,6 +12,7 @@ use gfx_device_gl::Resources;
 use gfx_device_gl::CommandBuffer;
 use gfx_graphics::GfxGraphics;
 use piston_window::*;
+use time::PreciseTime;
 
 /// Represents An Item
 /// sprite: The Sprite of the Item
@@ -25,6 +26,7 @@ pub struct Item<'a> {
     pub coord: Coordinate,
     pub item_type: Option<ItemType>,
     pub gone: bool,
+    pub dt: PreciseTime,
 }
 
 
@@ -37,6 +39,7 @@ impl<'a> Item<'a> {
             coord: Coordinate::new(x, y),
             item_type: None,
             gone: false,
+            dt: PreciseTime::now(),
         }
     }
 
@@ -58,6 +61,9 @@ impl<'a> Item<'a> {
 
     /// collects an Item if Player is on same field.
     pub fn collect(&mut self, player: &mut Player<'a>) {
+        if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
+                self.dt = PreciseTime::now();
+            }
         if player.coord.get_x() == self.coord.get_x() &&
            player.coord.get_y() == self.coord.get_y() && !self.get_gone() {
             if let Some(ref item) = self.item_type {
@@ -93,8 +99,7 @@ impl<'a> Renderable for Item<'a> {
     /// Renders the Item
     fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
         if let Some(ref x) = self.sprite {
-            x.render(g, view, 0, false, 0);
-
+            x.render(g, view, self.dt.to(PreciseTime::now()).num_milliseconds() as u64, false, 0);
         } else {
             //println!("None");
         }
