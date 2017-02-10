@@ -103,6 +103,7 @@ impl<'a> Bot<'a> {
             }
 
             self.old_state = state;
+            //self.attack(&mut level,);
         }
         self.effect.on_update(args);
 
@@ -129,7 +130,8 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<T>)
+
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
         (level, enemy);
