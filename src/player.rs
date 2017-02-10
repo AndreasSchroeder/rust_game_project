@@ -172,7 +172,9 @@ impl<'a> Actor for Player<'a> {
         };
     }
 
-    fn attack(&mut self, level: &mut Level, bots: &mut Vec<Option<Bot>>) {
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
+        where T: Actor
+    {
         //println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
         self.effect.handle(self.coord, self.weapon, self.dir);
         let mut targets = Vec::new();
@@ -247,8 +249,10 @@ impl<'a> Actor for Player<'a> {
                         InteractableType::Player(_) => {}
                         InteractableType::Bot(id) => {
                             //x.conv_to_actor().damage_taken(self.dmg)
-                            if bots[id as usize].is_alive() {
-                                bots[id as usize].damage_taken(self.dmg);
+                            if let &mut Some(ref mut e) = &mut enemy[id as usize]{
+                                if e.is_alive() {
+                                    e.damage_taken(self.dmg);
+                                }
                             }
                         }
 
@@ -268,7 +272,6 @@ impl<'a> Interactable for Player<'a> {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
     }
-
 }
 
 impl<'a> Renderable for Player<'a> {

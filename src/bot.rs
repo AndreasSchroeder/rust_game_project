@@ -103,7 +103,7 @@ impl<'a> Bot<'a> {
             }
 
             self.old_state = state;
-            self.attack(&mut level,);
+            //self.attack(&mut level,);
         }
         self.effect.on_update(args);
 
@@ -130,8 +130,11 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&mut self, level: &mut Level, bots: &mut Vec<Option<Bot>>) {
-        (level, bots);
+
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
+        where T: Actor
+    {
+        (level, enemy);
         /*for t in target {
             match t {
                 Some(x) => {
@@ -156,7 +159,6 @@ impl<'a> Interactable for Bot<'a> {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
     }
-
 }
 
 impl<'a> Renderable for Bot<'a> {

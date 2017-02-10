@@ -34,7 +34,6 @@ mod player_hub;
 
 // own uses
 use interactable::Interactable;
-use effect::EffectHandler;
 use util::{coord_to_pixel_x, coord_to_pixel_y};
 use camera::Cam;
 use player::{Player, LastKey};
@@ -98,7 +97,7 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     /// Constructor
-    fn new(mut players: Vec<Option<Player<'a>>>, bots: Vec<Option<Bot<'a>>>,   items: Vec<Item<'a>>) -> Self {
+    fn new(players: Vec<Option<Player<'a>>>, bots: Vec<Option<Bot<'a>>>,   items: Vec<Item<'a>>) -> Self {
 
         App {
             players: players,
@@ -169,7 +168,7 @@ impl<'a> App<'a> {
 
                     // render player one
                     p.render(gl, center_p);
-                    for e in p.get_effect_handler().effects {
+                    for e in &p.get_effect_handler().effects {
                         // Rendr all Effects in Camera
                         if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
                                 e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
@@ -214,11 +213,11 @@ impl<'a> App<'a> {
         // Update Coordinates
 
 
-        let (coord1, coord2) = match (self.players[0], self.players[1]) {
-            (None, None) => (Coordinate::new(0,0), Coordinate::new(0,0)),
-            (None, Some(y)) => (Coordinate::new(0,0), y.coord.clone()),
-            (Some(x), None) => (x.coord.clone(), Coordinate::new(0,0)),
-            (Some(x), Some(y)) => (x.coord.clone(), y.coord.clone()),
+        let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
+            (&None, &None) => (Coordinate::new(0,0), Coordinate::new(0,0)),
+            (&None, &Some(ref y)) => (Coordinate::new(0,0), y.coord.clone()),
+            (&Some(ref x), &None) => (x.coord.clone(), Coordinate::new(0,0)),
+            (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
         };
         // Update range with coordinates
         let range = self.cam.get_range_update();
@@ -235,7 +234,7 @@ impl<'a> App<'a> {
 
                 
                 for i in &mut self.items {
-                    i.collect(&mut p);
+                    i.collect(p);
                 }
                 for e in &mut p.effect.effects{
                     if !e.get_played(){
@@ -243,6 +242,11 @@ impl<'a> App<'a> {
                         e.played();
                     }
                 }
+            }
+        }
+        for x in &mut self.bots {
+            if let &mut Some(ref mut b) = x{
+                b.on_update(args, range, level, state, &mut sounds)
             }
         }        
         // Update Camera
@@ -369,8 +373,6 @@ impl<'a> App<'a> {
                 level: &mut Level,
                 sounds: &mut SoundHandler,
                 window: &mut PistonWindow) {
-        let mut p1 = self.players[0];
-        let mut p2 = self.players[1];
 
         match inp {
             Button::Keyboard(Key::Escape) => {
@@ -379,7 +381,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Q) => {
-                if let Some(ref mut p) = p1 {
+                if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                     
 
@@ -390,7 +392,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Up) => {
-                if let Some(ref mut p) = p1 {
+                if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                         p.last = LastKey::Up;
                         p.dir = LastKey::Up;
@@ -399,7 +401,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Down) => {
-                if let Some(ref mut p) = p1 {
+                if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                         p.last = LastKey::Down;
                         p.dir = LastKey::Down;
@@ -408,7 +410,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Left) => {
-                if let Some(ref mut p) = p1 {
+                if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                         p.last = LastKey::Left;
                         p.dir = LastKey::Left;
@@ -417,7 +419,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Right) => {
-                if let Some(ref mut p) = p1 {
+                if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                         p.last = LastKey::Right;
                         p.dir = LastKey::Right;
@@ -426,7 +428,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::W) => {
-                if let Some(ref mut x) = p2 {
+                if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Up;
                     }
@@ -434,7 +436,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::S) => {
-                if let Some(ref mut x) = p2 {
+                if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Down;
                     }
@@ -442,7 +444,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::A) => {
-                if let Some(ref mut x) = p2 {
+                if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Left;
                     }
@@ -450,7 +452,7 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::D) => {
-                if let Some(ref mut x) = p2 {
+                if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
                         x.last = LastKey::Right;
                     }
@@ -458,14 +460,14 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Return) => {
-                if let Some(ref mut p) = p1 {
+                if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                         p.attack(level, &mut self.bots);
                     }
                 }
             }
             Button::Keyboard(Key::Space) => {
-                if let Some(ref mut p) = p2 {
+                if let &mut Some(ref mut p) = &mut self.players[1] {
                     if pressed {
                         p.attack(level, &mut self.bots);
                     }
@@ -709,8 +711,8 @@ fn main() {
     let mut app = App::new(players, bots, items);
 
     // insert players in level
-    for x in &app.players {
-        if let &Some(p) = x {
+    for x in &mut app.players {
+        if let  &mut Some(ref mut p) =  x {
             level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
                 .set_fieldstatus(p.get_interactable_type());
             p.set_borders((level.get_width() as u64, level.get_height() as u64));
