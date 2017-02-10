@@ -102,11 +102,10 @@ impl<'a> Bot<'a> {
                     level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
                         .set_fieldstatus(self.interactable_type);
                 }
-                _ => {}
+                _ =>  self.attack(level, enemy),
             }
-
             self.old_state = state;
-            self.attack(level, enemy);
+ 
         }
         self.effect.on_update(args);
 
