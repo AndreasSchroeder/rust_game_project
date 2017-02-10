@@ -192,19 +192,16 @@ impl<'a> Actor for Player<'a> {
                 EffectOption::Dagger => {
                     match self.dir {
                         LastKey::Up => {
-                            targets.push(level.get_data()[(pos.get_x() - 1) as usize][pos.get_y() as usize].get_fieldstatus());
-
+                            targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
                         },
                         LastKey::Down => {
-                            targets.push(level.get_data()[(pos.get_x() + 1) as usize][pos.get_y() as usize].get_fieldstatus());
-
+                            targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
                         },
                         LastKey::Left => {
-                            targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() -1) as usize].get_fieldstatus());
-
+                            targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
                         }
                         LastKey::Right => {
-                            targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() +1) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
                         },
                         _ => {},
                     }
@@ -213,19 +210,18 @@ impl<'a> Actor for Player<'a> {
                     for i in 0..3{
                         match self.dir {
                             LastKey::Up => {
-                                targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
-
+                                targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
                             },
                             LastKey::Down => {
-                                targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
+                                targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
 
                             },
                             LastKey::Left => {
-                                targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() -1) as usize].get_fieldstatus());
+                                targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
 
                             },
                             LastKey::Right => {
-                                targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() +1) as usize].get_fieldstatus());
+                                targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
 
                             },
                             _ => {},
@@ -235,23 +231,23 @@ impl<'a> Actor for Player<'a> {
                 EffectOption::Spear => {
                     match self.dir {
                         LastKey::Up => {
-                            targets.push(level.get_data()[(pos.get_x() - 1) as usize][pos.get_y() as usize].get_fieldstatus());
-                            targets.push(level.get_data()[(pos.get_x() - 2) as usize][pos.get_y() as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 2) as usize].get_fieldstatus());
 
                         },
                         LastKey::Down => {
-                            targets.push(level.get_data()[(pos.get_x() + 1) as usize][pos.get_y() as usize].get_fieldstatus());
-                            targets.push(level.get_data()[(pos.get_x() + 2) as usize][pos.get_y() as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() + 2) as usize].get_fieldstatus());
 
                         },
                         LastKey::Left => {
-                            targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
-                            targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() - 2) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x() - 2) as usize][(pos.get_y()) as usize].get_fieldstatus());
 
                         },
                         LastKey::Right => {
-                            targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
-                            targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() + 2) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
+                            targets.push(level.get_data()[(pos.get_x() + 2) as usize][(pos.get_y()) as usize].get_fieldstatus());
 
                         },
                         _ => {},
