@@ -207,5 +207,5 @@ const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                               size_x: 60,
                                               size_y: 64,
                                               dur: 100,
-                                              once: false,
+                                              once: true,
                                           }];
