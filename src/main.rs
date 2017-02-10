@@ -340,45 +340,11 @@ impl<'a> App<'a> {
             }
             Button::Keyboard(Key::Space) => {
                 if pressed {
-                    self.on_attack(level);
+                    &self.player_one.attack(level, &mut self.bots);
                 }
             }
             _ => {}
 
-        }
-    }
-
-    fn on_attack(&mut self, level: &mut Level) {
-        match self.player_one.weapon{
-            EffectOption::Dagger => {
-                let dir = self.player_one.dir;
-                let p1_pos = &self.player_one.coord.clone();
-
-                match dir {
-                    LastKey::Up => {
-                        let mut targets = Vec::new();
-                        targets.push(level.get_data()[(p1_pos.get_x() - 1) as usize][p1_pos.get_y() as usize].get_fieldstatus());
-                        &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
-                    },
-                    LastKey::Down => {
-                        let mut targets = Vec::new();
-                        targets.push(level.get_data()[(p1_pos.get_x() + 1) as usize][p1_pos.get_y() as usize].get_fieldstatus());
-                        &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
-                    },
-                    LastKey::Left => {
-                        let mut targets = Vec::new();
-                        targets.push(level.get_data()[p1_pos.get_x() as usize][(p1_pos.get_y() -1) as usize].get_fieldstatus());
-                        &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
-                    },
-                    LastKey::Right => {
-                        let mut targets = Vec::new();
-                        targets.push(level.get_data()[p1_pos.get_x() as usize][(p1_pos.get_y() +1) as usize].get_fieldstatus());
-                        &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
-                    },
-                    _ => {}
-                }
-            }
-            _ => {}
         }
     }
 }
