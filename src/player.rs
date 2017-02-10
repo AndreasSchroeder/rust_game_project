@@ -172,13 +172,75 @@ impl<'a> Actor for Player<'a> {
         };
     }
 
-    fn attack(&mut self,
-              target: Vec<Option<InteractableType>>,
-              bots: &mut Vec<Bot>,
-              dir: LastKey) {
-        println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
-        self.effect.handle(self.coord, self.weapon, dir);
-        for t in target {
+    fn attack(&mut self, level: &mut Level, bots: &mut Vec<Bot>) {
+        //println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
+        self.effect.handle(self.coord, self.weapon, self.dir);
+        let mut targets = Vec::new();
+        let pos = &self.coord.clone();
+
+        match self.weapon {
+            EffectOption::Dagger => {
+                match self.dir {
+                    LastKey::Up => {
+                        targets.push(level.get_data()[(pos.get_x() - 1) as usize][pos.get_y() as usize].get_fieldstatus());
+                    },
+                    LastKey::Down => {
+                        targets.push(level.get_data()[(pos.get_x() + 1) as usize][pos.get_y() as usize].get_fieldstatus());
+                    },
+                    LastKey::Left => {
+                        targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() -1) as usize].get_fieldstatus());
+                    },
+                    LastKey::Right => {
+                        targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() +1) as usize].get_fieldstatus());
+                    },
+                    _ => {},
+                }
+            },
+            EffectOption::Sword => {
+                for i in 0..3{
+                    match self.dir {
+                        LastKey::Up => {
+                            targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
+                        },
+                        LastKey::Down => {
+                            targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
+                        },
+                        LastKey::Left => {
+                            targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() -1) as usize].get_fieldstatus());
+                        },
+                        LastKey::Right => {
+                            targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() +1) as usize].get_fieldstatus());
+                        },
+                        _ => {},
+                    }
+                }
+            },
+            EffectOption::Spear => {
+                match self.dir {
+                    LastKey::Up => {
+                        targets.push(level.get_data()[(pos.get_x() - 1) as usize][pos.get_y() as usize].get_fieldstatus());
+                        targets.push(level.get_data()[(pos.get_x() - 2) as usize][pos.get_y() as usize].get_fieldstatus());
+                    },
+                    LastKey::Down => {
+                        targets.push(level.get_data()[(pos.get_x() + 1) as usize][pos.get_y() as usize].get_fieldstatus());
+                        targets.push(level.get_data()[(pos.get_x() + 2) as usize][pos.get_y() as usize].get_fieldstatus());
+                    },
+                    LastKey::Left => {
+                        targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
+                        targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() - 2) as usize].get_fieldstatus());
+                    },
+                    LastKey::Right => {
+                        targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
+                        targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() + 2) as usize].get_fieldstatus());
+                    },
+                    _ => {},
+                }
+            },
+            _ => {},
+        }
+
+
+        for t in targets {
             match t {
                 Some(x) => {
                     match x {
@@ -188,8 +250,6 @@ impl<'a> Actor for Player<'a> {
                             if bots[id as usize].is_alive() {
                                 bots[id as usize].damage_taken(self.dmg);
                             }
-
-                            println!("{}", bots[id as usize].get_life());
                         }
 
                         InteractableType::Useable(_) => {}
