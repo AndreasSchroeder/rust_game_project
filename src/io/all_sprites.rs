@@ -113,4 +113,46 @@ const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                               image: "wizard.png",
                                               size_x: 64,
                                               size_y: 64,
-                                          }];
+                                          },
+                                          SpriteModel {
+                                              image: "Heart_empty.png",
+                                              size_x: 32,
+                                              size_y: 32,
+                                          },
+                                          SpriteModel {
+                                              image: "Heart_full.png",
+                                              size_x: 32,
+                                              size_y: 32,
+                                          },
+                                          SpriteModel {
+                                              image: "Heart_half.png",
+                                              size_x: 32,
+                                              size_y: 32,
+                                          },
+                                          SpriteModel {
+                                              image: "weapon_broadsword_small.png",
+                                              size_x: 32,
+                                              size_y: 32,
+                                          },
+                                          SpriteModel {
+                                              image: "weapon_dagger_small.png",
+                                              size_x: 32,
+                                              size_y: 32,
+                                          },
+                                          SpriteModel {
+                                              image: "weapon_spear_small.png",
+                                              size_x: 32,
+                                              size_y: 32,
+                                          },
+                                          SpriteModel {
+                                              image: "Heart_10.png",
+                                              size_x: 64,
+                                              size_y: 64,
+                                          },
+                                          SpriteModel {
+                                              image: "Heart_20.png",
+                                              size_x: 64,
+                                              size_y: 64,
+                                          }
+
+                                          ];

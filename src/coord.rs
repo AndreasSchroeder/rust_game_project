@@ -126,7 +126,7 @@ impl Coordinate {
         // sets coordinates after last checks
         self.x = if new_x < buf_x {
             buf_x
-        } else if new_x > (level.get_width() as u64) - buf_x - 1  {
+        } else if new_x > (level.get_width() as u64) - buf_x - 1 {
             level.get_width() as u64 - buf_x - 1
         } else {
             new_x
