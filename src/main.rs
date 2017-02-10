@@ -464,12 +464,18 @@ impl<'a> App<'a> {
                     if pressed {
                         p.attack(level, &mut self.bots);
                     }
+                    else {
+                        p.delay_attack = false;
+                    }
                 }
             }
             Button::Keyboard(Key::Space) => {
                 if let &mut Some(ref mut p) = &mut self.players[1] {
                     if pressed {
                         p.attack(level, &mut self.bots);
+                    }
+                    else {
+                        p.delay_attack = false;
                     }
                 }
             }
