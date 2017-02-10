@@ -207,7 +207,7 @@ impl<'a> EffectHandler<'a> {
     }
 
     /// For Updating the active effects
-    pub fn on_update(&mut self, args: &UpdateArgs) {
+    pub fn on_update(&mut self) {
         // If effect lasts longer than 1 sec, effect was rendered and can be removed
         self.effects.retain(|ref i| i.start.to(PreciseTime::now()).num_milliseconds() <= 1000);
     }

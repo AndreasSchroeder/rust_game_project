@@ -3,7 +3,6 @@ use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
-use camera::Range;
 use io::sprite::Sprite;
 use level::Level;
 use rand::Rng;
@@ -65,7 +64,6 @@ impl<'a> Bot<'a> {
     }
 
     pub fn on_update(&mut self,
-                     args: &UpdateArgs,
                      mut level: &mut Level,
                      state: usize,
                      sounds: &mut SoundHandler,
@@ -116,7 +114,7 @@ impl<'a> Bot<'a> {
 
             }
         }
-        self.effect.on_update(args);
+        self.effect.on_update();
 
 
         for e in &mut self.effect.effects {

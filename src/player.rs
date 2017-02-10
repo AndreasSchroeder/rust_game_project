@@ -1,4 +1,9 @@
-//use inventory::Inventory;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+use piston_window::*;
+use time::PreciseTime;
+
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
@@ -6,14 +11,8 @@ use coord::Coordinate;
 use camera::Range;
 use level::Level;
 use io::sprite::Sprite;
-use bot::Bot;
-use gfx_device_gl::Resources;
-use gfx_device_gl::CommandBuffer;
-use gfx_graphics::GfxGraphics;
-use piston_window::*;
-use time::PreciseTime;
 use renderable::Renderable;
-use effect::{EffectHandler, EffectOption, Effect};
+use effect::{EffectHandler, EffectOption};
 use io::all_sprites::SpriteMap;
 use sounds::SoundHandler;
 
@@ -74,7 +73,6 @@ impl<'a> Player<'a> {
     }
 
     pub fn on_update(&mut self,
-                     args: &UpdateArgs,
                      range: Range,
                      level: &mut Level,
                      it: InteractableType,
@@ -130,7 +128,7 @@ impl<'a> Player<'a> {
             self.no_more = true;
         }
 
-        self.effect.on_update(args);
+        self.effect.on_update();
         for e in &mut self.effect.effects {
             if !e.get_played() {
                 sounds.play(e.get_sound_str());
@@ -141,9 +139,6 @@ impl<'a> Player<'a> {
 
     pub fn get_effect_handler(&self) -> &EffectHandler {
         &self.effect
-    }
-    pub fn get_effects(&mut self) -> &'a [Effect] {
-        &mut self.effect.effects
     }
 }
 
@@ -271,9 +266,6 @@ impl<'a> Actor for Player<'a> {
                             }
                         }
                     }
-
-                    InteractableType::Useable(_) => {}
-                    InteractableType::Collectable(_) => {}
                 }
             }
         }

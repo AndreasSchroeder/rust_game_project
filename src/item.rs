@@ -46,7 +46,6 @@ impl<'a> Item<'a> {
     /// Loads the sprite by given string from SpriteMap
     pub fn load_sprite(&mut self, map: &'a SpriteMap, sprite_str: String) {
         self.sprite = map.map.get(sprite_str.as_str());
-        println!("{}", sprite_str);
         self.item_type = match sprite_str.as_str() {
             //If Weapon
             "weapon_dagger.png" => Some(ItemType::Weapon(EffectOption::Dagger)),

@@ -18,7 +18,6 @@ use time::PreciseTime;
 mod player;
 mod io;
 mod level;
-//mod inventory;
 mod item;
 mod actor;
 mod field;
@@ -107,8 +106,8 @@ impl<'a> App<'a> {
             bots: bots,
             items: items,
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
-            hub_one: PlayerHub::new("Player One", None),
-            hub_two: PlayerHub::new("Player Two", None),
+            hub_one: PlayerHub::new(None),
+            hub_two: PlayerHub::new(None),
             muted: false,
         }
     }
@@ -214,11 +213,7 @@ impl<'a> App<'a> {
         });
     }
     /// Updates all Players, Bots, effects and camera
-    fn on_update(&mut self,
-                 args: &UpdateArgs,
-                 level: &mut Level,
-                 state: usize,
-                 mut sounds: &mut SoundHandler) {
+    fn on_update(&mut self, level: &mut Level, state: usize, mut sounds: &mut SoundHandler) {
         // Update Coordinates
 
 
@@ -238,11 +233,7 @@ impl<'a> App<'a> {
                 } else {
                     42
                 };
-                p.on_update(args,
-                            range,
-                            level,
-                            InteractableType::Player(id),
-                            &mut sounds);
+                p.on_update(range, level, InteractableType::Player(id), &mut sounds);
                 if id == 1 {
                     self.hub_one.on_update(&p);
                 } else if id == 2 {
@@ -280,9 +271,7 @@ impl<'a> App<'a> {
                         }
                     });
                 }
-                b.on_update(args, level, state, &mut sounds, &mut self.players);
-
-
+                b.on_update(level, state, &mut sounds, &mut self.players);
             }
         }
 
@@ -883,11 +872,11 @@ fn main() {
 
 
     // Set hubs
-    if let Some(ref mut p1) = app.players[0] {
+    if let Some(_) = app.players[0] {
         app.hub_one.set_map(&map);
     }
     // load sprite for player two and sets border
-    if let Some(ref mut p2) = app.players[1] {
+    if let Some(_) = app.players[1] {
         app.hub_two.set_map(&map);
     }
 
@@ -952,8 +941,8 @@ fn main() {
             }
             {
                 // if update
-                if let Some(u) = e.update_args() {
-                    app.on_update(&u, &mut level, state, &mut sounds);
+                if let Some(_) = e.update_args() {
+                    app.on_update(&mut level, state, &mut sounds);
                 }
 
                 // restart time if 1 second over
