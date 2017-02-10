@@ -180,7 +180,6 @@ impl<'a> Actor for Player<'a> {
     {
         let mut targets = Vec::new();
         let pos = &self.coord.clone();
-         println!("{}",self.delay_attack);
         if self.delay_attack == false {
             match self.dir {
                 LastKey::Wait => {},
