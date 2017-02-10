@@ -53,6 +53,7 @@ use ears::AudioController;
 use player_hub::PlayerHub;
 use item::Item;
 use coord::Coordinate;
+use rand::Rng;
 
 //EINGABEN
 const HUB_UP: u64 = 52;
@@ -605,12 +606,24 @@ fn select_player(window: &mut PistonWindow) -> bool {
     two_players
 }
 
-fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, glyphs: &mut Glyphs, start_menu: &[&str], ai: u32, app: &mut App) -> (bool, bool, u32) {
+fn show_menu(e: Event,
+    window: &mut PistonWindow,
+    sounds: &mut SoundHandler,
+    glyphs: &mut Glyphs,
+    start_menu: &[&str],
+    ai: u32,
+    app: &mut App,
+    menu_bots: &mut Vec<Bot>,
+    start: PreciseTime) -> (bool, bool, u32, i64) {
+    let mut rng = rand::thread_rng();
+    let mut state = start.to(PreciseTime::now()).num_milliseconds();
     let mut active_index = ai;
     let mut start_game = false;
     let mut two_players = false;
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
              CAM_BORDER * 2) as u32;
+    let height = ((((CAMERA_BUF_Y * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+                  CAM_BORDER + HUB_UP) as u32;
     if let Some(i) = e.press_args() {
         match i {
             /* Check arrow keys for menu */
@@ -757,9 +770,120 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
         }
     }
     if let Some(_) = e.render_args() {
-        window.draw_2d(&e, |c, gl| {
+            window.draw_2d(&e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
+
+            let temp = if state <= 500 { 0 } else { 1 };
+
+            /*
+            // Rendern von bekloppten Hühnchen
+            let mut i = 0;
+            for ref mut b in menu_bots {
+                b.render(gl, c.transform.trans(b.coord.get_x() as f64, b.coord.get_y() as f64));
+                let x = b.coord.get_x();
+                let y = b.coord.get_y();
+
+                if temp == 1 {
+                    if i % 2 == 0 {
+                        if y + 100 > height as u64 {
+                            b.coord.set_coord(x, 0);
+                        } else {
+                            b.coord.set_coord(x, y + 100);
+                        }
+                    } else {
+                        if x < 100 {
+                            b.coord.set_coord(width as u64, y);
+                        } else {
+                            b.coord.set_coord(x - 100, y);
+                        }
+                    }
+                }
+                i += 1;
+            }*/
+
+            if temp == 1 {
+                // Left chicken
+                let dir = rng.gen_range(0, 4);
+
+                let mut new_x = menu_bots[0].coord.get_x();
+                let mut new_y = menu_bots[0].coord.get_y();
+
+                match dir {
+                    // UP
+                    0 => {
+                        if new_y >= 50 {
+                            new_y -= 50;
+                        }
+                    }
+                    // DOWN
+                    1 => {
+                        if new_y <= (height - 50) as u64 {
+                            new_y += 50;
+                        }
+                    }
+                    // LEFT
+                    2 => {
+                        if new_x >= 50 {
+                            new_x -= 50;
+                        }
+                    }
+                    // RIGHT
+                    3 => {
+                        if new_x <= 200 as u64 {
+                            new_x += 50;
+                        }
+                    }
+                    // ELSE
+                    _ => (),
+                };
+
+                menu_bots[0].coord.set_coord(new_x, new_y);
+
+                // Right chicken
+                let dir = rng.gen_range(0, 4);
+
+                new_x = menu_bots[1].coord.get_x();
+                new_y = menu_bots[1].coord.get_y();
+
+                match dir {
+                    // UP
+                    0 => {
+                        if new_y >= 50 {
+                            new_y -= 50;
+                        }
+                    }
+                    // DOWN
+                    1 => {
+                        if new_y <= (height - 50) as u64 {
+                            new_y += 50;
+                        }
+                    }
+                    // LEFT
+                    2 => {
+                        if new_x >= 850 {
+                            new_x -= 50;
+                        }
+                    }
+                    // RIGHT
+                    3 => {
+                        if new_x <= 1000 as u64 {
+                            new_x += 50;
+                        }
+                    }
+                    // ELSE
+                    _ => (),
+                };
+
+                menu_bots[1].coord.set_coord(new_x, new_y);
+            }
+
+            menu_bots[0].render(gl, c.transform.trans(menu_bots[0].coord.get_x() as f64, menu_bots[0].coord.get_y() as f64));
+            menu_bots[1].render(gl, c.transform.trans(menu_bots[1].coord.get_x() as f64, menu_bots[1].coord.get_y() as f64));
+
+            if temp == 1 {
+                state = 0;
+            }
 
             // Render menu
             text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART1,
@@ -797,7 +921,7 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
             }
         });
     }
-    (start_game, two_players, active_index)
+    (start_game, two_players, active_index, state)
 }
 
 /// Main
@@ -861,11 +985,11 @@ fn main() {
 
 
     // Set hubs
-    if let Some(ref mut p1) = app.players[0] {
+    if let Some(_) = app.players[0] {
         app.hub_one.set_map(&map);
     }
     // load sprite for player two and sets border
-    if let Some(ref mut p2) = app.players[1] {
+    if let Some(_) = app.players[1] {
         app.hub_two.set_map(&map);
     }
 
@@ -888,16 +1012,47 @@ fn main() {
     let mut active_index = 0;
     sounds.play("Welcome.ogg");
 
+    let mut menu_bots = Vec::with_capacity(10);
+
+/*
+    // Bekloppte Hühnchen
+    for j in 0..4 {
+        for i in 0..4 {
+            if i % 2 == 0 {
+                let mut b = Bot::new(i * 150, j * 100, i, &map);
+                b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
+                menu_bots.push(b);
+            } else {
+                let mut b = Bot::new(width as u64 - 100 - j * 100, i * 200, i, &map);
+                b.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
+                menu_bots.push(b);
+            }
+        }
+    }
+*/
+    let mut b = Bot::new(150, 200, 1, &map);
+    b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
+    menu_bots.push(b);
+    let mut b2 = Bot::new(900, 400, 2, &map);
+    b2.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
+    menu_bots.push(b2);
+
+
     while let Some(e) = events.next(&mut window) {
         if !start_game {
-            let (start, two_players, index) = show_menu(e, &mut window, &mut sounds, &mut glyphs, &start_menu, active_index, &mut app);
-            start_game = start;
+            let (is_start, two_players, index, state) = show_menu(e, &mut window, &mut sounds, &mut glyphs, &start_menu, active_index, &mut app, &mut menu_bots, start);
+
+            start_game = is_start;
             active_index = index;
             if start_game && !two_players {
                 if let Some(ref mut p) = app.players[1] {
                     level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].free_fieldstatus();
                 }
                 app.players[1] = None;
+            }
+
+            if state == 0 {
+                start = PreciseTime::now();
             }
         } else {
             // End of loading, start game

@@ -25,7 +25,6 @@ pub fn load_xml<'a>(path: &str,
     let mut players: Vec<Option<Player>> = Vec::new();
     let mut last = String::new();
     let mut i = 0;
-    let mut j = 0;
 
     let file = File::open(path).unwrap();
     let file = BufReader::new(file);
@@ -248,7 +247,7 @@ pub fn load_xml<'a>(path: &str,
                         item.load_sprite(map, sprite);
 
                         items.push(item);
-                        
+
                     }
                     _ => (),
                 }
