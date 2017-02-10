@@ -245,7 +245,6 @@ impl<'a> App<'a> {
         for i in &mut self.items {
             i.collect(&mut self.player_one);
         }
-        
 
         // Update Player two
         if let Some(ref mut x) = self.player_two {
@@ -267,8 +266,10 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self, inp: Button, pressed: bool, level: &mut Level) {
-
+    fn on_input(&mut self,
+                inp: Button,
+                pressed: bool,
+                level: &mut Level) {
         match inp {
             Button::Keyboard(Key::Q) => {
                 if pressed {
@@ -338,40 +339,46 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-                match self.player_one.weapon {
-                    EffectOption::Dagger => {
-                        let dir = self.player_one.dir;
-                        let p1_pos = &self.player_one.coord.clone();
-
-                        match dir {
-                            LastKey::Up => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[(p1_pos.get_y() - 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
-                            }
-                            LastKey::Down => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[(p1_pos.get_y() + 1) as usize][p1_pos.get_x() as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
-                            }
-                            LastKey::Left => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() -1) as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
-                            }
-                            LastKey::Right => {
-                                let mut targets = Vec::new();
-                                targets.push(level.get_data()[p1_pos.get_y() as usize][(p1_pos.get_x() +1) as usize].get_fieldstatus());
-                                &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
-                            }
-                            _ => {}
-                        }
-                    }
-                    _ => {}
+                if pressed {
+                    self.on_attack(level);
                 }
             }
             _ => {}
 
+        }
+    }
+
+    fn on_attack(&mut self, level: &mut Level) {
+        match self.player_one.weapon{
+            EffectOption::Dagger => {
+                let dir = self.player_one.dir;
+                let p1_pos = &self.player_one.coord.clone();
+
+                match dir {
+                    LastKey::Up => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[(p1_pos.get_x() - 1) as usize][p1_pos.get_y() as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Up);
+                    },
+                    LastKey::Down => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[(p1_pos.get_x() + 1) as usize][p1_pos.get_y() as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Down);
+                    },
+                    LastKey::Left => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[p1_pos.get_x() as usize][(p1_pos.get_y() -1) as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Left);
+                    },
+                    LastKey::Right => {
+                        let mut targets = Vec::new();
+                        targets.push(level.get_data()[p1_pos.get_x() as usize][(p1_pos.get_y() +1) as usize].get_fieldstatus());
+                        &self.player_one.attack(targets, &mut self.bots, LastKey::Right);
+                    },
+                    _ => {}
+                }
+            }
+            _ => {}
         }
     }
 }
