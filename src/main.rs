@@ -162,7 +162,7 @@ impl<'a> App<'a> {
                 }
             }
 
-            // items
+            // Render all in Camera items
             for i in &mut self.items {
                     if i.coord.get_x() >= range.x_min &&  i.coord.get_x() < range.x_max &&
                         i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
@@ -180,18 +180,29 @@ impl<'a> App<'a> {
             // render player one
             self.player_one.render(gl, center_p1);
             for e in &self.player_one.get_effect_handler().effects {
-                let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
-                                              coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                e.render(gl, center);
+                // Rendr all Effects in Camera
+                if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                        e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                    let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                  coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                    e.render(gl, center);
+                }
             }
 
             // Render Player two
             if let Some(ref p2) = self.player_two {
-
-
                 let center_p2 = c.transform.trans(coord_to_pixel_x(p2.coord.get_x(), range.x_min),
                                               coord_to_pixel_y(p2.coord.get_y(), range.y_min));
-                 p2.render(gl, center_p2);
+                p2.render(gl, center_p2);
+                // Render all Effects in Camera
+                for e in &p2.get_effect_handler().effects {
+                    if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                        e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                        let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                  coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                        e.render(gl, center);
+                    }
+                }
             }
             // Render all bots
             for b in &mut self.bots {
@@ -201,12 +212,25 @@ impl<'a> App<'a> {
                         let center_b1 = c.transform.trans(coord_to_pixel_x(b.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(b.coord.get_y(), range.y_min));
                         b.render(gl, center_b1);
+                        // Render all Effects in Camera
+                        for e in &b.effect.effects {
+                        if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                            e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                            let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                      coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                            e.render(gl, center);
+                        }
+                    }           
                 }
             }
         });
     }
     /// Updates all Players, Bots, effects and camera
-    fn on_update(&mut self, args: & UpdateArgs, level: &mut Level, state: usize, sounds: &mut SoundHandler) {
+    fn on_update(&mut self,
+                 args: &UpdateArgs,
+                 level: &mut Level,
+                 state: usize,
+                 mut sounds: &mut SoundHandler) {
         // Update Coordinates
         let coord1 = self.player_one.coord.clone();
         let mut coord2 = coord1.clone();
@@ -216,21 +240,16 @@ impl<'a> App<'a> {
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        self.player_one.on_update(args, range, level, InteractableType::Player(1));
+        self.player_one.on_update(args, range, level, InteractableType::Player(1), &mut sounds);
         self.hub_one.on_update(&self.player_one);
         for i in &mut self.items {
             i.collect(&mut self.player_one);
         }
-        for e in &mut self.player_one.effect.effects{
-            if !e.get_played(){
-                sounds.play(e.get_sound_str());
-                e.played();
-            }
-        }
         
+
         // Update Player two
         if let Some(ref mut x) = self.player_two {
-            x.on_update(args, range, level, InteractableType::Player(2));
+            x.on_update(args, range, level, InteractableType::Player(2), &mut sounds);
             self.hub_two.on_update(x);
             for i in &mut self.items {
                 i.collect(x);
@@ -239,7 +258,7 @@ impl<'a> App<'a> {
         }
         // Updates bots
         for b in &mut self.bots {
-            b.on_update(args, range, level, state);
+            b.on_update(args, range, level, state, &mut sounds);
         }
         // Update Camera
         self.cam.calc_coordinates(coord1, coord2, level);
@@ -248,10 +267,7 @@ impl<'a> App<'a> {
     }
 
     /// Handles Input
-    fn on_input(&mut self,
-                inp: Button,
-                pressed: bool,
-                level: &mut Level) {
+    fn on_input(&mut self, inp: Button, pressed: bool, level: &mut Level) {
 
         match inp {
             Button::Keyboard(Key::Q) => {
@@ -322,7 +338,6 @@ impl<'a> App<'a> {
                 }
             }
             Button::Keyboard(Key::Space) => {
-
                 match self.player_one.weapon {
                     EffectOption::Dagger => {
                         let dir = self.player_one.dir;
