@@ -92,6 +92,7 @@ pub struct App<'a> {
     cam: Cam,
     hub_one: PlayerHub<'a>,
     hub_two: PlayerHub<'a>,
+    muted: bool,
 }
 
 impl<'a> App<'a> {
@@ -120,6 +121,7 @@ impl<'a> App<'a> {
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
             hub_one: PlayerHub::new("Player One", None),
             hub_two: PlayerHub::new("Player Two", None),
+            muted: false,
         }
     }
 
@@ -227,7 +229,7 @@ impl<'a> App<'a> {
                 e.played();
             }
         }
-        
+
         // Update Player two
         if let Some(ref mut x) = self.player_two {
             x.on_update(args, range, level, InteractableType::Player(2));
@@ -251,9 +253,123 @@ impl<'a> App<'a> {
     fn on_input(&mut self,
                 inp: Button,
                 pressed: bool,
-                level: &mut Level) {
+                level: &mut Level,
+                sounds: &mut SoundHandler,
+                window: &mut PistonWindow) {
 
         match inp {
+            Button::Keyboard(Key::Escape) => {
+                if pressed {
+                    // Show menu
+                    let mut settings = true;
+
+                    let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
+                    let ref font = assets.join("font.ttf");
+                    let factory = window.factory.clone();
+                    let mut glyphs = Glyphs::new(font, factory).unwrap();
+
+                    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+                                 CAM_BORDER * 2) as u32;
+
+                    let mut sub_start_menu = Vec::with_capacity(3);
+                    sub_start_menu.push("Resume");
+                    sub_start_menu.push(match self.muted { true => "Unmute", false => "Mute" });
+                    sub_start_menu.push("Exit Game");
+                    let sub_menu_size = sub_start_menu.len();
+                    let mut sub_active_index = 0;
+
+                    while let Some(a) = window.next() {
+                        if !settings {
+                            break;
+                        }
+                        if let Some(_) = a.render_args() {
+                            window.draw_2d(&a, |c, gl| {
+                                // Clear the screen.
+                                clear(BLACK, gl);
+
+                                // Render menu
+                                text::Text::new_color(WHITE, 32)
+                                    .draw("Game Paused",
+                                          &mut glyphs,
+                                          &c.draw_state,
+                                          c.transform
+                                              .trans(width as f64 / 2.0 - 150.0, 100.0),
+                                          gl);
+
+                                let mut distance = 0.0;
+
+                                for s in &sub_start_menu {
+                                    let color =
+                                        match &sub_start_menu[sub_active_index] == s {
+                                            true => WHITE,
+                                            false => GREY,
+                                        };
+
+                                    text::Text::new_color(color, 32)
+                                        .draw(s,
+                                              &mut glyphs,
+                                              &c.draw_state,
+                                              c.transform
+                                                  .trans(width as f64 / 2.0 - 100.0,
+                                                         300.0 + distance),
+                                              gl);
+                                    distance += 50.0;
+                                }
+                            });
+                        }
+                        if let Some(b) = a.press_args() {
+                            match b {
+                                /* Check arrow keys for menu */
+                                Button::Keyboard(Key::Return) => {
+                                    match sub_active_index {
+                                        // Resume
+                                        0 => {
+                                            settings = false;
+                                        }
+                                        // Mute
+                                        1 => {
+                                            if sub_start_menu[1] == "Mute" {
+                                                for sound in sounds.map.values_mut() {
+                                                    sound.set_volume(0.0);
+                                                    self.muted = true;
+                                                }
+                                                sub_start_menu[1] = "Unmute";
+                                            } else {
+                                                for sound in sounds.map.values_mut() {
+                                                    sound.set_volume(1.0);
+                                                    self.muted = false;
+                                                }
+                                                sub_start_menu[1] = "Mute";
+                                            }
+                                        }
+                                        // Back
+                                        2 => process::exit(1),
+                                        _ => (),
+                                    }
+                                }
+                                Button::Keyboard(Key::Down) => {
+                                    if sub_active_index == sub_menu_size - 1 {
+                                        sub_active_index = 0;
+                                    } else {
+                                        sub_active_index += 1;
+                                    }
+                                }
+                                Button::Keyboard(Key::Up) => {
+                                    if sub_active_index == 0 {
+                                        sub_active_index = sub_menu_size - 1;
+                                    } else {
+                                        sub_active_index -= 1;
+                                    }
+                                }
+                                Button::Keyboard(Key::Escape) => {
+                                    settings = false;
+                                }
+                                _ => (),
+                            }
+                        }
+                    }
+                }
+            }
             Button::Keyboard(Key::Q) => {
                 if pressed {
                     self.player_one.life -= 10;
@@ -368,9 +484,9 @@ fn main() {
     let height = ((((CAMERA_BUF_Y * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                   CAM_BORDER + HUB_UP) as u32;
     let mut window: PistonWindow =
-        WindowSettings::new(format!("{}{}", GAME_NAME_PART1, GAME_NAME_PART2),
+        WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
                             [width, height])
-            .exit_on_esc(true)
+            .exit_on_esc(false)
             .fullscreen(false)
             .resizable(false)
             .build()
@@ -445,7 +561,7 @@ fn main() {
     let menu_size = start_menu.len();
 
     let mut active_index = 0;
-    sounds.play("Welcome.ogg");
+    //sounds.play("Welcome.ogg");
 
     while let Some(e) = events.next(&mut window) {
         if !start_game {
@@ -529,11 +645,13 @@ fn main() {
                                                         if sub_start_menu[1] == "Mute" {
                                                             for sound in sounds.map.values_mut() {
                                                                 sound.set_volume(0.0);
+                                                                app.muted = true;
                                                             }
                                                             sub_start_menu[1] = "Unmute";
                                                         } else {
                                                             for sound in sounds.map.values_mut() {
                                                                 sound.set_volume(1.0);
+                                                                app.muted = false;
                                                             }
                                                             sub_start_menu[1] = "Mute";
                                                         }
@@ -640,12 +758,12 @@ fn main() {
 
             // If Key-Press-Event
             if let Some(i) = e.release_args() {
-                app.on_input(i, false, &mut level);
+                app.on_input(i, false, &mut level, &mut sounds, &mut window);
             }
             // If Key-releas-Event
             if let Some(i) = e.press_args() {
 
-                app.on_input(i, true, &mut level);
+                app.on_input(i, true, &mut level, &mut sounds, &mut window);
             }
             {
                 // if update
