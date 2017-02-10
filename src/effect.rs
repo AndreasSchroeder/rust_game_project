@@ -48,19 +48,19 @@ impl<'a> Effect<'a> {
     pub fn reset_time(&mut self) {
         self.start = PreciseTime::now();
     }
-
+    /// Setter for Sound
     pub fn set_sound_str(&mut self, sound: &'a str) {
         self.sound = sound;
     }
-
+    /// Getter for Sound
     pub fn get_sound_str(&self) -> &str {
         self.sound
     }
-
+    /// Return the song was played yet
     pub fn get_played(&self) -> bool {
         self.sound_played
     }
-
+    /// Set played to true
     pub fn played(&mut self) {
         self.sound_played = true;
     }
@@ -85,7 +85,7 @@ impl<'a> EffectHandler<'a> {
     /// hadles an effect with given parameters
     /// coord: Coordinate of Effect
     /// typ: Type of Effect (Dead, Dagger-Attack...)
-    /// Direction of Effect
+    /// direction of Effect
     pub fn handle(&mut self, coord: Coordinate, typ: EffectOption, direction: LastKey) {
         // Clones given Coordinates
         let mut effect = Effect::new(coord.clone());
@@ -207,7 +207,7 @@ impl<'a> EffectHandler<'a> {
     }
 
     /// For Updating the active effects
-    pub fn on_update(&mut self, args: &UpdateArgs) {
+    pub fn on_update(&mut self) {
         // If effect lasts longer than 1 sec, effect was rendered and can be removed
         self.effects.retain(|ref i| i.start.to(PreciseTime::now()).num_milliseconds() <= 1000);
     }

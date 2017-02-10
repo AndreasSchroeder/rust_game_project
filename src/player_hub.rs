@@ -14,7 +14,6 @@ use player::Player;
 /// item: Item of Player
 /// map: SpriteMap with all Sprites
 pub struct PlayerHub<'a> {
-    name: String,
     life: u64,
     item: EffectOption,
     map: Option<&'a SpriteMap>,
@@ -22,9 +21,8 @@ pub struct PlayerHub<'a> {
 
 impl<'a> PlayerHub<'a> {
     /// Constructor
-    pub fn new(name: &str, map: Option<&'a SpriteMap>) -> Self {
+    pub fn new(map: Option<&'a SpriteMap>) -> Self {
         PlayerHub {
-            name: name.to_string(),
             life: 100,
             item: EffectOption::Dagger,
             map: map,
@@ -45,21 +43,6 @@ impl<'a> PlayerHub<'a> {
     /// Set Item
     pub fn set_item(&mut self, weapon: EffectOption) {
         self.item = weapon;
-    }
-
-    /// Get Item
-    pub fn get_item(&self) -> &EffectOption {
-        &self.item
-    }
-
-    /// Get Name
-    pub fn get_name(&self) -> &String {
-        &self.name
-    }
-
-    /// Get life
-    pub fn get_life(&self) -> u64 {
-        self.life
     }
 
     /// set life

@@ -1,17 +1,17 @@
 use piston_window::*;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
-use camera::Range;
 use io::sprite::Sprite;
 use level::Level;
 use rand::Rng;
 use rand;
 use renderable::Renderable;
-use gfx_device_gl::Resources;
-use gfx_device_gl::CommandBuffer;
-use gfx_graphics::GfxGraphics;
 use time::PreciseTime;
 use player::LastKey;
 use effect::EffectHandler;
@@ -65,7 +65,6 @@ impl<'a> Bot<'a> {
     }
 
     pub fn on_update(&mut self,
-                     args: &UpdateArgs,
                      mut level: &mut Level,
                      state: usize,
                      sounds: &mut SoundHandler,
@@ -116,7 +115,7 @@ impl<'a> Bot<'a> {
 
             }
         }
-        self.effect.on_update(args);
+        self.effect.on_update();
 
 
         for e in &mut self.effect.effects {
