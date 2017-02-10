@@ -34,16 +34,16 @@ impl Coordinate {
             vec.push((&level.get_field_at(self.x as usize - 1, self.y as usize), LastKey::Left));
         }
         if self.y > 0 {
-            vec.push((&level.get_field_at(self.x as usize , self.y as usize - 1), LastKey::Up));
+            vec.push((&level.get_field_at(self.x as usize, self.y as usize - 1), LastKey::Up));
         }
         if self.y < level.get_width() as u64 {
             vec.push((&level.get_field_at(self.x as usize + 1, self.y as usize), LastKey::Right));
         }
         if self.y < level.get_height() as u64 {
-            vec.push((&level.get_field_at(self.x as usize , self.y as usize + 1), LastKey::Down));
+            vec.push((&level.get_field_at(self.x as usize, self.y as usize + 1), LastKey::Down));
         }
-        
-        
+
+
         vec
     }
 

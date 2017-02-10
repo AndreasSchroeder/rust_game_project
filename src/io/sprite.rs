@@ -34,7 +34,13 @@ impl Sprite {
     }
 
     /// Read all Sprites for Animation
-    pub fn fill_sprite(path: &str, width: u32, heigth: u32, animation_time: u64, once: bool, mut w: &mut PistonWindow) -> Self {
+    pub fn fill_sprite(path: &str,
+                       width: u32,
+                       heigth: u32,
+                       animation_time: u64,
+                       once: bool,
+                       mut w: &mut PistonWindow)
+                       -> Self {
         // Sprites are located here Create Path
         let sprite_path = match find_folder::Search::ParentsThenKids(2, 2).for_folder("Sprites") {
             Ok(res) => res.join(path),
@@ -89,8 +95,8 @@ impl Sprite {
                   dt: u64,
                   mirror_h: bool,
                   degree: u32) {
-        if self.once && dt >= self.animation_time {}
-        else{
+        if self.once && dt >= self.animation_time {
+        } else {
             let mut frame = 0;
             let mut new_dt = dt % self.animation_time;
             // choose animation by time
@@ -100,14 +106,15 @@ impl Sprite {
                     new_dt = (dt % self.animation_time) - *val as u64;
                 }
             }
-        
+
 
             // render image
             image(&self.set[frame as usize],
                   if mirror_h {
                       // translate
-                      view.flip_h().trans((-1 * (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as i64) as f64,
-                                          0.0)
+                      view.flip_h()
+                          .trans((-1 * (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as i64) as f64,
+                                 0.0)
                   } else if degree == 270 {
                       view.trans(0.0, (SIZE_PER_TILE + BORDER_BETWEEN_TILES) as f64)
                           .rot_deg(degree as f64)

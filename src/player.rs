@@ -78,7 +78,7 @@ impl<'a> Player<'a> {
                      range: Range,
                      level: &mut Level,
                      it: InteractableType,
-                      sounds: &mut SoundHandler) {
+                     sounds: &mut SoundHandler) {
         if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
             self.dt = PreciseTime::now();
         }
@@ -182,10 +182,10 @@ impl<'a> Actor for Player<'a> {
         let pos = &self.coord.clone();
         if self.delay_attack == false {
             match self.dir {
-                LastKey::Wait => {},
+                LastKey::Wait => {}
                 _ => {
                     self.effect.handle(self.coord, self.weapon, self.dir);
-                },
+                }
             }
 
             match self.weapon {
@@ -193,70 +193,70 @@ impl<'a> Actor for Player<'a> {
                     match self.dir {
                         LastKey::Up => {
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
-                        },
+                        }
                         LastKey::Down => {
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
-                        },
+                        }
                         LastKey::Left => {
                             targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
                         }
                         LastKey::Right => {
                             targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
-                        },
-                        _ => {},
+                        }
+                        _ => {}
                     }
-                },
+                }
                 EffectOption::Sword => {
-                    for i in 0..3{
+                    for i in 0..3 {
                         match self.dir {
                             LastKey::Up => {
                                 targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
-                            },
+                            }
                             LastKey::Down => {
                                 targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
 
-                            },
+                            }
                             LastKey::Left => {
                                 targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
 
-                            },
+                            }
                             LastKey::Right => {
                                 targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
 
-                            },
-                            _ => {},
+                            }
+                            _ => {}
                         }
                     }
-                },
+                }
                 EffectOption::Spear => {
                     match self.dir {
                         LastKey::Up => {
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 2) as usize].get_fieldstatus());
 
-                        },
+                        }
                         LastKey::Down => {
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() + 2) as usize].get_fieldstatus());
 
-                        },
+                        }
                         LastKey::Left => {
                             targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
                             targets.push(level.get_data()[(pos.get_x() - 2) as usize][(pos.get_y()) as usize].get_fieldstatus());
 
-                        },
+                        }
                         LastKey::Right => {
                             targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y()) as usize].get_fieldstatus());
                             targets.push(level.get_data()[(pos.get_x() + 2) as usize][(pos.get_y()) as usize].get_fieldstatus());
 
-                        },
-                        _ => {},
+                        }
+                        _ => {}
                     }
-                },
-                _ => {},
+                }
+                _ => {}
             }
             self.delay_attack = true;
-     }
+        }
 
 
         for t in targets {
@@ -265,7 +265,7 @@ impl<'a> Actor for Player<'a> {
                     InteractableType::Player(_) => {}
                     InteractableType::Bot(id) => {
                         //x.conv_to_actor().damage_taken(self.dmg)
-                        if let &mut Some(ref mut e) = &mut enemy[id as usize]{
+                        if let &mut Some(ref mut e) = &mut enemy[id as usize] {
                             if e.is_alive() {
                                 e.damage_taken(self.dmg);
                             }

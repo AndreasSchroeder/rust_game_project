@@ -97,7 +97,10 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     /// Constructor
-    fn new(players: Vec<Option<Player<'a>>>, bots: Vec<Option<Bot<'a>>>,   items: Vec<Item<'a>>) -> Self {
+    fn new(players: Vec<Option<Player<'a>>>,
+           bots: Vec<Option<Bot<'a>>>,
+           items: Vec<Item<'a>>)
+           -> Self {
 
         App {
             players: players,
@@ -220,7 +223,7 @@ impl<'a> App<'a> {
 
 
         let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
-            (&None, &None) => (Coordinate::new(0,0), Coordinate::new(0,0)),
+            (&None, &None) => (Coordinate::new(0, 0), Coordinate::new(0, 0)),
             (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
             (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
             (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
@@ -228,10 +231,18 @@ impl<'a> App<'a> {
         // Update range with coordinates
         let range = self.cam.get_range_update();
         // Update Player one
-        for x in &mut self.players{
+        for x in &mut self.players {
             if let &mut Some(ref mut p) = x {
-                let id = if let InteractableType::Player(x) = p.get_interactable_type() {x} else {42};
-                p.on_update(args, range, level, InteractableType::Player(id), &mut sounds);
+                let id = if let InteractableType::Player(x) = p.get_interactable_type() {
+                    x
+                } else {
+                    42
+                };
+                p.on_update(args,
+                            range,
+                            level,
+                            InteractableType::Player(id),
+                            &mut sounds);
                 if id == 1 {
                     self.hub_one.on_update(&p);
                 } else if id == 2 {
@@ -242,8 +253,8 @@ impl<'a> App<'a> {
                 for i in &mut self.items {
                     i.collect(p);
                 }
-                for e in &mut p.effect.effects{
-                    if !e.get_played(){
+                for e in &mut p.effect.effects {
+                    if !e.get_played() {
                         sounds.play(e.get_sound_str());
                         e.played();
                     }
@@ -254,20 +265,24 @@ impl<'a> App<'a> {
         let mut dead = Vec::new();
         for x in &mut self.bots {
 
-            if let &mut Some(ref mut b) = x{
-                if !b.is_alive() && !b.dead{
-                    b.effect.handle(b.coord, EffectOption::Dead, LastKey::Wait);
-                    b.dead = true;
-                    level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize].free_fieldstatus();
-                    dead.push(
-                        match b.get_interactable_type() {
-                            InteractableType::Bot(i) => i,
-                            _ => {panic!("No Bot found!");},
+            if let &mut Some(ref mut b) = x {
+                if !b.is_alive() {
+                    if !b.dead {
+                        b.effect.handle(b.coord, EffectOption::Dead, LastKey::Wait);
+                        b.dead = true;
+                    }
+                    level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize]
+                        .free_fieldstatus();
+                    dead.push(match b.get_interactable_type() {
+                        InteractableType::Bot(i) => i,
+                        _ => {
+                            panic!("No Bot found!");
                         }
-                    );
-                } else {
-                    b.on_update(args, level, state, &mut sounds, &mut self.players);
+                    });
                 }
+                b.on_update(args, level, state, &mut sounds, &mut self.players);
+
+
             }
         }
 
@@ -302,7 +317,10 @@ impl<'a> App<'a> {
 
         let mut sub_start_menu = Vec::with_capacity(3);
         sub_start_menu.push("Resume");
-        sub_start_menu.push(match self.muted { true => "Unmute", false => "Mute" });
+        sub_start_menu.push(match self.muted {
+            true => "Unmute",
+            false => "Mute",
+        });
         sub_start_menu.push("Exit Game");
         let sub_menu_size = sub_start_menu.len();
         let mut sub_active_index = 0;
@@ -317,31 +335,30 @@ impl<'a> App<'a> {
                     clear(BLACK, gl);
 
                     // Render menu
-                    text::Text::new_color(WHITE, 32)
-                        .draw("Game Paused",
-                              &mut glyphs,
-                              &c.draw_state,
-                              c.transform
-                                  .trans(width as f64 / 2.0 - 150.0, 100.0),
-                              gl);
+                    text::Text::new_color(WHITE, 32).draw("Game Paused",
+                                                          &mut glyphs,
+                                                          &c.draw_state,
+                                                          c.transform
+                                                              .trans(width as f64 / 2.0 - 150.0,
+                                                                     100.0),
+                                                          gl);
 
                     let mut distance = 0.0;
 
                     for s in &sub_start_menu {
-                        let color =
-                            match &sub_start_menu[sub_active_index] == s {
-                                true => WHITE,
-                                false => GREY,
-                            };
+                        let color = match &sub_start_menu[sub_active_index] == s {
+                            true => WHITE,
+                            false => GREY,
+                        };
 
-                        text::Text::new_color(color, 32)
-                            .draw(s,
-                                  &mut glyphs,
-                                  &c.draw_state,
-                                  c.transform
-                                      .trans(width as f64 / 2.0 - 100.0,
-                                             300.0 + distance),
-                                  gl);
+                        text::Text::new_color(color, 32).draw(s,
+                                                              &mut glyphs,
+                                                              &c.draw_state,
+                                                              c.transform
+                                                                  .trans(width as f64 / 2.0 -
+                                                                         100.0,
+                                                                         300.0 + distance),
+                                                              gl);
                         distance += 50.0;
                     }
                 });
@@ -500,8 +517,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
                         p.attack(level, &mut self.bots);
-                    }
-                    else {
+                    } else {
                         p.delay_attack = false;
                     }
                 }
@@ -510,8 +526,7 @@ impl<'a> App<'a> {
                 if let &mut Some(ref mut p) = &mut self.players[1] {
                     if pressed {
                         p.attack(level, &mut self.bots);
-                    }
-                    else {
+                    } else {
                         p.delay_attack = false;
                     }
                 }
@@ -549,20 +564,18 @@ fn select_player(window: &mut PistonWindow) -> bool {
                 let mut distance = 0.0;
 
                 for s in &start_menu {
-                    let color =
-                        match &start_menu[active_index] == s {
-                            true => WHITE,
-                            false => GREY,
-                        };
+                    let color = match &start_menu[active_index] == s {
+                        true => WHITE,
+                        false => GREY,
+                    };
 
-                    text::Text::new_color(color, 32)
-                        .draw(s,
-                              &mut glyphs,
-                              &c.draw_state,
-                              c.transform
-                                  .trans(width as f64 / 2.0 - 100.0,
-                                         300.0 + distance),
-                              gl);
+                    text::Text::new_color(color, 32).draw(s,
+                                                          &mut glyphs,
+                                                          &c.draw_state,
+                                                          c.transform
+                                                              .trans(width as f64 / 2.0 - 100.0,
+                                                                     300.0 + distance),
+                                                          gl);
                     distance += 50.0;
                 }
             });
@@ -605,12 +618,19 @@ fn select_player(window: &mut PistonWindow) -> bool {
     two_players
 }
 
-fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, glyphs: &mut Glyphs, start_menu: &[&str], ai: u32, app: &mut App) -> (bool, bool, u32) {
+fn show_menu(e: Event,
+             window: &mut PistonWindow,
+             sounds: &mut SoundHandler,
+             glyphs: &mut Glyphs,
+             start_menu: &[&str],
+             ai: u32,
+             app: &mut App)
+             -> (bool, bool, u32) {
     let mut active_index = ai;
     let mut start_game = false;
     let mut two_players = false;
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
-             CAM_BORDER * 2) as u32;
+                 CAM_BORDER * 2) as u32;
     if let Some(i) = e.press_args() {
         match i {
             /* Check arrow keys for menu */
@@ -626,7 +646,7 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                             None => (),
                         };
                         two_players = select_player(window);
-                    },
+                    }
                     // Load Game
                     1 => (),
                     // Settings
@@ -634,7 +654,8 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                         // Submenu Settings
                         let mut settings = true;
 
-                        let mut sub_start_menu = vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                        let mut sub_start_menu =
+                            vec!["Fullscreen (not working yet)", "Mute", "Back"];
                         let sub_menu_size = sub_start_menu.len();
                         let mut sub_active_index = 0;
 
@@ -648,31 +669,35 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                                     clear(BLACK, gl);
 
                                     // Render menu
-                                    text::Text::new_color(WHITE, 32)
-                                        .draw(start_menu[2],
-                                              glyphs,
-                                              &c.draw_state,
-                                              c.transform
-                                                  .trans(width as f64 / 2.0 - 80.0, 100.0),
-                                              gl);
+                                    text::Text::new_color(WHITE, 32).draw(start_menu[2],
+                                                                          glyphs,
+                                                                          &c.draw_state,
+                                                                          c.transform
+                                                                              .trans(width as f64 /
+                                                                                     2.0 -
+                                                                                     80.0,
+                                                                                     100.0),
+                                                                          gl);
 
                                     let mut distance = 0.0;
 
                                     for s in &sub_start_menu {
-                                        let color =
-                                            match &sub_start_menu[sub_active_index] == s {
-                                                true => WHITE,
-                                                false => GREY,
-                                            };
+                                        let color = match &sub_start_menu[sub_active_index] == s {
+                                            true => WHITE,
+                                            false => GREY,
+                                        };
 
-                                        text::Text::new_color(color, 32)
-                                            .draw(s,
-                                                  glyphs,
-                                                  &c.draw_state,
-                                                  c.transform
-                                                      .trans(width as f64 / 2.0 - 100.0,
-                                                             300.0 + distance),
-                                                  gl);
+                                        text::Text::new_color(color, 32).draw(s,
+                                                                              glyphs,
+                                                                              &c.draw_state,
+                                                                              c.transform
+                                                                                  .trans(width as
+                                                                                         f64 /
+                                                                                         2.0 -
+                                                                                         100.0,
+                                                                                         300.0 +
+                                                                                         distance),
+                                                                              gl);
                                         distance += 50.0;
                                     }
                                 });
@@ -766,15 +791,13 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                                                   glyphs,
                                                   &c.draw_state,
                                                   c.transform
-                                                      .trans(width as f64 / 2.0 - 180.0,
-                                                             100.0),
+                                                      .trans(width as f64 / 2.0 - 180.0, 100.0),
                                                   gl);
             text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART2,
                                                   glyphs,
                                                   &c.draw_state,
                                                   c.transform
-                                                      .trans(width as f64 / 2.0 - 200.0,
-                                                             150.0),
+                                                      .trans(width as f64 / 2.0 - 200.0, 150.0),
                                                   gl);
 
             let mut distance = 0.0;
@@ -789,8 +812,7 @@ fn show_menu(e: Event, window: &mut PistonWindow, sounds: &mut SoundHandler, gly
                                                       glyphs,
                                                       &c.draw_state,
                                                       c.transform
-                                                          .trans(width as f64 / 2.0 -
-                                                                 100.0,
+                                                          .trans(width as f64 / 2.0 - 100.0,
                                                                  400.0 + distance),
                                                       gl);
                 distance += 50.0;
@@ -846,7 +868,7 @@ fn main() {
 
     // insert players in level
     for x in &mut app.players {
-        if let &mut Some(ref mut p) =  x {
+        if let &mut Some(ref mut p) = x {
             level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
                 .set_fieldstatus(p.get_interactable_type());
             p.set_borders((level.get_width() as u64, level.get_height() as u64));
@@ -872,7 +894,7 @@ fn main() {
     // Load sprite for each bot and set borders
     for x in &mut app.bots {
         if let &mut Some(ref mut b) = x {
-                b.set_borders((level.get_width() as u64, level.get_height() as u64));
+            b.set_borders((level.get_width() as u64, level.get_height() as u64));
         }
     }
 
@@ -890,12 +912,19 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         if !start_game {
-            let (start, two_players, index) = show_menu(e, &mut window, &mut sounds, &mut glyphs, &start_menu, active_index, &mut app);
+            let (start, two_players, index) = show_menu(e,
+                                                        &mut window,
+                                                        &mut sounds,
+                                                        &mut glyphs,
+                                                        &start_menu,
+                                                        active_index,
+                                                        &mut app);
             start_game = start;
             active_index = index;
             if start_game && !two_players {
                 if let Some(ref mut p) = app.players[1] {
-                    level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].free_fieldstatus();
+                    level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
+                        .free_fieldstatus();
                 }
                 app.players[1] = None;
             }
