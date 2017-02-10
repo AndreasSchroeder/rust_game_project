@@ -30,6 +30,7 @@ pub struct Bot<'a> {
     dt: PreciseTime,
     watch_rigth: bool,
     pub effect: EffectHandler<'a>,
+    pub dead: bool,
 }
 
 impl<'a> Bot<'a> {
@@ -46,6 +47,7 @@ impl<'a> Bot<'a> {
             dt: PreciseTime::now(),
             watch_rigth: false,
             effect: EffectHandler::new(map),
+            dead: false,
         }
     }
 
