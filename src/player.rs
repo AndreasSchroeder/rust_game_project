@@ -86,7 +86,7 @@ impl<'a> Player<'a> {
             match self.last {
                 LastKey::Up => {
                     self.coord.move_coord_with_cam(0, -1, level, range);
-                    
+
                     /* Update new position in field */
                     level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
                         .set_fieldstatus(it);
@@ -94,7 +94,7 @@ impl<'a> Player<'a> {
                 }
                 LastKey::Down => {
                     self.coord.move_coord_with_cam(0, 1, level, range);
-                
+
                     /* Update new position in field */
                     level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
                         .set_fieldstatus(it);
@@ -103,7 +103,7 @@ impl<'a> Player<'a> {
                 LastKey::Left => {
                     self.watch_rigth = false;
                     self.coord.move_coord_with_cam(-1, 0, level, range);
-                    
+
                     /* Update new position in field */
 
                     level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
@@ -114,7 +114,7 @@ impl<'a> Player<'a> {
                 LastKey::Right => {
                     self.watch_rigth = true;
                     self.coord.move_coord_with_cam(1, 0, level, range);
-                    
+
                     /* Update new position in field */
 
                     level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
@@ -178,26 +178,31 @@ impl<'a> Actor for Player<'a> {
     fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
-        //println!(" weapon: {:?}; direction: {:?}", self.weapon, dir);
         let mut targets = Vec::new();
         let pos = &self.coord.clone();
          println!("{}",self.delay_attack);
         if self.delay_attack == false {
-            self.effect.handle(self.coord, self.weapon, self.dir);
+            match self.dir {
+                LastKey::Wait => {},
+                _ => {
+                    self.effect.handle(self.coord, self.weapon, self.dir);
+                },
+            }
+
             match self.weapon {
                 EffectOption::Dagger => {
                     match self.dir {
                         LastKey::Up => {
                             targets.push(level.get_data()[(pos.get_x() - 1) as usize][pos.get_y() as usize].get_fieldstatus());
-                            
+
                         },
                         LastKey::Down => {
                             targets.push(level.get_data()[(pos.get_x() + 1) as usize][pos.get_y() as usize].get_fieldstatus());
-                            
+
                         },
                         LastKey::Left => {
                             targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() -1) as usize].get_fieldstatus());
-                            
+
                         }
                         LastKey::Right => {
                             targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() +1) as usize].get_fieldstatus());
@@ -210,19 +215,19 @@ impl<'a> Actor for Player<'a> {
                         match self.dir {
                             LastKey::Up => {
                                 targets.push(level.get_data()[(pos.get_x() - 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
-                                
+
                             },
                             LastKey::Down => {
                                 targets.push(level.get_data()[(pos.get_x() + 1) as usize][(pos.get_y() + i - 1) as usize].get_fieldstatus());
-                                
+
                             },
                             LastKey::Left => {
                                 targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() -1) as usize].get_fieldstatus());
-                                
+
                             },
                             LastKey::Right => {
                                 targets.push(level.get_data()[(pos.get_x() + i - 1) as usize][(pos.get_y() +1) as usize].get_fieldstatus());
-                                
+
                             },
                             _ => {},
                         }
@@ -233,22 +238,22 @@ impl<'a> Actor for Player<'a> {
                         LastKey::Up => {
                             targets.push(level.get_data()[(pos.get_x() - 1) as usize][pos.get_y() as usize].get_fieldstatus());
                             targets.push(level.get_data()[(pos.get_x() - 2) as usize][pos.get_y() as usize].get_fieldstatus());
-                            
+
                         },
                         LastKey::Down => {
                             targets.push(level.get_data()[(pos.get_x() + 1) as usize][pos.get_y() as usize].get_fieldstatus());
                             targets.push(level.get_data()[(pos.get_x() + 2) as usize][pos.get_y() as usize].get_fieldstatus());
-                            
+
                         },
                         LastKey::Left => {
                             targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
                             targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() - 2) as usize].get_fieldstatus());
-                            
+
                         },
                         LastKey::Right => {
                             targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() + 1) as usize].get_fieldstatus());
                             targets.push(level.get_data()[pos.get_x() as usize][(pos.get_y() + 2) as usize].get_fieldstatus());
-                            
+
                         },
                         _ => {},
                     }
@@ -260,24 +265,21 @@ impl<'a> Actor for Player<'a> {
 
 
         for t in targets {
-            match t {
-                Some(x) => {
-                    match x {
-                        InteractableType::Player(_) => {}
-                        InteractableType::Bot(id) => {
-                            //x.conv_to_actor().damage_taken(self.dmg)
-                            if let &mut Some(ref mut e) = &mut enemy[id as usize]{
-                                if e.is_alive() {
-                                    e.damage_taken(self.dmg);
-                                }
+            if let Some(x) = t {
+                match x {
+                    InteractableType::Player(_) => {}
+                    InteractableType::Bot(id) => {
+                        //x.conv_to_actor().damage_taken(self.dmg)
+                        if let &mut Some(ref mut e) = &mut enemy[id as usize]{
+                            if e.is_alive() {
+                                e.damage_taken(self.dmg);
                             }
                         }
-
-                        InteractableType::Useable(_) => {}
-                        InteractableType::Collectable(_) => {}
                     }
+
+                    InteractableType::Useable(_) => {}
+                    InteractableType::Collectable(_) => {}
                 }
-                None => {}
             }
         }
     }
