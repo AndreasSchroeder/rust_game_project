@@ -1,29 +1,31 @@
 extern crate find_folder;
 
-use super::super::bot::Bot;
-use super::super::player::Player;
-use super::super::io::tileset::Tileset;
-use super::super::io::read_tileset;
-use super::super::io::read_level;
-use super::super::level::Level;
-use super::super::io::all_sprites::SpriteMap;
+use bot::Bot;
+use player::Player;
+use io::tileset::Tileset;
+use io::read_tileset;
+use io::read_level;
+use level::Level;
+use io::all_sprites::SpriteMap;
 use std::str::FromStr;
 use std::fs::File;
 use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
 use piston_window::*;
+use item::Item;
 
-pub fn load_xml<'a>(path: &str,
-                    map: &'a SpriteMap,
-                    mut w: &mut PistonWindow)
-                    -> (Level, Tileset, Vec<Bot<'a>>, Vec<Player<'a>>) {
-    let mut bots: Vec<Bot> = Vec::new();
+pub fn load_xml<'a>
+    (path: &str,
+     map: &'a SpriteMap,
+     mut w: &mut PistonWindow)
+     -> (Level, Tileset, Vec<Option<Bot<'a>>>, Vec<Option<Player<'a>>>, Vec<Item<'a>>) {
+    let mut bots: Vec<Option<Bot>> = Vec::new();
+    let mut items: Vec<Item> = Vec::new();
     let mut tileset = Tileset::new(1, 1, 1, 1);
     let mut level = Level::with_size(0, 0);
-    let mut players = Vec::new();
+    let mut players: Vec<Option<Player>> = Vec::new();
     let mut last = String::new();
     let mut i = 0;
-
     let file = File::open(path).unwrap();
     let file = BufReader::new(file);
 
@@ -148,7 +150,7 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
                         p1.set_sprite(map.get_sprite(sprite));
-                        players.push(p1);
+                        players.push(Some(p1));
                     }
                     "player2" => {
                         let mut it = attributes.iter();
@@ -179,7 +181,7 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
                         p2.set_sprite(map.get_sprite(sprite));
-                        players.push(p2);
+                        players.push(Some(p2));
                     }
                     "bot" => {
                         let mut it = attributes.iter();
@@ -208,11 +210,44 @@ pub fn load_xml<'a>(path: &str,
                         };
                         let sprite = p.value.clone();
 
-                        let mut b = Bot::new(x, y, i);
+                        let mut b = Bot::new(x, y, i, &map);
                         b.set_sprite(map.get_sprite(sprite));
 
-                        bots.push(b);
+                        bots.push(Some(b));
                         i += 1;
+                    }
+                    "item" => {
+                        let mut it = attributes.iter();
+
+                        let x = match it.next() {
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
+                            None => panic!("Wrong xml format!"),
+                        };
+                        let y = match it.next() {
+                            Some(s) => {
+                                match u64::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
+                            None => panic!("Wrong xml format!"),
+                        };
+                        let p = match it.next() {
+                            Some(s) => s,
+                            None => panic!("Wrong xml format!"),
+                        };
+                        let sprite = p.value.clone();
+
+                        let mut item = Item::new(x, y);
+                        item.load_sprite(map, sprite);
+
+                        items.push(item);
+
                     }
                     _ => (),
                 }
@@ -233,5 +268,5 @@ pub fn load_xml<'a>(path: &str,
     }
 
 
-    (level, tileset, bots, players)
+    (level, tileset, bots, players, items)
 }

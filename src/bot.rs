@@ -1,19 +1,25 @@
 use piston_window::*;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
-use camera::Range;
 use io::sprite::Sprite;
 use level::Level;
 use rand::Rng;
 use rand;
 use renderable::Renderable;
-use gfx_device_gl::Resources;
-use gfx_device_gl::CommandBuffer;
-use gfx_graphics::GfxGraphics;
 use time::PreciseTime;
 use player::LastKey;
+use effect::EffectHandler;
+use io::all_sprites::SpriteMap;
+use sounds::SoundHandler;
+use player::Player;
+use field::Field;
+use effect::EffectOption;
 
 pub struct Bot<'a> {
     pub life: i32,
@@ -26,10 +32,12 @@ pub struct Bot<'a> {
     old_state: usize,
     dt: PreciseTime,
     watch_rigth: bool,
+    pub effect: EffectHandler<'a>,
+    pub dead: bool,
 }
 
 impl<'a> Bot<'a> {
-    pub fn new(x: u64, y: u64, id: u64) -> Self {
+    pub fn new(x: u64, y: u64, id: u64, map: &'a SpriteMap) -> Self {
         Bot {
             coord: Coordinate::new(x, y),
             interactable_type: InteractableType::Bot(id),
@@ -41,6 +49,8 @@ impl<'a> Bot<'a> {
             old_state: 0,
             dt: PreciseTime::now(),
             watch_rigth: false,
+            effect: EffectHandler::new(map),
+            dead: false,
         }
     }
 
@@ -54,50 +64,65 @@ impl<'a> Bot<'a> {
         self.sprite = sprite;
     }
 
-    pub fn on_update(&mut self, args: &UpdateArgs, range: Range, level: &mut Level, state: usize) {
-        let mut rng = rand::thread_rng();
+    pub fn on_update(&mut self,
+                     mut level: &mut Level,
+                     state: usize,
+                     sounds: &mut SoundHandler,
+                     enemy: &mut Vec<Option<Player>>) {
+        if self.is_alive() {
+            let mut rng = rand::thread_rng();
 
 
 
-        if self.old_state != state {
-            if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
-                self.dt = PreciseTime::now();
+            if self.old_state != state {
+                if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
+                    self.dt = PreciseTime::now();
+                }
+                let dir = rng.gen_range(0, 6);
+                match dir {
+                    0 => {
+                        //Up
+                        self.coord.move_coord_without_cam(0, -1, 0, 0, level);
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+                    }
+                    1 => {
+                        //Down
+                        self.coord.move_coord_without_cam(0, 1, 0, 0, level);
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+                    }
+                    2 => {
+                        //Left
+                        self.watch_rigth = false;
+                        self.coord.move_coord_without_cam(-1, 0, 0, 0, level);
+
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+
+                    }
+                    3 => {
+                        //Right
+                        self.watch_rigth = true;
+                        self.coord.move_coord_without_cam(1, 0, 0, 0, level);
+
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(self.interactable_type);
+                    }
+                    _ => self.attack(level, enemy),
+                }
+                self.old_state = state;
+
             }
-            let dir = rng.gen_range(0, 6);
-            match dir {
-                0 => {
-                    //Up
-                    self.coord.move_coord_without_cam(0, -1, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-                }
-                1 => {
-                    //Down
-                    self.coord.move_coord_without_cam(0, 1, 0, 0, level);
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-                }
-                2 => {
-                    //Left
-                    self.watch_rigth = false;
-                    self.coord.move_coord_without_cam(-1, 0, 0, 0, level);
+        }
+        self.effect.on_update();
 
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
 
-                }
-                3 => {
-                    //Right
-                    self.watch_rigth = true;
-                    self.coord.move_coord_without_cam(1, 0, 0, 0, level);
-
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(self.interactable_type);
-                }
-                _ => {}
+        for e in &mut self.effect.effects {
+            if !e.get_played() {
+                sounds.play(e.get_sound_str());
+                e.played();
             }
-
-            self.old_state = state;
         }
     }
 }
@@ -115,23 +140,22 @@ impl<'a> Actor for Bot<'a> {
         self.life -= dmg;
     }
 
-    fn attack(&mut self,
-              target: Vec<Option<InteractableType>>,
-              bots: &mut Vec<Bot>,
-              dir: LastKey) {
-        /*for t in target {
-            match t {
-                Some(x) => {
-                    match x.get_interactable_type() {
-                        InteractableType::Player(_) |
-                        InteractableType::Bot(_) => x.conv_to_actor().damage_taken(self.dmg),
-                        InteractableType::Useable(_) => {}
-                        InteractableType::Collectable(_) => {}
+
+    fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
+        where T: Actor
+    {
+        let targeting_fields: Vec<(&Field, LastKey)> = self.coord.get_neighbours(level);
+        for (f, dir) in targeting_fields {
+            if let Some(t) = f.get_fieldstatus() {
+                if let InteractableType::Player(id_in_field) = t {
+                    if let &mut Some(ref mut p) = &mut enemy[id_in_field as usize - 1] {
+                        p.damage_taken(10);
+                        self.effect.handle(self.coord, EffectOption::Chicken, dir);
+                        return;
                     }
                 }
-                None => {}
             }
-        }*/
+        }
     }
 
 
@@ -142,10 +166,6 @@ impl<'a> Actor for Bot<'a> {
 impl<'a> Interactable for Bot<'a> {
     fn get_interactable_type(&self) -> InteractableType {
         self.interactable_type
-    }
-
-    fn conv_to_actor(&mut self) -> &mut Actor {
-        self
     }
 }
 

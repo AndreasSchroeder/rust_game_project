@@ -48,20 +48,20 @@ impl<'a> Effect<'a> {
     pub fn reset_time(&mut self) {
         self.start = PreciseTime::now();
     }
-
-    pub fn set_sound_str(&mut self, sound: &'a str){
+    /// Setter for Sound
+    pub fn set_sound_str(&mut self, sound: &'a str) {
         self.sound = sound;
     }
-
+    /// Getter for Sound
     pub fn get_sound_str(&self) -> &str {
         self.sound
     }
-
+    /// Return the song was played yet
     pub fn get_played(&self) -> bool {
         self.sound_played
     }
-
-    pub fn played(&mut self){
+    /// Set played to true
+    pub fn played(&mut self) {
         self.sound_played = true;
     }
 }
@@ -85,7 +85,7 @@ impl<'a> EffectHandler<'a> {
     /// hadles an effect with given parameters
     /// coord: Coordinate of Effect
     /// typ: Type of Effect (Dead, Dagger-Attack...)
-    /// Direction of Effect
+    /// direction of Effect
     pub fn handle(&mut self, coord: Coordinate, typ: EffectOption, direction: LastKey) {
         // Clones given Coordinates
         let mut effect = Effect::new(coord.clone());
@@ -172,6 +172,34 @@ impl<'a> EffectHandler<'a> {
                     _ => {}
                 }
             }
+            (EffectOption::Chicken, x) => {
+                effect.set_sprite(self.map.get_sprite("swipe_enemy.png".to_string()));
+                effect.set_sound_str("Chicken.ogg");
+                // Match direction
+                match x {
+                    // Moves coordinate up and rotate effect
+                    LastKey::Up => {
+                        effect.coord.force_move(0, -1);
+                        effect.degree = 270
+                    }
+                    // Moves Coordinate down and rotate effect
+                    LastKey::Down => {
+                        effect.coord.force_move(0, 1);
+                        effect.degree = 90
+                    }
+                    // Moves Coordinate left and mirror effect
+                    LastKey::Left => {
+                        effect.coord.force_move(-1, 0);
+                        effect.mirror_h = true;
+                    }
+                    // Moves Coordinate right
+                    LastKey::Right => {
+                        effect.coord.force_move(1, 0);
+                    }
+                    _ => {}
+
+                }
+            }
         }
         // Resets time and push to active effects
         effect.reset_time();
@@ -179,7 +207,7 @@ impl<'a> EffectHandler<'a> {
     }
 
     /// For Updating the active effects
-    pub fn on_update(&mut self, args: &UpdateArgs) {
+    pub fn on_update(&mut self) {
         // If effect lasts longer than 1 sec, effect was rendered and can be removed
         self.effects.retain(|ref i| i.start.to(PreciseTime::now()).num_milliseconds() <= 1000);
     }
@@ -200,10 +228,11 @@ impl<'a> Renderable for Effect<'a> {
 }
 
 /// Enum with all EffectTypes
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum EffectOption {
     Dagger,
     Spear,
     Sword,
     Dead,
+    Chicken,
 }
