@@ -13,6 +13,7 @@ extern crate xml;
 
 use piston_window::*;
 use time::PreciseTime;
+use ears::AudioController;
 
 // modules
 mod player;
@@ -48,7 +49,6 @@ use renderable::Renderable;
 use io::all_sprites::SpriteMap;
 use std::process;
 use sounds::SoundHandler;
-use ears::AudioController;
 use player_hub::PlayerHub;
 use item::Item;
 use coord::Coordinate;
@@ -391,6 +391,9 @@ impl<'a> App<'a> {
                                         self.muted = false;
                                     }
                                     sub_start_menu[1] = "Mute";
+                                    if let Some(music) = sounds.map.get_mut("Background.ogg"){
+                                        music.set_volume(1.0 / 16.0);
+                                    }
                                 }
                             }
                             // Back
@@ -537,6 +540,17 @@ impl<'a> App<'a> {
                 }
             }
             _ => {}
+        }
+    }
+    fn background_music(&self, sounds: &mut SoundHandler){
+        if !self.muted{
+            let background_sound = sounds.map.get_mut("Background.ogg");
+            if let Some(music) = background_sound {
+                if !music.is_playing() {
+                    music.play();
+                }
+                music.set_volume(1.0 / 16.0);
+            }
         }
     }
 }
@@ -940,9 +954,12 @@ fn show_menu(e: Event,
         });
     }
     (start_game, two_players, active_index, state)
+    
 }
 
-/// Main
+
+
+/// Main1
 fn main() {
     // Calculate size of Window
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
@@ -1120,6 +1137,8 @@ fn main() {
                     start = PreciseTime::now();
                 }
             }
+
+            app.background_music(&mut sounds);
         }
     }
 }
