@@ -31,3 +31,19 @@ impl Level {
         &self.data[x][y]
     }
 }
+
+impl Clone for Level {
+    fn clone(&self) -> Self {
+        let mut vec = vec![vec![Field::new(0); self.width]; self.height];
+        for i in 0..self.height {
+            for j in 0..self.width {
+                vec[i][j] = self.data[i][j].clone();
+            }
+        }
+        Level {
+            data: vec,
+            width: self.width,
+            height: self.height,
+        }
+    }
+}

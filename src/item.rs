@@ -20,6 +20,7 @@ use time::PreciseTime;
 /// coord: Coordinate of ItemType
 /// item_type: The Type of the ItemType
 /// gone: If item is collected, it is gone and will be wasted
+#[derive(Clone)]
 pub struct Item<'a> {
     pub sprite: Option<&'a Sprite>,
     pub heal: u32,
@@ -49,7 +50,7 @@ impl<'a> Item<'a> {
         self.item_type = match sprite_str.as_str() {
             //If Weapon
             "weapon_dagger.png" => Some(ItemType::Weapon(EffectOption::Dagger)),
-            "weapon_broadsword.png" => Some(ItemType::Weapon(EffectOption::Sword)), 
+            "weapon_broadsword.png" => Some(ItemType::Weapon(EffectOption::Sword)),
             "weapon_spear.png" => Some(ItemType::Weapon(EffectOption::Spear)),
             // If Heal Item
             "Heart_10.png" => Some(ItemType::Heal(10)),
@@ -92,6 +93,7 @@ impl<'a> Item<'a> {
 }
 
 /// Types of Items
+#[derive(Clone)]
 pub enum ItemType {
     Weapon(EffectOption),
     Heal(u8),
