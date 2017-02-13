@@ -637,7 +637,7 @@ fn select_player(window: &mut PistonWindow) -> bool {
 }
 
 fn show_menu(e: Event,
-    window: &mut PistonWindow,
+    mut window: &mut PistonWindow,
     sounds: &mut SoundHandler,
     glyphs: &mut Glyphs,
     start_menu: &[&str],
@@ -678,7 +678,7 @@ fn show_menu(e: Event,
                         let mut settings = true;
 
                         let mut sub_start_menu =
-                            vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                            vec!["Show Controls", "Mute", "Back"];
                         let sub_menu_size = sub_start_menu.len();
                         let mut sub_active_index = 0;
 
@@ -730,17 +730,9 @@ fn show_menu(e: Event,
                                     /* Check arrow keys for menu */
                                     Button::Keyboard(Key::Return) => {
                                         match sub_active_index {
-                                            // Fullscreen
+                                            // Controls
                                             0 => {
-                                                /* Neue Zuweisung funktioniert leider nicht (panickt!)
-                                                   Neue Idee gesucht
-                                                 window = WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
-                                                            [width, height])
-                                                    .exit_on_esc(true)
-                                                    .fullscreen(true)
-                                                    .resizable(false)
-                                                    .build()
-                                                    .unwrap();*/
+                                                show_controls(&mut window);
                                             }
                                             // Mute
                                             1 => {
@@ -776,6 +768,9 @@ fn show_menu(e: Event,
                                         } else {
                                             sub_active_index -= 1;
                                         }
+                                    }
+                                    Button::Keyboard(Key::Escape) => {
+                                        settings = false;
                                     }
                                     _ => (),
                                 }
@@ -954,10 +949,123 @@ fn show_menu(e: Event,
         });
     }
     (start_game, two_players, active_index, state)
-    
+
 }
 
+fn show_controls(window: &mut PistonWindow) {
+    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+             CAM_BORDER * 2) as u32;
 
+    let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
+    let ref font = assets.join("font.ttf");
+    let factory = window.factory.clone();
+    let mut glyphs = Glyphs::new(font, factory).unwrap();
+
+    while let Some(a) = window.next() {
+        if let Some(_) = a.render_args() {
+            window.draw_2d(&a, |c, gl| {
+                // Clear the screen.
+                clear(BLACK, gl);
+
+
+                text::Text::new_color(WHITE, 32).draw("Controls",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 80.0, 100.0),
+                                                  gl);
+
+                /* Controls Player 1 */
+                text::Text::new_color(GREY, 32).draw("Player 1",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 100.0, 150.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Movement:",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 150.0, 250.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[W]",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 50.0, 350.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[A]    [S]    [D]",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 150.0, 400.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Attack: [RETURN]",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 150.0, 500.0),
+                                                  gl);
+
+                /* Controls Player 2 */
+                text::Text::new_color(GREY, 32).draw("Player 2",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 50.0, 150.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Movement:",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 150.0, 250.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[▲]",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 15.0, 350.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[◀]    [▼]    [▶]",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 150.0, 400.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Attack: [SPACE]",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 150.0, 500.0),
+                                                  gl);
+
+                text::Text::new_color(WHITE, 32).draw("Back",
+                                                  &mut glyphs,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 50.0, 600.0),
+                                                  gl);
+            });
+        }
+        if let Some(i) = a.press_args() {
+            match i {
+                Button::Keyboard(Key::Return) |
+                Button::Keyboard(Key::Escape) => {
+                    return;
+                },
+                _ => (),
+            }
+        }
+    }
+}
 
 /// Main1
 fn main() {
