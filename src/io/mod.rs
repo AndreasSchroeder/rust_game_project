@@ -16,11 +16,12 @@ use std::str::FromStr;
 use self::tileset::Tileset;
 use level::Level;
 use field::Field;
+use gfx_device_gl::Factory;
 
 const SCALE_FACTOR: f64 = 4.0;
 
 pub fn read_tileset(path: &str,
-                    mut w: &mut PistonWindow,
+                    factory: &mut Factory,
                     th: u32,
                     tw: u32,
                     tsh: u32,
@@ -44,7 +45,7 @@ pub fn read_tileset(path: &str,
                 .to_rgba();
 
             tileset.get_set()
-                .push(Texture::from_image(&mut w.factory, &tile, &TextureSettings::new()).unwrap());
+                .push(Texture::from_image(factory, &tile, &TextureSettings::new()).unwrap());
         }
     }
 

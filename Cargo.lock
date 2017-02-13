@@ -4,14 +4,12 @@ version = "0.1.0"
 dependencies = [
  "ears 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "find_folder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gfx 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gfx_device_gl 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston2d-gfx_graphics 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston_window 0.62.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)",
- "vecmath 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "xml-rs 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

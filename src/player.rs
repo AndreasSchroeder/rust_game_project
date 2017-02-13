@@ -77,68 +77,93 @@ impl<'a> Player<'a> {
                      level: &mut Level,
                      it: InteractableType,
                      sounds: &mut SoundHandler) {
-        if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
-            self.dt = PreciseTime::now();
-        }
-        if self.no_more == true {
-            match self.last {
-                LastKey::Up => {
-                    self.coord.move_coord_with_cam(0, -1, level, range);
-
-                    /* Update new position in field */
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(it);
-                    //self.creature.moves(0.0, -65.0);
-                }
-                LastKey::Down => {
-                    self.coord.move_coord_with_cam(0, 1, level, range);
-
-                    /* Update new position in field */
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(it);
-                    //self.creature.moves(0.0, 65.0);
-                }
-                LastKey::Left => {
-                    self.watch_rigth = false;
-                    self.coord.move_coord_with_cam(-1, 0, level, range);
-
-                    /* Update new position in field */
-
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(it);
-
-                    //self.creature.moves(-65.0, 0.0);
-                }
-                LastKey::Right => {
-                    self.watch_rigth = true;
-                    self.coord.move_coord_with_cam(1, 0, level, range);
-
-                    /* Update new position in field */
-
-                    level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
-                        .set_fieldstatus(it);
-
-                }
-                _ => {}
+        if self.is_alive() {
+            if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
+                self.dt = PreciseTime::now();
             }
-            self.no_more = false;
-        }
-        if !self.pressed {
-            self.last = LastKey::Wait;
-            self.no_more = true;
-        }
+            if self.no_more == true {
+                match self.last {
+                    LastKey::Up => {
+                        self.coord.move_coord_with_cam(0, -1, level, range);
 
-        self.effect.on_update();
-        for e in &mut self.effect.effects {
-            if !e.get_played() {
-                sounds.play(e.get_sound_str());
-                e.played();
+                        /* Update new position in field */
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(it);
+                        //self.creature.moves(0.0, -65.0);
+                    }
+                    LastKey::Down => {
+                        self.coord.move_coord_with_cam(0, 1, level, range);
+
+                        /* Update new position in field */
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(it);
+                        //self.creature.moves(0.0, 65.0);
+                    }
+                    LastKey::Left => {
+                        self.watch_rigth = false;
+                        self.coord.move_coord_with_cam(-1, 0, level, range);
+
+                        /* Update new position in field */
+
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(it);
+
+                        //self.creature.moves(-65.0, 0.0);
+                    }
+                    LastKey::Right => {
+                        self.watch_rigth = true;
+                        self.coord.move_coord_with_cam(1, 0, level, range);
+
+                        /* Update new position in field */
+
+                        level.get_data()[self.coord.get_x() as usize][self.coord.get_y() as usize]
+                            .set_fieldstatus(it);
+
+                    }
+                    _ => {}
+                }
+                self.no_more = false;
+            }
+            if !self.pressed {
+                self.last = LastKey::Wait;
+                self.no_more = true;
+            }
+
+            self.effect.on_update();
+            for e in &mut self.effect.effects {
+                if !e.get_played() {
+                    sounds.play(e.get_sound_str());
+                    e.played();
+                }
             }
         }
     }
 
     pub fn get_effect_handler(&self) -> &EffectHandler {
         &self.effect
+    }
+
+    pub fn clone_without_effects(&self, map: &'a SpriteMap) -> Self {
+        Player {
+            coord: self.coord.clone(),
+            last: self.last.clone(),
+            interactable_type: self.interactable_type.clone(),
+            life: self.life.clone(),
+            dmg: self.dmg.clone(),
+            //inv: Inventory::new(),
+            pressed: self.pressed.clone(),
+            level_w: self.level_w.clone(),
+            level_h: self.level_h.clone(),
+            sprite: self.sprite.clone(),
+            no_more: self.no_more.clone(),
+            weapon: self.weapon.clone(),
+            dt: self.dt.clone(),
+            watch_rigth: self.watch_rigth.clone(),
+            effect: EffectHandler::new(map),
+            dir: self.dir.clone(),
+            dead: self.dead.clone(),
+            delay_attack: self.delay_attack.clone(),
+        }
     }
 }
 

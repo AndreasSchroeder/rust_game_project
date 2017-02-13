@@ -125,6 +125,23 @@ impl<'a> Bot<'a> {
             }
         }
     }
+
+    pub fn clone_without_effects(&self, map: &'a SpriteMap) -> Self {
+        Bot {
+            life: self.life.clone(),
+            dmg: self.dmg.clone(),
+            coord: self.coord.clone(),
+            interactable_type: self.interactable_type.clone(),
+            sprite: self.sprite.clone(),
+            level_w: self.level_w.clone(),
+            level_h: self.level_h.clone(),
+            old_state: self.old_state.clone(),
+            dt: self.dt.clone(),
+            watch_rigth: self.watch_rigth.clone(),
+            effect: EffectHandler::new(map),
+            dead: self.dead.clone(),
+        }
+    }
 }
 
 impl<'a> Actor for Bot<'a> {
