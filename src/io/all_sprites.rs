@@ -89,7 +89,7 @@ const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                               image: "explosion.png",
                                               size_x: 59,
                                               size_y: 64,
-                                              dur: 1000,
+                                              dur: 500,
                                               once: false,
                                           },
                                           SpriteModel {
