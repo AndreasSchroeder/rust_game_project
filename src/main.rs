@@ -1246,9 +1246,10 @@ fn main() {
         menu_bots.push(b2);
 
         let mut game_over = false;
+        let mut winning = false;
 
         while let Some(e) = events.next(&mut window) {
-            if !game_over {
+            if !game_over && !winning {
                 if !start_game {
 
                     let (is_start, two_players, index, state) = show_menu(e,
@@ -1304,6 +1305,13 @@ fn main() {
                         game_over = app.players.iter().fold(true, |acc, x| {
                             acc && match *x { None => true, Some(_) => false }
                         });
+
+                        // Winning if all bots dead
+                        winning = app.bots.iter().fold(true, |acc, x| {
+                            acc && match *x { None => true, Some(ref b) => {
+                                b.passive
+                            } }
+                        });
                     }
                     // restart time if 1 second over
                     if now > 1000 {
@@ -1335,6 +1343,37 @@ fn main() {
                                                   &c.draw_state,
                                                   c.transform
                                                       .trans(width as f64 / 2.0 - 200.0, 200.0),
+                                                  gl);
+
+                        text::Text::new_color(WHITE, 32).draw("Go to Main Menu",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 150.0, 400.0),
+                                                  gl);
+                    });
+                }
+                if let Some(i) = a.press_args() {
+                    if i == Button::Keyboard(Key::Return) {
+                        exit = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if winning {
+            while let Some(a) = events.next(&mut window) {
+                if let Some(_) = a.render_args() {
+                    window.draw_2d(&a, |c, gl| {
+                        // Clear the screen.
+                        clear(BLACK, gl);
+
+                        text::Text::new_color(WHITE, 64).draw("You win!",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 150.0, 200.0),
                                                   gl);
 
                         text::Text::new_color(WHITE, 32).draw("Go to Main Menu",
