@@ -31,9 +31,13 @@ pub struct Bot<'a> {
     level_h: u64,
     old_state: usize,
     dt: PreciseTime,
+    // bool to determined the direction the sprite is facing
     watch_rigth: bool,
     pub effect: EffectHandler<'a>,
     pub dead: bool,
+    // bool for bot behavior:
+    // true = bot doesnt move or attack
+    // false = bot moves randomly
     pub passive: bool,
 }
 
@@ -164,6 +168,7 @@ impl<'a> Actor for Bot<'a> {
     fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
+        // check neighbouring fields for a player and attack him
         let targeting_fields: Vec<(&Field, LastKey)> = self.coord.get_neighbours(level);
         for (f, dir) in targeting_fields {
             if let Some(t) = f.get_fieldstatus() {
@@ -177,10 +182,6 @@ impl<'a> Actor for Bot<'a> {
             }
         }
     }
-
-
-
-    fn dying(&self) {}
 }
 
 impl<'a> Interactable for Bot<'a> {
