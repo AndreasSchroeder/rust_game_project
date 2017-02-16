@@ -272,6 +272,8 @@ impl<'a> App<'a> {
                         }
                     }
                 } else {
+                    p.effect.handle(p.coord, EffectOption::Player_Death, LastKey::Wait);
+
                     match level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].get_fieldstatus() {
                         Some(InteractableType::Player(i)) => {
                             match p.get_interactable_type() {
@@ -1027,7 +1029,7 @@ fn show_controls(window: &mut PistonWindow, app: &mut App) {
                                                       .trans(width as f64 / 4.0 - 150.0, 400.0),
                                                   gl);
 
-                text::Text::new_color(GREY, 32).draw("Attack: [RETURN]",
+                text::Text::new_color(GREY, 32).draw("Attack: [SPACE]",
                                                   &mut app.glyph,
                                                   &c.draw_state,
                                                   c.transform
@@ -1063,7 +1065,7 @@ fn show_controls(window: &mut PistonWindow, app: &mut App) {
                                                       .trans(width as f64 / 4.0 * 3.0 - 150.0, 400.0),
                                                   gl);
 
-                text::Text::new_color(GREY, 32).draw("Attack: [SPACE]",
+                text::Text::new_color(GREY, 32).draw("Attack: [RETURN]",
                                                   &mut app.glyph,
                                                   &c.draw_state,
                                                   c.transform

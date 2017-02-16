@@ -97,6 +97,10 @@ impl<'a> EffectHandler<'a> {
                 effect.set_sprite(self.map.get_sprite("explosion.png".to_string()));
                 effect.set_sound_str("Dead.ogg");
             }
+            (EffectOption::Player_Death, _) => {
+                effect.set_sprite(self.map.get_sprite("explosion_square.png".to_string()));
+                effect.set_sound_str("Wilhelm.ogg");
+            }
             // Dagger-Attack
             (EffectOption::Dagger, x) => {
                 effect.set_sprite(self.map.get_sprite("swipe_dagger.png".to_string()));
@@ -235,4 +239,5 @@ pub enum EffectOption {
     Sword,
     Dead,
     Chicken,
+    Player_Death,
 }
