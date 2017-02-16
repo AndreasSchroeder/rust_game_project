@@ -128,13 +128,13 @@ impl<'a> Player<'a> {
                 self.last = LastKey::Wait;
                 self.no_more = true;
             }
+        }
 
-            self.effect.on_update();
-            for e in &mut self.effect.effects {
-                if !e.get_played() {
-                    sounds.play(e.get_sound_str());
-                    e.played();
-                }
+        self.effect.on_update();
+        for e in &mut self.effect.effects {
+            if !e.get_played() {
+                sounds.play(e.get_sound_str());
+                e.played();
             }
         }
     }
