@@ -4,18 +4,35 @@
 	<file filename="level1_small_tileset.lvl"/>
 	<player1 x="2" y= "2" filename="paladin.png"/>
 	<player2 x="2" y= "3" filename="knight.png"/>
-    <bot x="3" y="3" life="100" passive="false" filename="chicken_pink.png"/>
-	<bot x="5" y="4" life="100" passive="false" filename="chicken_white.png"/>
-	<bot x="7" y="7" life="100" passive="false" filename="chicken_brown.png"/>
-	<bot x="9" y="7" life="100" passive="false" filename="chicken_pink.png"/>
-	<bot x="19" y="19" life="100" passive="false" filename="chicken_white.png"/>
-	<bot x="19" y="18" life="100" passive="false" filename="chicken_brown.png"/>
-	<bot x="18" y="19" life="100" passive="false" filename="chicken_pink.png"/>
-	<bot x="18" y="18" life="100" passive="false" filename="chicken.png"/>
-	<item x ="4" y="10" filename="Heart_10.png"/>
-	<item x ="4" y="5" filename="Heart_20.png"/>
-	<item x ="4" y="6" filename="weapon_broadsword.png"/>
-	<item x ="4" y="7" filename="weapon_dagger.png"/>
-	<item x ="4" y="8" filename="weapon_spear.png"/>
+    <bot x="6" y="6" life="20" passive="true" filename="barrel.png"/>
+	<bot x="6" y="5" life="20" passive="true" filename="barrel.png"/>
+	<bot x="13" y="10" life="20" passive="false" filename="chicken_brown.png"/>
+	<bot x="13" y="8" life="20" passive="false" filename="chicken_brown.png"/>
+	<bot x="10" y="17" life="10" passive="true" filename="chest.png"/>
+	<item x ="10" y="17" filename="weapon_broadsword.png"/>
+	<bot x="9" y="18" life="20" passive="true" filename="barrel.png"/>
+	<bot x="10" y="18" life="20" passive="true" filename="barrel.png"/>
+	<bot x="11" y="18" life="20" passive="true" filename="barrel.png"/>
+	<bot x="20" y="3" life="20" passive="false" filename="chicken_brown.png"/>
+	<bot x="18" y="16" life="60" passive="false" filename="chicken_pink.png"/>
+	<bot x="23" y="16" life="40" passive="false" filename="chicken_white.png"/>
+	<bot x="34" y="11" life="40" passive="false" filename="chicken_white.png"/>
+	<bot x="40" y="12" life="60" passive="false" filename="chicken_pink.png"/>
+	<bot x="38" y="9" life="60" passive="false" filename="chicken_brown.png"/>
+	<bot x="48" y="17" life="60" passive="false" filename="chicken_brown.png"/>
+	<bot x="49" y="16" life="60" passive="false" filename="chicken_brown.png"/>
+	<bot x="49" y="18" life="120" passive="false" filename="chicken.png"/>
+	<bot x="2" y="18" life="10" passive="true" filename="chest.png"/>
+	<item x ="2" y="18" filename="Heart_10.png"/>
+	<bot x="19" y="12" life="10" passive="true" filename="chest.png"/>
+	<item x ="19" y="12" filename="Heart_20.png"/>
+	<bot x="22" y="2" life="10" passive="true" filename="chest.png"/>
+	<item x ="22" y="2" filename="weapon_broadsword.png"/>
+	<bot x="49" y="2" life="10" passive="true" filename="chest.png"/>
+	<item x ="49" y="2" filename="weapon_spear.png"/>
+	<bot x="46" y="4" life="20" passive="true" filename="barrel.png"/>
+	<bot x="47" y="4" life="20" passive="true" filename="barrel.png"/>
+	<bot x="10" y="14" life="20" passive="true" filename="barrel.png"/>
+	<bot x="26" y="10" life="20" passive="true" filename="barrel.png"/>
 </level>
 
