@@ -271,6 +271,7 @@ impl<'a> App<'a> {
                         }
                     }
                 } else {
+                    // on player death handle death effect
                     if !p.dead {
                         p.effect.handle(p.coord, EffectOption::PlayerDeath, LastKey::Wait);
                         p.dead = true;
@@ -280,6 +281,7 @@ impl<'a> App<'a> {
                             match p.get_interactable_type() {
                                 InteractableType::Player(a) => {
                                     if i == a {
+                                        // free the field, on which the player stood
                                         level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].free_fieldstatus();
                                     }
                                 },
@@ -291,6 +293,7 @@ impl<'a> App<'a> {
                 }
             }
         }
+        // Set player to None, when death effect ends
         for i in 0..self.players.len() {
             let mut delete = false;
             if let Some(ref p) = self.players[i] {
@@ -356,6 +359,7 @@ impl<'a> App<'a> {
         let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                      CAM_BORDER * 2) as u32;
 
+        // Create menu list
         let mut sub_start_menu = Vec::with_capacity(3);
         sub_start_menu.push("Resume");
         sub_start_menu.push(match self.muted {
@@ -366,6 +370,7 @@ impl<'a> App<'a> {
         let sub_menu_size = sub_start_menu.len();
         let mut sub_active_index = 0;
 
+        // render window
         while let Some(a) = window.next() {
             if !settings {
                 break;
@@ -386,6 +391,7 @@ impl<'a> App<'a> {
 
                     let mut distance = 0.0;
 
+                    // Render menu list elements
                     for s in &sub_start_menu {
                         let color = match &sub_start_menu[sub_active_index] == s {
                             true => WHITE,
@@ -437,6 +443,7 @@ impl<'a> App<'a> {
                             _ => (),
                         }
                     }
+                    // adjust intern menu moves
                     Button::Keyboard(Key::Down) => {
                         if sub_active_index == sub_menu_size - 1 {
                             sub_active_index = 0;
@@ -598,6 +605,7 @@ impl<'a> App<'a> {
 }
 
 fn select_player(window: &mut PistonWindow, app: &mut App) -> bool {
+    // Select whether you want to play with one or two players
     let mut two_players = false;
     let mut select = true;
 
@@ -607,6 +615,7 @@ fn select_player(window: &mut PistonWindow, app: &mut App) -> bool {
     let start_menu = vec!["One Player", "Two Players"];
     let mut active_index = 0;
 
+    // render window
     while let Some(a) = window.next() {
         if !select {
             break;
@@ -653,6 +662,7 @@ fn select_player(window: &mut PistonWindow, app: &mut App) -> bool {
                     };
                     select = false;
                 }
+                // adjust intern menu moves
                 Button::Keyboard(Key::Down) => {
                     if active_index == start_menu.len() - 1 {
                         active_index = 0;
@@ -724,6 +734,7 @@ fn show_menu(e: Event,
                         let sub_menu_size = sub_start_menu.len();
                         let mut sub_active_index = 0;
 
+                        // render window
                         while let Some(a) = window.next() {
                             if !settings {
                                 break;
@@ -824,6 +835,7 @@ fn show_menu(e: Event,
                     _ => (),
                 }
             }
+            // adjust intern menu moves
             Button::Keyboard(Key::Down) => {
                 if active_index == (start_menu.len() - 1) as u32 {
                     active_index = 0;
@@ -846,33 +858,8 @@ fn show_menu(e: Event,
             // Clear the screen.
             clear(BLACK, gl);
 
+            // create moving start screen
             let temp = if state <= 500 { 0 } else { 1 };
-
-            /*
-            // Rendern von bekloppten Hühnchen
-            let mut i = 0;
-            for ref mut b in menu_bots {
-                b.render(gl, c.transform.trans(b.coord.get_x() as f64, b.coord.get_y() as f64));
-                let x = b.coord.get_x();
-                let y = b.coord.get_y();
-
-                if temp == 1 {
-                    if i % 2 == 0 {
-                        if y + 100 > height as u64 {
-                            b.coord.set_coord(x, 0);
-                        } else {
-                            b.coord.set_coord(x, y + 100);
-                        }
-                    } else {
-                        if x < 100 {
-                            b.coord.set_coord(width as u64, y);
-                        } else {
-                            b.coord.set_coord(x - 100, y);
-                        }
-                    }
-                }
-                i += 1;
-            }*/
 
             if temp == 1 {
                 // Left chicken
@@ -1222,22 +1209,7 @@ fn main() {
 
         let mut menu_bots = Vec::with_capacity(10);
 
-    /*
-        // Bekloppte Hühnchen
-        for j in 0..4 {
-            for i in 0..4 {
-                if i % 2 == 0 {
-                    let mut b = Bot::new(i * 150, j * 100, i, &map);
-                    b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
-                    menu_bots.push(b);
-                } else {
-                    let mut b = Bot::new(width as u64 - 100 - j * 100, i * 200, i, &map);
-                    b.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
-                    menu_bots.push(b);
-                }
-            }
-        }
-    */
+        // Create bots for animated start screen
         let mut b = Bot::new(150, 200, 100, false, 1, &map);
         b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
         menu_bots.push(b);
@@ -1248,10 +1220,11 @@ fn main() {
         let mut game_over = false;
         let mut winning = false;
 
+        // Start the game with the start screen
         while let Some(e) = events.next(&mut window) {
             if !game_over && !winning {
                 if !start_game {
-
+                    // show start menu
                     let (is_start, two_players, index, state) = show_menu(e,
                                                                 &mut window,
                                                                 &mut sounds,
@@ -1265,6 +1238,7 @@ fn main() {
 
                     active_index = index;
                     if start_game && !two_players {
+                        // discard settings of player two
                         if let Some(ref mut p) = app.players[1] {
                             level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
                                 .free_fieldstatus();
@@ -1353,6 +1327,7 @@ fn main() {
                                                   gl);
                     });
                 }
+                // Return to main menu
                 if let Some(i) = a.press_args() {
                     if i == Button::Keyboard(Key::Return) {
                         exit = false;
@@ -1384,6 +1359,7 @@ fn main() {
                                                   gl);
                     });
                 }
+                // Return to main menu
                 if let Some(i) = a.press_args() {
                     if i == Button::Keyboard(Key::Return) {
                         exit = false;

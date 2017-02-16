@@ -28,22 +28,26 @@ pub fn read_tileset(path: &str,
                     tsw: u32)
                     -> Tileset {
 
+    // Create new tileset with given height and width
     let mut tileset = Tileset::new(th, tw, tsh, tsw);
 
+    // Open tileset-file
     let mut ts = match im::open(path) {
         Ok(x) => x,
         Err(i) => panic!("{:?}", i),
     };
 
+    // Iterate over tiles
     for i in 0..(tileset.get_tileset_height() / tileset.get_tile_height()) {
         for j in 0..(tileset.get_tileset_width() / tileset.get_tile_width()) {
-
+            // cut each tile out
             let tile = ts.crop(j * tileset.get_tile_width(),
                       i * tileset.get_tile_height(),
                       tileset.get_tile_width(),
                       tileset.get_tile_height())
                 .to_rgba();
 
+            // insert tile into tileset
             tileset.get_set()
                 .push(Texture::from_image(factory, &tile, &TextureSettings::new()).unwrap());
         }
@@ -53,6 +57,7 @@ pub fn read_tileset(path: &str,
 }
 
 pub fn read_level(path: &str) -> Level {
+    // Open Level-File
     let mut f = match File::open(path) {
         Ok(res) => res,
         Err(e) => panic!(e),
@@ -65,6 +70,7 @@ pub fn read_level(path: &str) -> Level {
         Err(e) => panic!("{:?}", e),
     };
 
+    // Read all lines of the file
     let mut rows = buffer.lines().filter(|s| !s.is_empty());
 
     let first_row = match rows.next() {
@@ -72,8 +78,10 @@ pub fn read_level(path: &str) -> Level {
         None => panic!("No valid Level-File"),
     };
 
+    // First row contains height and width of the level
     let mut sizes = first_row.split(" ");
 
+    // set width
     let x = match sizes.next() {
         Some(x) => x,
         None => panic!("No valid Level-File"),
@@ -83,6 +91,7 @@ pub fn read_level(path: &str) -> Level {
         Err(_) => panic!("No valid Level-File"),
     };
 
+    // set height
     let y = match sizes.next() {
         Some(x) => x,
         None => panic!("No valid Level-File"),
@@ -92,46 +101,26 @@ pub fn read_level(path: &str) -> Level {
         Err(_) => panic!("No valid Level-File"),
     };
 
+    // Create Level with given size
     let mut level = Level::with_size(x_new, y_new);
 
 
-    // Zeilen
+    // Rows
     for (i, s) in rows.enumerate() {
-        // Spalten
+        // Columns
         for (j, c) in s.split(" ").filter(|s| !s.is_empty()).enumerate() {
             let n = match u64::from_str(c) {
                 Ok(a) => a,
                 Err(e) => panic!("{:?}", e),
             };
+            // Insert field into level
             level.get_data()[j][i] = Field::new(n);
         }
     }
 
     level
 }
-/*
-pub fn render_level(tileset: &Tileset,
-                    g: &mut GfxGraphics<Resources, CommandBuffer>,
-                    view: math::Matrix2d,
-                    level: &mut Level) {
-    for i in 0..level.get_height() {
-        for j in 0..level.get_width() {
-            let tile = match tileset.get_texture(level.get_data()[i][j].get_id()) {
-                Some(x) => x,
-                None => panic!("No texture found."),
-            };
 
-            render_tile(&tile,
-                        g,
-                        view,
-                        j as u32 * tileset.get_tile_height(),
-                        i as u32 * tileset.get_tile_width(),
-                        i as u32,
-                        j as u32);
-        }
-    }
-}
-*/
 pub fn render_tile(texture: &Texture<Resources>,
                    g: &mut GfxGraphics<Resources, CommandBuffer>,
                    view: math::Matrix2d,
@@ -139,7 +128,7 @@ pub fn render_tile(texture: &Texture<Resources>,
                    y_coord: u32,
                    x_offset: u32,
                    y_offset: u32) {
-    // Skaliere Tile um Faktor
+    // scale tile by scale_factor and render at given position
     image(texture,
           view.trans(y_offset as f64, x_offset as f64)
               .scale(SCALE_FACTOR, SCALE_FACTOR)
