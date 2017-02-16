@@ -184,7 +184,7 @@ impl<'a> App<'a> {
             // Render all players if not None
             for x in &mut self.players {
                 if let &mut Some(ref mut p) = x {
-                    
+
                     // position of Player in Pixel coordinates
                     let center_p = c.transform.trans(coord_to_pixel_x(p.coord.get_x(), range.x_min),
                                                   coord_to_pixel_y(p.coord.get_y(), range.y_min));
@@ -204,7 +204,7 @@ impl<'a> App<'a> {
                             e.render(gl, center);
                         }
                     }
-                    
+
                 }
             }
 
@@ -274,7 +274,7 @@ impl<'a> App<'a> {
                         }
                     }
                 } else {
-                    delete = true; 
+                    delete = true;
                     match level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].get_fieldstatus() {
                         Some(InteractableType::Player(i)) => {
                             match p.get_interactable_type() {
@@ -1232,10 +1232,10 @@ fn main() {
             }
         }
     */
-        let mut b = Bot::new(150, 200, 1, &map);
+        let mut b = Bot::new(150, 200, 100, false, 1, &map);
         b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
         menu_bots.push(b);
-        let mut b2 = Bot::new(900, 400, 2, &map);
+        let mut b2 = Bot::new(900, 400, 100, false, 2, &map);
         b2.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
         menu_bots.push(b2);
 
@@ -1295,14 +1295,14 @@ fn main() {
                         app.on_update(&mut level, state, &mut sounds);
 
                         // player one dead
-                        let alive_p1 = if let Some (ref p) = app.players[0] {   
+                        let alive_p1 = if let Some (ref p) = app.players[0] {
                             p.is_alive()
 
                         } else {
                             false
                         };
                         //player two dead
-                        let alive_p2 = if let Some (ref p) = app.players[1] {   
+                        let alive_p2 = if let Some (ref p) = app.players[1] {
                             p.is_alive()
 
                         } else {

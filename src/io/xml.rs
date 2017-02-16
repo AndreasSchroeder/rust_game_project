@@ -204,13 +204,34 @@ pub fn load_xml<'a>
                             }
                             None => panic!("Wrong xml format!"),
                         };
+
+                        let life = match it.next() {
+                            Some(s) => {
+                                match i32::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
+                            None => panic!("Wrong xml format!"),
+                        };
+
+                        let passive = match it.next() {
+                            Some(s) => {
+                                match bool::from_str(&s.value) {
+                                    Ok(n) => n,
+                                    Err(_) => panic!("{:?} is not a number!", s.value),
+                                }
+                            }
+                            None => panic!("Wrong xml format!"),
+                        };
+
                         let p = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
                         let sprite = p.value.clone();
 
-                        let mut b = Bot::new(x, y, i, &map);
+                        let mut b = Bot::new(x, y, life, passive, i, &map);
                         b.set_sprite(map.get_sprite(sprite));
 
                         bots.push(Some(b));
