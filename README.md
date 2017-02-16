@@ -1,6 +1,15 @@
-This is a project for the class "Programmieren in Rust".
+This is a project for the class "Programmieren in Rust". 
 
-This game need OpenAl and libsndfile, please install this packages bevore use.
+"Chicken Fight 3000 Ultimate Tournament!"
+
+Story:
+In the post apocalyptic world, where the government have been overrun by chickens, two brave hero's are there to save the day (by slaugthering all the chicken).
+
+Gameplay:
+Top-down Action-Adventure ("Legend of Zelda"-style) for up to 2 players.
+
+Requirments:
+This game need OpenAl and libsndfile, please install this packages before use.
 
 ## Install Packages
 
