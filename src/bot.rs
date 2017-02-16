@@ -1,17 +1,17 @@
 use piston_window::*;
+use gfx_device_gl::Resources;
+use gfx_device_gl::CommandBuffer;
+use gfx_graphics::GfxGraphics;
+
 use actor::Actor;
 use interactable::InteractableType;
 use interactable::Interactable;
 use coord::Coordinate;
-use camera::Range;
 use io::sprite::Sprite;
 use level::Level;
 use rand::Rng;
 use rand;
 use renderable::Renderable;
-use gfx_device_gl::Resources;
-use gfx_device_gl::CommandBuffer;
-use gfx_graphics::GfxGraphics;
 use time::PreciseTime;
 use player::LastKey;
 use effect::EffectHandler;
@@ -65,7 +65,6 @@ impl<'a> Bot<'a> {
     }
 
     pub fn on_update(&mut self,
-                     args: &UpdateArgs,
                      mut level: &mut Level,
                      state: usize,
                      sounds: &mut SoundHandler,
@@ -116,7 +115,7 @@ impl<'a> Bot<'a> {
 
             }
         }
-        self.effect.on_update(args);
+        self.effect.on_update();
 
 
         for e in &mut self.effect.effects {
@@ -124,6 +123,23 @@ impl<'a> Bot<'a> {
                 sounds.play(e.get_sound_str());
                 e.played();
             }
+        }
+    }
+
+    pub fn clone_without_effects(&self, map: &'a SpriteMap) -> Self {
+        Bot {
+            life: self.life.clone(),
+            dmg: self.dmg.clone(),
+            coord: self.coord.clone(),
+            interactable_type: self.interactable_type.clone(),
+            sprite: self.sprite.clone(),
+            level_w: self.level_w.clone(),
+            level_h: self.level_h.clone(),
+            old_state: self.old_state.clone(),
+            dt: self.dt.clone(),
+            watch_rigth: self.watch_rigth.clone(),
+            effect: EffectHandler::new(map),
+            dead: self.dead.clone(),
         }
     }
 }

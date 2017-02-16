@@ -11,13 +11,13 @@ use std::str::FromStr;
 use std::fs::File;
 use std::io::BufReader;
 use xml::reader::{EventReader, XmlEvent};
-use piston_window::*;
 use item::Item;
+use gfx_device_gl::Factory;
 
 pub fn load_xml<'a>
     (path: &str,
      map: &'a SpriteMap,
-     mut w: &mut PistonWindow)
+     factory: &mut Factory)
      -> (Level, Tileset, Vec<Option<Bot<'a>>>, Vec<Option<Player<'a>>>, Vec<Item<'a>>) {
     let mut bots: Vec<Option<Bot>> = Vec::new();
     let mut items: Vec<Item> = Vec::new();
@@ -26,8 +26,6 @@ pub fn load_xml<'a>
     let mut players: Vec<Option<Player>> = Vec::new();
     let mut last = String::new();
     let mut i = 0;
-    let mut j = 0;
-
     let file = File::open(path).unwrap();
     let file = BufReader::new(file);
 
@@ -98,7 +96,7 @@ pub fn load_xml<'a>
                         };
 
                         tileset = read_tileset(file_path,
-                                               &mut w,
+                                               factory,
                                                tile_height,
                                                tile_width,
                                                tileset_height,

@@ -20,6 +20,7 @@ use time::PreciseTime;
 /// coord: Coordinate of ItemType
 /// item_type: The Type of the ItemType
 /// gone: If item is collected, it is gone and will be wasted
+#[derive(Clone)]
 pub struct Item<'a> {
     pub sprite: Option<&'a Sprite>,
     pub heal: u32,
@@ -46,11 +47,10 @@ impl<'a> Item<'a> {
     /// Loads the sprite by given string from SpriteMap
     pub fn load_sprite(&mut self, map: &'a SpriteMap, sprite_str: String) {
         self.sprite = map.map.get(sprite_str.as_str());
-        println!("{}", sprite_str);
         self.item_type = match sprite_str.as_str() {
             //If Weapon
             "weapon_dagger.png" => Some(ItemType::Weapon(EffectOption::Dagger)),
-            "weapon_broadsword.png" => Some(ItemType::Weapon(EffectOption::Sword)), 
+            "weapon_broadsword.png" => Some(ItemType::Weapon(EffectOption::Sword)),
             "weapon_spear.png" => Some(ItemType::Weapon(EffectOption::Spear)),
             // If Heal Item
             "Heart_10.png" => Some(ItemType::Heal(10)),
@@ -61,19 +61,22 @@ impl<'a> Item<'a> {
 
     /// collects an Item if Player is on same field.
     pub fn collect(&mut self, player: &mut Player<'a>) {
+        // Resets time if 1 seconde is over (for Rendering)
         if self.dt.to(PreciseTime::now()).num_milliseconds() > 1000 {
             self.dt = PreciseTime::now();
         }
+        // Is Player at same position as Item?
         if player.coord.get_x() == self.coord.get_x() &&
            player.coord.get_y() == self.coord.get_y() && !self.get_gone() {
             if let Some(ref item) = self.item_type {
                 match *item {
-                    // Cahnge Weapon
+                    // Change Weapon
                     ItemType::Weapon(weapon) => player.weapon = weapon,
                     // Heal
                     ItemType::Heal(heal) => player.damage_taken(heal as i32 * -1),
                 }
             }
+            // Set to gone. Gone Items will be deletet
             self.gone();
         }
     }
@@ -83,13 +86,14 @@ impl<'a> Item<'a> {
         self.gone
     }
 
-    /// Item will be gone
+    /// Item will be gone. Gone items will be deleted
     pub fn gone(&mut self) {
         self.gone = true;
     }
 }
 
 /// Types of Items
+#[derive(Clone)]
 pub enum ItemType {
     Weapon(EffectOption),
     Heal(u8),

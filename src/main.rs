@@ -3,8 +3,6 @@ extern crate piston_window;
 extern crate find_folder;
 extern crate gfx_device_gl;
 extern crate gfx_graphics;
-extern crate gfx;
-extern crate vecmath;
 extern crate image as im;
 extern crate time;
 extern crate rand;
@@ -13,12 +11,12 @@ extern crate xml;
 
 use piston_window::*;
 use time::PreciseTime;
+use ears::AudioController;
 
 // modules
 mod player;
 mod io;
 mod level;
-//mod inventory;
 mod item;
 mod actor;
 mod field;
@@ -49,10 +47,10 @@ use renderable::Renderable;
 use io::all_sprites::SpriteMap;
 use std::process;
 use sounds::SoundHandler;
-use ears::AudioController;
 use player_hub::PlayerHub;
 use item::Item;
 use coord::Coordinate;
+use rand::Rng;
 
 //EINGABEN
 const HUB_UP: u64 = 52;
@@ -81,10 +79,13 @@ impl Settings {
 }
 
 /// Struct for the app
-/// player_one: the first Player
-/// Player_two: teh seconde Player if available
+/// players: Vector with all bots
 /// bots: Vector of all bots
+/// items: Vector of all Items
+/// hub_one: Hub for Player_one
+/// hub_two: Hub for Player_two
 /// cam: the Camera
+/// muted: For muting sounds
 pub struct App<'a> {
     players: Vec<Option<Player<'a>>>,
     bots: Vec<Option<Bot<'a>>>,
@@ -93,23 +94,30 @@ pub struct App<'a> {
     hub_one: PlayerHub<'a>,
     hub_two: PlayerHub<'a>,
     muted: bool,
+    glyph: Glyphs,
 }
 
 impl<'a> App<'a> {
     /// Constructor
     fn new(players: Vec<Option<Player<'a>>>,
            bots: Vec<Option<Bot<'a>>>,
-           items: Vec<Item<'a>>)
+           items: Vec<Item<'a>>,
+           factory: gfx_device_gl::Factory)
            -> Self {
+
+        let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
+        let ref font = assets.join("font.ttf");
+        let glyphs = Glyphs::new(font, factory).unwrap();
 
         App {
             players: players,
             bots: bots,
             items: items,
             cam: Cam::new(CAMERA_BUF_X, CAMERA_BUF_Y),
-            hub_one: PlayerHub::new("Player One", None),
-            hub_two: PlayerHub::new("Player Two", None),
+            hub_one: PlayerHub::new(None),
+            hub_two: PlayerHub::new(None),
             muted: false,
+            glyph: glyphs,
         }
     }
 
@@ -119,23 +127,29 @@ impl<'a> App<'a> {
                e: &Event,
                tileset: &Tileset,
                level: &mut Level) {
-        // Range of the camera
+        // Calculate Range of the camera
         let range = self.cam.get_range();
 
         // draw in 2D
         w.draw_2d(e, |c, gl| {
-            // Clear the screen.
+            // Clear the screen with black
             clear(BLACK, gl);
 
-            if let Some(_) = self.players[0] {
-                let center_hub_one = c.transform.trans(10.0, 10.0);
-                self.hub_one.render(gl, center_hub_one);
+            // Render Hubs only if player is available
+            if let Some(ref p) = self.players[0] {
+                if p.is_alive() {
+                    let center_hub_one = c.transform.trans(10.0, 10.0);
+                    self.hub_one.render(gl, center_hub_one);
+                }
             }
-            if let Some(_) = self.players[1] {
-                let center_hub_two = c.transform.trans(280.0, 10.0);
-                self.hub_two.render(gl, center_hub_two);
+            if let Some(ref p) = self.players[1] {
+                if p.is_alive() {
+                    let center_hub_two = c.transform.trans(280.0, 10.0);
+                    self.hub_two.render(gl, center_hub_two);
+                }
             }
 
+            // Position for Tileset in Window
             let center_lv = c.transform.trans(0.0, 0.0);
 
             // render all Tiles if in Camera range
@@ -155,54 +169,64 @@ impl<'a> App<'a> {
                 }
             }
 
-            // Render all in Camera items
+            // Render all in-camera items
             for i in &mut self.items {
                     if i.coord.get_x() >= range.x_min &&  i.coord.get_x() < range.x_max &&
-                        i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
-
+                            i.coord.get_y() >= range.y_min && i.coord.get_y() < range.y_max {
+                        // position in window for current item
                         let center_b1 = c.transform.trans(coord_to_pixel_x(i.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(i.coord.get_y(), range.y_min));
+                        // render current item
                         i.render(gl, center_b1);
                 }
             }
 
+            // Render all players if not None
             for x in &mut self.players {
                 if let &mut Some(ref mut p) = x {
-                    // position of Player one in Pixel coordinates
+                    
+                    // position of Player in Pixel coordinates
                     let center_p = c.transform.trans(coord_to_pixel_x(p.coord.get_x(), range.x_min),
                                                   coord_to_pixel_y(p.coord.get_y(), range.y_min));
-
+                    if p.is_alive() {
                     // render player one
-                    p.render(gl, center_p);
+                        p.render(gl, center_p);
+                    }
+                    // render all effects of player
                     for e in &p.get_effect_handler().effects {
-                        // Rendr all Effects in Camera
+                        // Render only Effects in Camera
                         if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
                                 e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                            // Pixel coordinates of player
                             let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
                                                           coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                            // Render effect
                             e.render(gl, center);
                         }
                     }
-
+                    
                 }
             }
 
             // Render all bots
             for x in &mut self.bots {
                 if let &mut Some(ref mut b) = x {
+                    // Render only Bots in Camera
                     if b.coord.get_x() >= range.x_min &&  b.coord.get_x() < range.x_max &&
                         b.coord.get_y() >= range.y_min && b.coord.get_y() < range.y_max {
-
+                        // Pixel coordinates of bot
                         let center_b1 = c.transform.trans(coord_to_pixel_x(b.coord.get_x(), range.x_min ),
                                                           coord_to_pixel_y(b.coord.get_y(), range.y_min));
+                        // only render if alive. Bot can be dead, but not None, untill all his effects have rendered
                         if b.is_alive(){
                             b.render(gl, center_b1);
                         }
 
-                        // Render all Effects in Camera
+                        // Render all Effects in Camera from bot
                         for e in &b.effect.effects {
                             if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
                                 e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                                // pixel coordinate of effect
                                 let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
                                                           coord_to_pixel_y(e.coord.get_y(), range.y_min));
                                 e.render(gl, center);
@@ -213,91 +237,107 @@ impl<'a> App<'a> {
             }
         });
     }
-    /// Updates all Players, Bots, effects and camera
-    fn on_update(&mut self,
-                 args: &UpdateArgs,
-                 level: &mut Level,
-                 state: usize,
-                 mut sounds: &mut SoundHandler) {
-        // Update Coordinates
-
-
-        let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
-            (&None, &None) => (Coordinate::new(0, 0), Coordinate::new(0, 0)),
-            (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
-            (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
-            (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
-        };
-        // Update range with coordinates
+    /// Updates all Players, Bots, effects, items and camera
+    fn on_update(&mut self, level: &mut Level, state: usize, mut sounds: &mut SoundHandler) {
+        // Update range
         let range = self.cam.get_range_update();
-        // Update Player one
-        for x in &mut self.players {
+        // Update Players
+        let mut delete = false;
+        let mut delete_this = 0;
+        for (index, x) in &mut self.players.iter_mut().enumerate() {
             if let &mut Some(ref mut p) = x {
-                let id = if let InteractableType::Player(x) = p.get_interactable_type() {
-                    x
+                if p.is_alive() {
+                    let id = if let InteractableType::Player(x) = p.get_interactable_type() {
+                        x
+                    } else {
+                        0
+                    };
+                    // Update Player
+                    p.on_update(range, level, InteractableType::Player(id), &mut sounds);
+                    // Update hubs
+                    if id == 1 {
+                        self.hub_one.on_update(&p);
+                    } else if id == 2 {
+                        self.hub_two.on_update(&p);
+                    }
+
+                    // check if on item and update item
+                    for i in &mut self.items {
+                        i.collect(p);
+                    }
+
+                    // update all effects of player
+                    for e in &mut p.effect.effects {
+                        if !e.get_played() {
+                            sounds.play(e.get_sound_str());
+                            e.played();
+                        }
+                    }
                 } else {
-                    42
-                };
-                p.on_update(args,
-                            range,
-                            level,
-                            InteractableType::Player(id),
-                            &mut sounds);
-                if id == 1 {
-                    self.hub_one.on_update(&p);
-                } else if id == 2 {
-                    self.hub_two.on_update(&p);
-                }
+                    delete = true; 
+                    match level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].get_fieldstatus() {
+                        Some(InteractableType::Player(i)) => {
+                            match p.get_interactable_type() {
+                                InteractableType::Player(a) => {
+                                    if i == a {
+                                        level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].free_fieldstatus();
+                                        delete_this = index;
 
-
-                for i in &mut self.items {
-                    i.collect(p);
-                }
-                for e in &mut p.effect.effects {
-                    if !e.get_played() {
-                        sounds.play(e.get_sound_str());
-                        e.played();
+                                    }
+                                },
+                                _ => (),
+                            }
+                        },
+                        _ => (),
                     }
                 }
             }
         }
-
+        if delete {
+            self.players[delete_this as usize] = None;
+        }
+        // Vec with dead bots
         let mut dead = Vec::new();
         for x in &mut self.bots {
-
             if let &mut Some(ref mut b) = x {
+                // if bot dead
                 if !b.is_alive() {
+                    // and not set dead yet (two bools, because last effect have to render)
                     if !b.dead {
+                        // create last effect
                         b.effect.handle(b.coord, EffectOption::Dead, LastKey::Wait);
                         b.dead = true;
                     }
+                    // Field not longer occupied
                     level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize]
                         .free_fieldstatus();
-                    dead.push(match b.get_interactable_type() {
-                        InteractableType::Bot(i) => i,
-                        _ => {
-                            panic!("No Bot found!");
-                        }
-                    });
+                    // If Bot, add to dead bots
+                    if let InteractableType::Bot(i) = b.get_interactable_type() {
+                        dead.push(i);
+                    }
                 }
-                b.on_update(args, level, state, &mut sounds, &mut self.players);
-
-
+                // update bot (In Bot no update if already dead. Only updates of effects)
+                b.on_update(level, state, &mut sounds, &mut self.players);
             }
         }
-
+        // Delete all dead Bots (Set to None)
         for d in dead {
             let mut delete = false;
             if let Some(ref b) = self.bots[d as usize] {
                 delete = b.effect.effects.len() == 0;
             }
-
             if delete {
                 self.bots[d as usize] = None;
             }
         }
 
         // Update Camera
+        let (coord1, coord2) = match (&self.players[0], &self.players[1]) {
+            (&None, &None) => (Coordinate::new(0, 0), Coordinate::new(0, 0)),
+            (&None, &Some(ref y)) => (y.coord.clone(), y.coord.clone()),
+            (&Some(ref x), &None) => (x.coord.clone(), x.coord.clone()),
+            (&Some(ref x), &Some(ref y)) => (x.coord.clone(), y.coord.clone()),
+        };
         self.cam.calc_coordinates(coord1, coord2, level);
         self.items.retain(|ref i| !i.get_gone());
 
@@ -306,11 +346,6 @@ impl<'a> App<'a> {
     fn show_ingame_menu(&mut self, window: &mut PistonWindow, sounds: &mut SoundHandler) {
         // Show menu
         let mut settings = true;
-
-        let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
-        let ref font = assets.join("font.ttf");
-        let factory = window.factory.clone();
-        let mut glyphs = Glyphs::new(font, factory).unwrap();
 
         let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                      CAM_BORDER * 2) as u32;
@@ -336,7 +371,7 @@ impl<'a> App<'a> {
 
                     // Render menu
                     text::Text::new_color(WHITE, 32).draw("Game Paused",
-                                                          &mut glyphs,
+                                                          &mut self.glyph,
                                                           &c.draw_state,
                                                           c.transform
                                                               .trans(width as f64 / 2.0 - 150.0,
@@ -352,7 +387,7 @@ impl<'a> App<'a> {
                         };
 
                         text::Text::new_color(color, 32).draw(s,
-                                                              &mut glyphs,
+                                                              &mut self.glyph,
                                                               &c.draw_state,
                                                               c.transform
                                                                   .trans(width as f64 / 2.0 -
@@ -386,6 +421,9 @@ impl<'a> App<'a> {
                                         self.muted = false;
                                     }
                                     sub_start_menu[1] = "Mute";
+                                    if let Some(music) = sounds.map.get_mut("Background.ogg"){
+                                        music.set_volume(1.0 / 16.0);
+                                    }
                                 }
                             }
                             // Back
@@ -423,24 +461,15 @@ impl<'a> App<'a> {
                 level: &mut Level,
                 sounds: &mut SoundHandler,
                 window: &mut PistonWindow) {
-
+        // Match Key
         match inp {
+            // Activate Menu
             Button::Keyboard(Key::Escape) => {
                 if pressed {
                     self.show_ingame_menu(window, sounds);
                 }
             }
-            Button::Keyboard(Key::Q) => {
-                if let &mut Some(ref mut p) = &mut self.players[0] {
-                    if pressed {
-
-
-                        p.life -= 10;
-                        p.weapon = EffectOption::Spear;
-                    }
-                    p.pressed = pressed;
-                }
-            }
+            // Up Player One
             Button::Keyboard(Key::Up) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -450,6 +479,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Down Player One
             Button::Keyboard(Key::Down) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -459,6 +489,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Left Player One
             Button::Keyboard(Key::Left) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -468,6 +499,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Right Player One
             Button::Keyboard(Key::Right) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -477,6 +509,7 @@ impl<'a> App<'a> {
                     p.pressed = pressed;
                 }
             }
+            // Up Player Two
             Button::Keyboard(Key::W) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -486,6 +519,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Down Player Two
             Button::Keyboard(Key::S) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -495,6 +529,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Left Player Two
             Button::Keyboard(Key::A) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -504,6 +539,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Right Player Two
             Button::Keyboard(Key::D) => {
                 if let &mut Some(ref mut x) = &mut self.players[1] {
                     if pressed {
@@ -513,6 +549,7 @@ impl<'a> App<'a> {
                     x.pressed = pressed;
                 }
             }
+            // Attack Player One
             Button::Keyboard(Key::Return) => {
                 if let &mut Some(ref mut p) = &mut self.players[0] {
                     if pressed {
@@ -522,6 +559,7 @@ impl<'a> App<'a> {
                     }
                 }
             }
+            // Attack Player Two
             Button::Keyboard(Key::Space) => {
                 if let &mut Some(ref mut p) = &mut self.players[1] {
                     if pressed {
@@ -532,18 +570,30 @@ impl<'a> App<'a> {
                 }
             }
             _ => {}
-
+        }
+    }
+    fn background_music(&self, sounds: &mut SoundHandler, game_over: bool) {
+        if !self.muted{
+            let background_sound = sounds.map.get_mut("Background.ogg");
+            if let Some(music) = background_sound {
+                if game_over {
+                    if music.is_playing() {
+                        music.stop();
+                    }
+                } else {
+                    if !music.is_playing() {
+                        music.play();
+                    }
+                    music.set_volume(1.0 / 16.0);
+                }
+            }
         }
     }
 }
 
-fn select_player(window: &mut PistonWindow) -> bool {
+fn select_player(window: &mut PistonWindow, app: &mut App) -> bool {
     let mut two_players = false;
     let mut select = true;
-    let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
-    let ref font = assets.join("font.ttf");
-    let factory = window.factory.clone();
-    let mut glyphs = Glyphs::new(font, factory).unwrap();
 
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                  CAM_BORDER * 2) as u32;
@@ -570,7 +620,7 @@ fn select_player(window: &mut PistonWindow) -> bool {
                     };
 
                     text::Text::new_color(color, 32).draw(s,
-                                                          &mut glyphs,
+                                                          &mut app.glyph,
                                                           &c.draw_state,
                                                           c.transform
                                                               .trans(width as f64 / 2.0 - 100.0,
@@ -619,18 +669,22 @@ fn select_player(window: &mut PistonWindow) -> bool {
 }
 
 fn show_menu(e: Event,
-             window: &mut PistonWindow,
-             sounds: &mut SoundHandler,
-             glyphs: &mut Glyphs,
-             start_menu: &[&str],
-             ai: u32,
-             app: &mut App)
-             -> (bool, bool, u32) {
+    mut window: &mut PistonWindow,
+    sounds: &mut SoundHandler,
+    start_menu: &[&str],
+    ai: u32,
+    app: &mut App,
+    menu_bots: &mut Vec<Bot>,
+    start: PreciseTime) -> (bool, bool, u32, i64) {
+    let mut rng = rand::thread_rng();
+    let mut state = start.to(PreciseTime::now()).num_milliseconds();
     let mut active_index = ai;
     let mut start_game = false;
     let mut two_players = false;
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
-                 CAM_BORDER * 2) as u32;
+             CAM_BORDER * 2) as u32;
+    let height = ((((CAMERA_BUF_Y * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+                  CAM_BORDER + HUB_UP) as u32;
     if let Some(i) = e.press_args() {
         match i {
             /* Check arrow keys for menu */
@@ -645,7 +699,7 @@ fn show_menu(e: Event,
                             Some(s) => s.set_volume(0.0),
                             None => (),
                         };
-                        two_players = select_player(window);
+                        two_players = select_player(window, app);
                     }
                     // Load Game
                     1 => (),
@@ -654,8 +708,13 @@ fn show_menu(e: Event,
                         // Submenu Settings
                         let mut settings = true;
 
-                        let mut sub_start_menu =
-                            vec!["Fullscreen (not working yet)", "Mute", "Back"];
+                        let mut sub_start_menu = Vec::with_capacity(3);
+                        sub_start_menu.push("Show Controls");
+                        sub_start_menu.push(match app.muted {
+                            true => "Unmute",
+                            false => "Mute",
+                        });
+                        sub_start_menu.push("Back");
                         let sub_menu_size = sub_start_menu.len();
                         let mut sub_active_index = 0;
 
@@ -670,7 +729,7 @@ fn show_menu(e: Event,
 
                                     // Render menu
                                     text::Text::new_color(WHITE, 32).draw(start_menu[2],
-                                                                          glyphs,
+                                                                          &mut app.glyph,
                                                                           &c.draw_state,
                                                                           c.transform
                                                                               .trans(width as f64 /
@@ -688,7 +747,7 @@ fn show_menu(e: Event,
                                         };
 
                                         text::Text::new_color(color, 32).draw(s,
-                                                                              glyphs,
+                                                                              &mut app.glyph,
                                                                               &c.draw_state,
                                                                               c.transform
                                                                                   .trans(width as
@@ -707,17 +766,9 @@ fn show_menu(e: Event,
                                     /* Check arrow keys for menu */
                                     Button::Keyboard(Key::Return) => {
                                         match sub_active_index {
-                                            // Fullscreen
+                                            // Controls
                                             0 => {
-                                                /* Neue Zuweisung funktioniert leider nicht (panickt!)
-                                                   Neue Idee gesucht
-                                                 window = WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
-                                                            [width, height])
-                                                    .exit_on_esc(true)
-                                                    .fullscreen(true)
-                                                    .resizable(false)
-                                                    .build()
-                                                    .unwrap();*/
+                                                show_controls(&mut window, app);
                                             }
                                             // Mute
                                             1 => {
@@ -754,6 +805,9 @@ fn show_menu(e: Event,
                                             sub_active_index -= 1;
                                         }
                                     }
+                                    Button::Keyboard(Key::Escape) => {
+                                        settings = false;
+                                    }
                                     _ => (),
                                 }
                             }
@@ -782,19 +836,130 @@ fn show_menu(e: Event,
         }
     }
     if let Some(_) = e.render_args() {
-        window.draw_2d(&e, |c, gl| {
+            window.draw_2d(&e, |c, gl| {
             // Clear the screen.
             clear(BLACK, gl);
 
+            let temp = if state <= 500 { 0 } else { 1 };
+
+            /*
+            // Rendern von bekloppten Hühnchen
+            let mut i = 0;
+            for ref mut b in menu_bots {
+                b.render(gl, c.transform.trans(b.coord.get_x() as f64, b.coord.get_y() as f64));
+                let x = b.coord.get_x();
+                let y = b.coord.get_y();
+
+                if temp == 1 {
+                    if i % 2 == 0 {
+                        if y + 100 > height as u64 {
+                            b.coord.set_coord(x, 0);
+                        } else {
+                            b.coord.set_coord(x, y + 100);
+                        }
+                    } else {
+                        if x < 100 {
+                            b.coord.set_coord(width as u64, y);
+                        } else {
+                            b.coord.set_coord(x - 100, y);
+                        }
+                    }
+                }
+                i += 1;
+            }*/
+
+            if temp == 1 {
+                // Left chicken
+                let dir = rng.gen_range(0, 4);
+
+                let mut new_x = menu_bots[0].coord.get_x();
+                let mut new_y = menu_bots[0].coord.get_y();
+
+                match dir {
+                    // UP
+                    0 => {
+                        if new_y >= 50 {
+                            new_y -= 50;
+                        }
+                    }
+                    // DOWN
+                    1 => {
+                        if new_y <= (height - 50) as u64 {
+                            new_y += 50;
+                        }
+                    }
+                    // LEFT
+                    2 => {
+                        if new_x >= 50 {
+                            new_x -= 50;
+                        }
+                    }
+                    // RIGHT
+                    3 => {
+                        if new_x <= 200 as u64 {
+                            new_x += 50;
+                        }
+                    }
+                    // ELSE
+                    _ => (),
+                };
+
+                menu_bots[0].coord.set_coord(new_x, new_y);
+
+                // Right chicken
+                let dir = rng.gen_range(0, 4);
+
+                new_x = menu_bots[1].coord.get_x();
+                new_y = menu_bots[1].coord.get_y();
+
+                match dir {
+                    // UP
+                    0 => {
+                        if new_y >= 50 {
+                            new_y -= 50;
+                        }
+                    }
+                    // DOWN
+                    1 => {
+                        if new_y <= (height - 50) as u64 {
+                            new_y += 50;
+                        }
+                    }
+                    // LEFT
+                    2 => {
+                        if new_x >= 850 {
+                            new_x -= 50;
+                        }
+                    }
+                    // RIGHT
+                    3 => {
+                        if new_x <= 1000 as u64 {
+                            new_x += 50;
+                        }
+                    }
+                    // ELSE
+                    _ => (),
+                };
+
+                menu_bots[1].coord.set_coord(new_x, new_y);
+            }
+
+            menu_bots[0].render(gl, c.transform.trans(menu_bots[0].coord.get_x() as f64, menu_bots[0].coord.get_y() as f64));
+            menu_bots[1].render(gl, c.transform.trans(menu_bots[1].coord.get_x() as f64, menu_bots[1].coord.get_y() as f64));
+
+            if temp == 1 {
+                state = 0;
+            }
+
             // Render menu
             text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART1,
-                                                  glyphs,
+                                                  &mut app.glyph,
                                                   &c.draw_state,
                                                   c.transform
                                                       .trans(width as f64 / 2.0 - 180.0, 100.0),
                                                   gl);
             text::Text::new_color(WHITE, 32).draw(GAME_NAME_PART2,
-                                                  glyphs,
+                                                  &mut app.glyph,
                                                   &c.draw_state,
                                                   c.transform
                                                       .trans(width as f64 / 2.0 - 200.0, 150.0),
@@ -809,7 +974,7 @@ fn show_menu(e: Event,
                 };
 
                 text::Text::new_color(color, 32).draw(s,
-                                                      glyphs,
+                                                      &mut app.glyph,
                                                       &c.draw_state,
                                                       c.transform
                                                           .trans(width as f64 / 2.0 - 100.0,
@@ -819,15 +984,128 @@ fn show_menu(e: Event,
             }
         });
     }
-    (start_game, two_players, active_index)
+    (start_game, two_players, active_index, state)
+
 }
 
-/// Main
+fn show_controls(window: &mut PistonWindow, app: &mut App) {
+    let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
+             CAM_BORDER * 2) as u32;
+
+    while let Some(a) = window.next() {
+        if let Some(_) = a.render_args() {
+            window.draw_2d(&a, |c, gl| {
+                // Clear the screen.
+                clear(BLACK, gl);
+
+
+                text::Text::new_color(WHITE, 32).draw("Controls",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 80.0, 100.0),
+                                                  gl);
+
+                /* Controls Player 1 */
+                text::Text::new_color(GREY, 32).draw("Player 1",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 100.0, 150.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Movement:",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 150.0, 250.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[W]",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 50.0, 350.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[A]    [S]    [D]",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 150.0, 400.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Attack: [RETURN]",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 - 150.0, 500.0),
+                                                  gl);
+
+                /* Controls Player 2 */
+                text::Text::new_color(GREY, 32).draw("Player 2",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 50.0, 150.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Movement:",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 150.0, 250.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[▲]",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 15.0, 350.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("[◀]    [▼]    [▶]",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 150.0, 400.0),
+                                                  gl);
+
+                text::Text::new_color(GREY, 32).draw("Attack: [SPACE]",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 4.0 * 3.0 - 150.0, 500.0),
+                                                  gl);
+
+                text::Text::new_color(WHITE, 32).draw("Back",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 50.0, 600.0),
+                                                  gl);
+            });
+        }
+        if let Some(i) = a.press_args() {
+            match i {
+                Button::Keyboard(Key::Return) |
+                Button::Keyboard(Key::Escape) => {
+                    return;
+                },
+                _ => (),
+            }
+        }
+    }
+}
+
+/// Main1
 fn main() {
+    // Calculate size of Window
     let width = ((((CAMERA_BUF_X * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                  CAM_BORDER * 2) as u32;
     let height = ((((CAMERA_BUF_Y * 2) + 1) * (SIZE_PER_TILE + BORDER_BETWEEN_TILES)) +
                   CAM_BORDER + HUB_UP) as u32;
+    // Create Window
     let mut window: PistonWindow =
         WindowSettings::new(format!("{} {}", GAME_NAME_PART1, GAME_NAME_PART2),
                             [width, height])
@@ -837,128 +1115,247 @@ fn main() {
             .build()
             .unwrap();
 
-    // Create window
+    // CreateEventHandler
     let mut events = window.events();
 
     // Create map for sprites and load all sprites
     let map = Settings::new(&mut window).sprite_map;
 
-    // Lade XML und erstelle daraus das Level, das Tileset, die Player und die Bots
+    // Load XML with all neccessary Data
     let folder_level = match find_folder::Search::Kids(0).for_folder("src") {
         Ok(res) => res.join("level1.xml"),
         Err(_) => panic!("Folder 'src' not found!"),
     };
-
+    // Save Path
     let level_path = match folder_level.to_str() {
         Some(res) => res,
         None => panic!("Level not found!"),
     };
 
-    let (lv, ts, bots, players, items) = load_xml(level_path, &map, &mut window);
-
-    let tileset = ts;
-
-    let mut level = lv;
-
     // Create SoundHandler
     let mut sounds = SoundHandler::fill();
 
-    // Create new app with one or two players
-    let mut app = App::new(players, bots, items);
+    let mut exit = false;
 
-    // insert players in level
-    for x in &mut app.players {
-        if let &mut Some(ref mut p) = x {
-            level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
-                .set_fieldstatus(p.get_interactable_type());
-            p.set_borders((level.get_width() as u64, level.get_height() as u64));
+    // Load all neccessary Data (takes a while)
+    let (lv, ts, bots, players, items) = load_xml(level_path, &map, &mut window.factory);
+
+    // Exit Game via process::exit(), so infinite loop until player exits game
+    while !exit {
+        exit = true;
+
+        let tileset = &ts;
+
+        // save level
+        let mut level = lv.clone();
+
+        // Clone players and bots for Re-Use in next round
+        let mut p2 = Vec::with_capacity(players.len());
+        for p in &players {
+            match p {
+                &Some(ref a) => {
+                    p2.push(Some(a.clone_without_effects(&map)));
+                },
+                &None => p2.push(None),
+            }
         }
-    }
-
-    // Start counter
-    let mut start = PreciseTime::now();
-
-    // set Level-borders to camera
-    app.cam.set_borders((level.get_width() as u64, level.get_height() as u64));
-
-
-    // Set hubs
-    if let Some(ref mut p1) = app.players[0] {
-        app.hub_one.set_map(&map);
-    }
-    // load sprite for player two and sets border
-    if let Some(ref mut p2) = app.players[1] {
-        app.hub_two.set_map(&map);
-    }
-
-    // Load sprite for each bot and set borders
-    for x in &mut app.bots {
-        if let &mut Some(ref mut b) = x {
-            b.set_borders((level.get_width() as u64, level.get_height() as u64));
+        let mut b2 = Vec::with_capacity(bots.len());
+        for b in &bots {
+            match b {
+                &Some(ref a) => {
+                    b2.push(Some(a.clone_without_effects(&map)));
+                },
+                &None => b2.push(None),
+            }
         }
-    }
 
-    let mut start_game = false;
+        // Create new app with one or two players
+        let mut app = App::new(p2, b2, items.clone(), window.factory.clone());
 
-    let assets = find_folder::Search::ParentsThenKids(1, 1).for_folder("assets").unwrap();
-    let ref font = assets.join("font.ttf");
-    let factory = window.factory.clone();
-    let mut glyphs = Glyphs::new(font, factory).unwrap();
+        // insert players in level
+        for x in &mut app.players {
+            if let &mut Some(ref mut p) = x {
+                level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
+                    .set_fieldstatus(p.get_interactable_type());
+                p.set_borders((level.get_width() as u64, level.get_height() as u64));
+            }
+        }
 
-    let start_menu = vec!["Start Game", "Load Game", "Settings", "Exit"];
+        // Start counter
+        let mut start = PreciseTime::now();
 
-    let mut active_index = 0;
-    sounds.play("Welcome.ogg");
+        // set Level-borders to camera
+        app.cam.set_borders((level.get_width() as u64, level.get_height() as u64));
 
-    while let Some(e) = events.next(&mut window) {
-        if !start_game {
-            let (start, two_players, index) = show_menu(e,
-                                                        &mut window,
-                                                        &mut sounds,
-                                                        &mut glyphs,
-                                                        &start_menu,
-                                                        active_index,
-                                                        &mut app);
-            start_game = start;
-            active_index = index;
-            if start_game && !two_players {
-                if let Some(ref mut p) = app.players[1] {
-                    level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
-                        .free_fieldstatus();
+
+        // Set hubs
+        if let Some(_) = app.players[0] {
+            app.hub_one.set_map(&map);
+        }
+        // load sprite for player two and sets border
+        if let Some(_) = app.players[1] {
+            app.hub_two.set_map(&map);
+        }
+
+        // Load sprite for each bot and set borders
+        for x in &mut app.bots {
+            if let &mut Some(ref mut b) = x {
+                b.set_borders((level.get_width() as u64, level.get_height() as u64));
+                // insert bot into level
+                level.get_data()[b.coord.get_x() as usize][b.coord.get_y() as usize]
+                    .set_fieldstatus(b.get_interactable_type());
+            }
+        }
+        // bool for testing if game is started
+        let mut start_game = false;
+
+        let start_menu = vec!["Start Game", "Load Game", "Settings", "Exit"];
+
+        let mut active_index = 0;
+        sounds.play("Welcome.ogg");
+
+        let mut menu_bots = Vec::with_capacity(10);
+
+    /*
+        // Bekloppte Hühnchen
+        for j in 0..4 {
+            for i in 0..4 {
+                if i % 2 == 0 {
+                    let mut b = Bot::new(i * 150, j * 100, i, &map);
+                    b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
+                    menu_bots.push(b);
+                } else {
+                    let mut b = Bot::new(width as u64 - 100 - j * 100, i * 200, i, &map);
+                    b.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
+                    menu_bots.push(b);
                 }
-                app.players[1] = None;
             }
-        } else {
-            // End of loading, start game
-            // Calculate Milliseconds
-            let now = start.to(PreciseTime::now()).num_milliseconds();
+        }
+    */
+        let mut b = Bot::new(150, 200, 1, &map);
+        b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
+        menu_bots.push(b);
+        let mut b2 = Bot::new(900, 400, 2, &map);
+        b2.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
+        menu_bots.push(b2);
 
-            // Calculate state
-            let state = if now <= 500 { 0 } else { 1 };
+        let mut game_over = false;
 
-            // If Render-Event
-            if let Some(_) = e.render_args() {
-                app.on_draw(&mut window, &e, &tileset, &mut level);
-            }
+        while let Some(e) = events.next(&mut window) {
+            if !game_over {
+                if !start_game {
 
-            // If Key-Press-Event
-            if let Some(i) = e.release_args() {
-                app.on_input(i, false, &mut level, &mut sounds, &mut window);
-            }
-            // If Key-release-Event
-            if let Some(i) = e.press_args() {
+                    let (is_start, two_players, index, state) = show_menu(e,
+                                                                &mut window,
+                                                                &mut sounds,
+                                                                &start_menu,
+                                                                active_index,
+                                                                &mut app,
+                                                                &mut menu_bots,
+                                                                start);
 
-                app.on_input(i, true, &mut level, &mut sounds, &mut window);
-            }
-            {
-                // if update
-                if let Some(u) = e.update_args() {
-                    app.on_update(&u, &mut level, state, &mut sounds);
+                    start_game = is_start;
+
+                    active_index = index;
+                    if start_game && !two_players {
+                        if let Some(ref mut p) = app.players[1] {
+                            level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize]
+                                .free_fieldstatus();
+                        }
+                        app.players[1] = None;
+                    }
+
+                    if state == 0 {
+                        start = PreciseTime::now();
+                    }
+                } else {
+                    // End of loading, start game
+                    // Calculate Milliseconds
+                    let now = start.to(PreciseTime::now()).num_milliseconds();
+
+                    // Calculate state
+                    let state = if now <= 500 { 0 } else { 1 };
+
+                    // If Render-Event
+                    if let Some(_) = e.render_args() {
+                        app.on_draw(&mut window, &e, &tileset, &mut level);
+                    }
+
+                    // If Key-Press-Event
+                    if let Some(i) = e.release_args() {
+                        app.on_input(i, false, &mut level, &mut sounds, &mut window);
+                    }
+                    // If Key-release-Event
+                    if let Some(i) = e.press_args() {
+
+                        app.on_input(i, true, &mut level, &mut sounds, &mut window);
+                    }
+                    // if update
+                    if let Some(_) = e.update_args() {
+                        app.on_update(&mut level, state, &mut sounds);
+
+                        // player one dead
+                        let alive_p1 = if let Some (ref p) = app.players[0] {   
+                            p.is_alive()
+
+                        } else {
+                            false
+                        };
+                        //player two dead
+                        let alive_p2 = if let Some (ref p) = app.players[1] {   
+                            p.is_alive()
+
+                        } else {
+                            false
+                        };
+                        // Game over if both dead
+                        game_over = !alive_p1 && !alive_p2;
+                    }
+                    // restart time if 1 second over
+                    if now > 1000 {
+                        start = PreciseTime::now();
+                    }
+
+                    app.background_music(&mut sounds, game_over);
                 }
+            } else {
+                break;
+            }
+        }
 
-                // restart time if 1 second over
-                if now > 1000 {
-                    start = PreciseTime::now();
+        /* Display Game Over */
+        if game_over {
+
+            // TODO: Play Game Over music
+
+
+
+            while let Some(a) = events.next(&mut window) {
+                if let Some(_) = a.render_args() {
+                    window.draw_2d(&a, |c, gl| {
+                        // Clear the screen.
+                        clear(BLACK, gl);
+
+                        text::Text::new_color(WHITE, 64).draw("Game Over",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 200.0, 200.0),
+                                                  gl);
+
+                        text::Text::new_color(WHITE, 32).draw("Go to Main Menu",
+                                                  &mut app.glyph,
+                                                  &c.draw_state,
+                                                  c.transform
+                                                      .trans(width as f64 / 2.0 - 150.0, 400.0),
+                                                  gl);
+                    });
+                }
+                if let Some(i) = a.press_args() {
+                    if i == Button::Keyboard(Key::Return) {
+                        exit = false;
+                        break;
+                    }
                 }
             }
         }
