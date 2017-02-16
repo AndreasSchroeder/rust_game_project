@@ -25,7 +25,6 @@ pub fn load_xml<'a>
     let mut tileset = Tileset::new(1, 1, 1, 1);
     let mut level = Level::with_size(0, 0);
     let mut players: Vec<Option<Player>> = Vec::new();
-    let mut last = String::new();
     let mut i = 0;
 
     // Open xml-file
@@ -38,7 +37,7 @@ pub fn load_xml<'a>
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, attributes, .. }) => {
-                last = name.local_name.clone();
+                let last = name.local_name.clone();
                 // Iterate over tags
                 match &last[..] {
                     "tileset" => {
