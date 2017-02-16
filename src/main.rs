@@ -242,25 +242,22 @@ impl<'a> App<'a> {
         // Update range
         let range = self.cam.get_range_update();
         // Update Players
-        let mut delete = false;
-        let mut delete_this = 0;
-        for (index, x) in &mut self.players.iter_mut().enumerate() {
+        for x in &mut self.players.iter_mut() {
             if let &mut Some(ref mut p) = x {
+                let id = if let InteractableType::Player(x) = p.get_interactable_type() {
+                    x
+                } else {
+                    0
+                };
+                // Update Player
+                p.on_update(range, level, InteractableType::Player(id), &mut sounds);
+                // Update hubs
+                if id == 1 {
+                    self.hub_one.on_update(&p);
+                } else if id == 2 {
+                    self.hub_two.on_update(&p);
+                }
                 if p.is_alive() {
-                    let id = if let InteractableType::Player(x) = p.get_interactable_type() {
-                        x
-                    } else {
-                        0
-                    };
-                    // Update Player
-                    p.on_update(range, level, InteractableType::Player(id), &mut sounds);
-                    // Update hubs
-                    if id == 1 {
-                        self.hub_one.on_update(&p);
-                    } else if id == 2 {
-                        self.hub_two.on_update(&p);
-                    }
-
                     // check if on item and update item
                     for i in &mut self.items {
                         i.collect(p);
@@ -274,15 +271,16 @@ impl<'a> App<'a> {
                         }
                     }
                 } else {
-                    delete = true;
+                    if !p.dead {
+                        p.effect.handle(p.coord, EffectOption::PlayerDeath, LastKey::Wait);
+                        p.dead = true;
+                    }
                     match level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].get_fieldstatus() {
                         Some(InteractableType::Player(i)) => {
                             match p.get_interactable_type() {
                                 InteractableType::Player(a) => {
                                     if i == a {
                                         level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].free_fieldstatus();
-                                        delete_this = index;
-
                                     }
                                 },
                                 _ => (),
@@ -293,8 +291,16 @@ impl<'a> App<'a> {
                 }
             }
         }
-        if delete {
-            self.players[delete_this as usize] = None;
+        for i in 0..self.players.len() {
+            let mut delete = false;
+            if let Some(ref p) = self.players[i] {
+                if p.dead {
+                    delete = p.effect.effects.len() == 0;
+                }
+            }
+            if delete {
+                self.players[i] = None;
+            }
         }
         // Vec with dead bots
         let mut dead = Vec::new();
@@ -1035,7 +1041,7 @@ fn show_controls(window: &mut PistonWindow, app: &mut App) {
                                                       .trans(width as f64 / 4.0 - 150.0, 400.0),
                                                   gl);
 
-                text::Text::new_color(GREY, 32).draw("Attack: [RETURN]",
+                text::Text::new_color(GREY, 32).draw("Attack: [SPACE]",
                                                   &mut app.glyph,
                                                   &c.draw_state,
                                                   c.transform
@@ -1071,7 +1077,7 @@ fn show_controls(window: &mut PistonWindow, app: &mut App) {
                                                       .trans(width as f64 / 4.0 * 3.0 - 150.0, 400.0),
                                                   gl);
 
-                text::Text::new_color(GREY, 32).draw("Attack: [SPACE]",
+                text::Text::new_color(GREY, 32).draw("Attack: [RETURN]",
                                                   &mut app.glyph,
                                                   &c.draw_state,
                                                   c.transform
@@ -1294,22 +1300,10 @@ fn main() {
                     if let Some(_) = e.update_args() {
                         app.on_update(&mut level, state, &mut sounds);
 
-                        // player one dead
-                        let alive_p1 = if let Some (ref p) = app.players[0] {
-                            p.is_alive()
-
-                        } else {
-                            false
-                        };
-                        //player two dead
-                        let alive_p2 = if let Some (ref p) = app.players[1] {
-                            p.is_alive()
-
-                        } else {
-                            false
-                        };
                         // Game over if both dead
-                        game_over = !alive_p1 && !alive_p2;
+                        game_over = app.players.iter().fold(true, |acc, x| {
+                            acc && match *x { None => true, Some(_) => false }
+                        });
                     }
                     // restart time if 1 second over
                     if now > 1000 {

@@ -22,7 +22,7 @@ pub struct Effect<'a> {
     pub coord: Coordinate,
     pub mirror_h: bool,
     pub degree: u32,
-    start: PreciseTime,
+    pub start: PreciseTime,
     sound: &'a str,
     sound_played: bool,
 }
@@ -96,6 +96,10 @@ impl<'a> EffectHandler<'a> {
             (EffectOption::Dead, _) => {
                 effect.set_sprite(self.map.get_sprite("explosion.png".to_string()));
                 effect.set_sound_str("Dead.ogg");
+            }
+            (EffectOption::PlayerDeath, _) => {
+                effect.set_sprite(self.map.get_sprite("explosion_square.png".to_string()));
+                effect.set_sound_str("Wilhelm.ogg");
             }
             // Dagger-Attack
             (EffectOption::Dagger, x) => {
@@ -235,4 +239,5 @@ pub enum EffectOption {
     Sword,
     Dead,
     Chicken,
+    PlayerDeath,
 }

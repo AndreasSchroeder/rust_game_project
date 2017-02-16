@@ -217,4 +217,11 @@ const SPRITES: &'static [SpriteModel] = &[SpriteModel {
                                               size_y: 64,
                                               dur: 250,
                                               once: true,
+                                          },
+                                          SpriteModel {
+                                              image: "explosion_square.png",
+                                              size_x: 64,
+                                              size_y: 64,
+                                              dur: 500,
+                                              once: true,
                                           }];

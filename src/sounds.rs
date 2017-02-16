@@ -61,4 +61,5 @@ const SOUNDS: &'static [&'static str] = &["Chicken.ogg",
                                           "Sword.ogg",
                                           "test.ogg",
                                           "Welcome.ogg",
-                                          "Background.ogg"];
+                                          "Background.ogg",
+                                          "Wilhelm.ogg"];
