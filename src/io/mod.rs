@@ -83,7 +83,7 @@ pub fn read_level(path: &str) -> Level {
 
     // set width
     let x = match sizes.next() {
-        Some(x) => x,
+        Some(a) => a,
         None => panic!("No valid Level-File"),
     };
     let x_new = match usize::from_str(x) {
@@ -93,7 +93,7 @@ pub fn read_level(path: &str) -> Level {
 
     // set height
     let y = match sizes.next() {
-        Some(x) => x,
+        Some(a) => a,
         None => panic!("No valid Level-File"),
     };
     let y_new = match usize::from_str(y) {
@@ -104,7 +104,6 @@ pub fn read_level(path: &str) -> Level {
     // Create Level with given size
     let mut level = Level::with_size(x_new, y_new);
 
-
     // Rows
     for (i, s) in rows.enumerate() {
         // Columns
@@ -113,7 +112,6 @@ pub fn read_level(path: &str) -> Level {
                 Ok(a) => a,
                 Err(e) => panic!("{:?}", e),
             };
-            // Insert field into level
             level.get_data()[j][i] = Field::new(n);
         }
     }

@@ -9,7 +9,7 @@ pub struct Level {
 impl Level {
     pub fn with_size(x: usize, y: usize) -> Self {
         Level {
-            data: vec![vec![Field::new(0); x]; y],
+            data: vec![vec![Field::new(0); y]; x],
             width: x,
             height: y,
         }
@@ -34,9 +34,9 @@ impl Level {
 
 impl Clone for Level {
     fn clone(&self) -> Self {
-        let mut vec = vec![vec![Field::new(0); self.width]; self.height];
-        for i in 0..self.height {
-            for j in 0..self.width {
+        let mut vec = vec![vec![Field::new(0); self.height]; self.width];
+        for i in 0..self.width {
+            for j in 0..self.height {
                 vec[i][j] = self.data[i][j].clone();
             }
         }
