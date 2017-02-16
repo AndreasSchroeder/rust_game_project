@@ -4,14 +4,14 @@
 	<file filename="level1_small_tileset.lvl"/>
 	<player1 x="2" y= "2" filename="paladin.png"/>
 	<player2 x="2" y= "3" filename="knight.png"/>
-    <bot x="3" y="3" life="100" passive="true" filename="chicken_pink.png"/>
-	<bot x="5" y="4" life="100" passive="true" filename="chicken_white.png"/>
-	<bot x="7" y="7" life="100" passive="true" filename="chicken_brown.png"/>
-	<bot x="9" y="7" life="100" passive="true" filename="chicken_pink.png"/>
-	<bot x="19" y="19" life="100" passive="true" filename="chicken_white.png"/>
-	<bot x="19" y="18" life="100" passive="true" filename="chicken_brown.png"/>
-	<bot x="18" y="19" life="100" passive="true" filename="chicken_pink.png"/>
-	<bot x="18" y="18" life="100" passive="true" filename="chicken.png"/>
+    <bot x="3" y="3" life="100" passive="false" filename="chicken_pink.png"/>
+	<bot x="5" y="4" life="100" passive="false" filename="chicken_white.png"/>
+	<bot x="7" y="7" life="100" passive="false" filename="chicken_brown.png"/>
+	<bot x="9" y="7" life="100" passive="false" filename="chicken_pink.png"/>
+	<bot x="19" y="19" life="100" passive="false" filename="chicken_white.png"/>
+	<bot x="19" y="18" life="100" passive="false" filename="chicken_brown.png"/>
+	<bot x="18" y="19" life="100" passive="false" filename="chicken_pink.png"/>
+	<bot x="18" y="18" life="100" passive="false" filename="chicken.png"/>
 	<item x ="4" y="10" filename="Heart_10.png"/>
 	<item x ="4" y="5" filename="Heart_20.png"/>
 	<item x ="4" y="6" filename="weapon_broadsword.png"/>
