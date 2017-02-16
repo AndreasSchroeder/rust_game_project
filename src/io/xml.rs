@@ -19,6 +19,7 @@ pub fn load_xml<'a>
      map: &'a SpriteMap,
      factory: &mut Factory)
      -> (Level, Tileset, Vec<Option<Bot<'a>>>, Vec<Option<Player<'a>>>, Vec<Item<'a>>) {
+    // Initialize objects
     let mut bots: Vec<Option<Bot>> = Vec::new();
     let mut items: Vec<Item> = Vec::new();
     let mut tileset = Tileset::new(1, 1, 1, 1);
@@ -26,19 +27,25 @@ pub fn load_xml<'a>
     let mut players: Vec<Option<Player>> = Vec::new();
     let mut last = String::new();
     let mut i = 0;
+
+    // Open xml-file
     let file = File::open(path).unwrap();
     let file = BufReader::new(file);
 
     let parser = EventReader::new(file);
 
+    // Iterate over xml-file
     for e in parser {
         match e {
             Ok(XmlEvent::StartElement { name, attributes, .. }) => {
                 last = name.local_name.clone();
+                // Iterate over tags
                 match &last[..] {
                     "tileset" => {
+                        // Iterate over attributes
                         let mut it = attributes.iter();
 
+                        // read tileset-attributes
                         let path = match it.next() {
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
@@ -95,6 +102,7 @@ pub fn load_xml<'a>
                             None => panic!("Tileset not found!"),
                         };
 
+                        // generate tileset with given attributes
                         tileset = read_tileset(file_path,
                                                factory,
                                                tile_height,
@@ -119,6 +127,7 @@ pub fn load_xml<'a>
                             None => panic!("Level not found!"),
                         };
 
+                        // generate level by path
                         level = read_level(level_path);
                     }
                     "player1" => {
@@ -148,6 +157,8 @@ pub fn load_xml<'a>
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
+
+                        // generate player1 with sprite-path and coordinates
                         let sprite = p.value.clone();
                         p1.set_sprite(map.get_sprite(sprite));
                         players.push(Some(p1));
@@ -179,6 +190,8 @@ pub fn load_xml<'a>
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
+
+                        // generate player2 with sprite-path and coordinates
                         let sprite = p.value.clone();
                         p2.set_sprite(map.get_sprite(sprite));
                         players.push(Some(p2));
@@ -229,8 +242,9 @@ pub fn load_xml<'a>
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
-                        let sprite = p.value.clone();
 
+                        // generate bot with sprite-path and coordinates
+                        let sprite = p.value.clone();
                         let mut b = Bot::new(x, y, life, passive, i, &map);
                         b.set_sprite(map.get_sprite(sprite));
 
@@ -262,6 +276,7 @@ pub fn load_xml<'a>
                             Some(s) => s,
                             None => panic!("Wrong xml format!"),
                         };
+                        // generate item with sprite-path and coordinates
                         let sprite = p.value.clone();
 
                         let mut item = Item::new(x, y);
@@ -273,14 +288,6 @@ pub fn load_xml<'a>
                     _ => (),
                 }
             }
-            /* Für zukünftige Eigenschaften */
-            Ok(XmlEvent::Characters(_)) => {
-                match &last[..] {
-                    "player1" | "player2" => (), // Setze irgendwelche Eigenschaften über players.last_mut().
-                    "bot" => (), // Setze irgendwelche Eigenschaften über bots.last_mut().
-                    _ => (),
-                }
-            }
             Err(_) => {
                 panic!("Wrong xml format!");
             }
@@ -288,6 +295,6 @@ pub fn load_xml<'a>
         }
     }
 
-
+    // return created elements
     (level, tileset, bots, players, items)
 }
