@@ -34,15 +34,16 @@ pub struct Bot<'a> {
     watch_rigth: bool,
     pub effect: EffectHandler<'a>,
     pub dead: bool,
+    pub passive: bool,
 }
 
 impl<'a> Bot<'a> {
-    pub fn new(x: u64, y: u64, id: u64, map: &'a SpriteMap) -> Self {
+    pub fn new(x: u64, y: u64, life_points: i32, passive: bool, id: u64, map: &'a SpriteMap) -> Self {
         Bot {
             coord: Coordinate::new(x, y),
             interactable_type: InteractableType::Bot(id),
             sprite: None,
-            life: 100,
+            life: life_points,
             dmg: 10,
             level_w: 0,
             level_h: 0,
@@ -51,6 +52,7 @@ impl<'a> Bot<'a> {
             watch_rigth: false,
             effect: EffectHandler::new(map),
             dead: false,
+            passive: passive,
         }
     }
 
@@ -69,7 +71,7 @@ impl<'a> Bot<'a> {
                      state: usize,
                      sounds: &mut SoundHandler,
                      enemy: &mut Vec<Option<Player>>) {
-        if self.is_alive() {
+        if self.is_alive() && !self.passive {
             let mut rng = rand::thread_rng();
 
 
@@ -140,6 +142,7 @@ impl<'a> Bot<'a> {
             watch_rigth: self.watch_rigth.clone(),
             effect: EffectHandler::new(map),
             dead: self.dead.clone(),
+            passive: self.passive.clone(),
         }
     }
 }

@@ -1238,10 +1238,10 @@ fn main() {
             }
         }
     */
-        let mut b = Bot::new(150, 200, 1, &map);
+        let mut b = Bot::new(150, 200, 100, false, 1, &map);
         b.set_sprite(map.get_sprite("chicken_white.png".to_string()));
         menu_bots.push(b);
-        let mut b2 = Bot::new(900, 400, 2, &map);
+        let mut b2 = Bot::new(900, 400, 100, false, 2, &map);
         b2.set_sprite(map.get_sprite("chicken_pink.png".to_string()));
         menu_bots.push(b2);
 
