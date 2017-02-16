@@ -184,27 +184,27 @@ impl<'a> App<'a> {
             // Render all players if not None
             for x in &mut self.players {
                 if let &mut Some(ref mut p) = x {
+                    
+                    // position of Player in Pixel coordinates
+                    let center_p = c.transform.trans(coord_to_pixel_x(p.coord.get_x(), range.x_min),
+                                                  coord_to_pixel_y(p.coord.get_y(), range.y_min));
                     if p.is_alive() {
-                        // position of Player in Pixel coordinates
-                        let center_p = c.transform.trans(coord_to_pixel_x(p.coord.get_x(), range.x_min),
-                                                      coord_to_pixel_y(p.coord.get_y(), range.y_min));
-
-                        // render player one
+                    // render player one
                         p.render(gl, center_p);
-
-                        // render all effects of player
-                        for e in &p.get_effect_handler().effects {
-                            // Render only Effects in Camera
-                            if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
-                                    e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
-                                // Pixel coordinates of player
-                                let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
-                                                              coord_to_pixel_y(e.coord.get_y(), range.y_min));
-                                // Render effect
-                                e.render(gl, center);
-                            }
+                    }
+                    // render all effects of player
+                    for e in &p.get_effect_handler().effects {
+                        // Render only Effects in Camera
+                        if e.coord.get_x() >= range.x_min &&  e.coord.get_x() < range.x_max &&
+                                e.coord.get_y() >= range.y_min && e.coord.get_y() < range.y_max {
+                            // Pixel coordinates of player
+                            let center = c.transform.trans(coord_to_pixel_x(e.coord.get_x(), range.x_min) ,
+                                                          coord_to_pixel_y(e.coord.get_y(), range.y_min));
+                            // Render effect
+                            e.render(gl, center);
                         }
                     }
+                    
                 }
             }
 
@@ -242,7 +242,9 @@ impl<'a> App<'a> {
         // Update range
         let range = self.cam.get_range_update();
         // Update Players
-        for x in &mut self.players {
+        let mut delete = false;
+        let mut delete_this = 0;
+        for (index, x) in &mut self.players.iter_mut().enumerate() {
             if let &mut Some(ref mut p) = x {
                 if p.is_alive() {
                     let id = if let InteractableType::Player(x) = p.get_interactable_type() {
@@ -272,12 +274,15 @@ impl<'a> App<'a> {
                         }
                     }
                 } else {
+                    delete = true; 
                     match level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].get_fieldstatus() {
                         Some(InteractableType::Player(i)) => {
                             match p.get_interactable_type() {
                                 InteractableType::Player(a) => {
                                     if i == a {
                                         level.get_data()[p.coord.get_x() as usize][p.coord.get_y() as usize].free_fieldstatus();
+                                        delete_this = index;
+
                                     }
                                 },
                                 _ => (),
@@ -287,6 +292,9 @@ impl<'a> App<'a> {
                     }
                 }
             }
+        }
+        if delete {
+            self.players[delete_this as usize] = None;
         }
         // Vec with dead bots
         let mut dead = Vec::new();
@@ -1286,11 +1294,22 @@ fn main() {
                     if let Some(_) = e.update_args() {
                         app.on_update(&mut level, state, &mut sounds);
 
-                        // Game Over
-                        if !match app.players[0] { Some(ref p) => p.is_alive(), None => false, } &&
-                            ! match app.players[1] { Some(ref p) => p.is_alive(), None => false, } {
-                                game_over = true;
-                        }
+                        // player one dead
+                        let alive_p1 = if let Some (ref p) = app.players[0] {   
+                            p.is_alive()
+
+                        } else {
+                            false
+                        };
+                        //player two dead
+                        let alive_p2 = if let Some (ref p) = app.players[1] {   
+                            p.is_alive()
+
+                        } else {
+                            false
+                        };
+                        // Game over if both dead
+                        game_over = !alive_p1 && !alive_p2;
                     }
                     // restart time if 1 second over
                     if now > 1000 {
