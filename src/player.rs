@@ -19,19 +19,23 @@ use sounds::SoundHandler;
 pub struct Player<'a> {
     pub life: i32,
     pub dmg: i32,
-    //pub inv: Inventory,
     pub coord: Coordinate,
+    // last key pressed (can be Wait, in case no butten was pressed in this iteration)
     pub last: LastKey,
+    // if a button is pressed currently
     pub pressed: bool,
+    // stops the player from moving multiple times if button was pressed just once
     pub no_more: bool,
     pub interactable_type: InteractableType,
     pub sprite: Option<&'a Sprite>,
     pub weapon: EffectOption,
     pub effect: EffectHandler<'a>,
+    // last direction moved to, used for player attack direction
     pub dir: LastKey,
     level_w: u64,
     level_h: u64,
     dt: PreciseTime,
+    // bool to determined the direction the sprite is facing
     watch_rigth: bool,
     pub dead: bool,
     pub delay_attack: bool,
@@ -46,7 +50,6 @@ impl<'a> Player<'a> {
             interactable_type: InteractableType::Player(id),
             life: 100,
             dmg: 10,
-            //inv: Inventory::new(),
             pressed: false,
             level_w: 0,
             level_h: 0,
@@ -150,7 +153,6 @@ impl<'a> Player<'a> {
             interactable_type: self.interactable_type.clone(),
             life: self.life.clone(),
             dmg: self.dmg.clone(),
-            //inv: Inventory::new(),
             pressed: self.pressed.clone(),
             level_w: self.level_w.clone(),
             level_h: self.level_h.clone(),
@@ -186,6 +188,7 @@ impl<'a> Actor for Player<'a> {
     }
 
     fn damage_taken(&mut self, dmg: i32) {
+        // if statments to not have more then 100 HP or less then 0HP
         self.life = if self.life - dmg > 100 {
             100
         } else if self.life - dmg < 0 {
@@ -198,6 +201,7 @@ impl<'a> Actor for Player<'a> {
     fn attack<T>(&mut self, level: &mut Level, enemy: &mut Vec<Option<T>>)
         where T: Actor
     {
+        // Vector of targets to be attacked
         let mut targets = Vec::new();
         let pos = &self.coord.clone();
         if self.delay_attack == false {
@@ -208,8 +212,10 @@ impl<'a> Actor for Player<'a> {
                 }
             }
 
+            // Matching Player Weapon to get htbox
             match self.weapon {
                 EffectOption::Dagger => {
+                    // matching last move direction and filling targets vector
                     match self.dir {
                         LastKey::Up => {
                             targets.push(level.get_data()[(pos.get_x()) as usize][(pos.get_y() - 1) as usize].get_fieldstatus());
@@ -227,6 +233,7 @@ impl<'a> Actor for Player<'a> {
                     }
                 }
                 EffectOption::Sword => {
+                    //iterating over hitbox
                     for i in 0..3 {
                         match self.dir {
                             LastKey::Up => {
@@ -279,6 +286,7 @@ impl<'a> Actor for Player<'a> {
         }
 
 
+        // all enemies in targets vector take damage
         for t in targets {
             if let Some(x) = t {
                 match x {
@@ -295,8 +303,6 @@ impl<'a> Actor for Player<'a> {
             }
         }
     }
-
-    fn dying(&self) {}
 }
 
 impl<'a> Interactable for Player<'a> {
@@ -307,7 +313,6 @@ impl<'a> Interactable for Player<'a> {
 
 impl<'a> Renderable for Player<'a> {
     fn render(&self, g: &mut GfxGraphics<Resources, CommandBuffer>, view: math::Matrix2d) {
-        //println!("player{:?}", match self.sprite {None => "None", _=> "Some"});
         if let Some(ref x) = self.sprite {
             x.render(g,
                      view,
