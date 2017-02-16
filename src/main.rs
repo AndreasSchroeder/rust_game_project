@@ -1292,7 +1292,7 @@ fn main() {
                         start = PreciseTime::now();
                     }
 
-                    app.background_music(&mut sounds, game_over);
+                    app.background_music(&mut sounds, game_over || winning);
                 }
             } else {
                 break;
